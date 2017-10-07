@@ -1,4 +1,4 @@
-const { Bot } = require('./dist/bot.js');
+const { Bot } = require('./dist/Bot.js');
 const botSettings = require('./bot-settings.json')
 
 console.log(botSettings.WATCHTOGETHER_LINK);

@@ -1,5 +1,5 @@
 import * as Discord from 'discord.js';
-import { TextCommand  } from '../types/command';
+import { TextCommand  } from '../mixins/command';
 
 import { BotSettings } from '../bot-settings';
 

@@ -1,25 +1,27 @@
-import { TextCommand } from './types/command';
-
-import { } from 'module';
+import { TextCommand } from './mixins/command';
 
 
 export class Registry {
 
-  private static textCommands: Array<typeof TextCommand> = new Array();;
+  private textCommands: Array<typeof TextCommand> = new Array();;
 
   constructor() {
   }
 
-  addTextCommand(command: typeof TextCommand) {
-    Registry.textCommands.push(command)
+  /**
+   * Adds a new command to the registry
+   * @param constructor Constructor of the command class
+   */
+  addTextCommand(constructor: typeof TextCommand) {
+    this.textCommands.push(constructor)
   }
 
 
-  getTextCommand(message: ParsedMessage): typeof TextCommand {
-    for (var i = 0; i < Registry.textCommands.length; i++) {
-      let command: typeof TextCommand = Registry.textCommands[i];
-      console.log(message.is, command.is);
-      if (message.is === command.is) {
+  getTextCommand(name: string): typeof TextCommand {
+    for (var i = 0; i < this.textCommands.length; i++) {
+      let command: typeof TextCommand = this.textCommands[i];
+      console.log(name, command.is);
+      if (name === command.is) {
         return command;
       }
     }
@@ -27,7 +29,7 @@ export class Registry {
     return null;
   }
 
-  static getAllTextCommands(): Array<typeof TextCommand> {
+  getAllTextCommands(): Array<typeof TextCommand> {
     return this.textCommands;
   }
 }

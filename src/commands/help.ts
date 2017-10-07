@@ -1,8 +1,6 @@
 import * as Discord from 'discord.js';
-import { TextCommand } from '../types/command';
+import { TextCommand } from '../mixins/command';
 import { Registry } from '../registry';
-
-
 
 export class Help extends TextCommand {
 
@@ -19,7 +17,8 @@ export class Help extends TextCommand {
   }
 
   static run(message: Discord.Message, parsedMessage: ParsedMessage) {
-    let commands = Registry.getAllTextCommands();
+    let commands;
+    // commands = Registry.getAllTextCommands();
     let embed = new Discord.RichEmbed();
     embed
       // .setTitle("Help")

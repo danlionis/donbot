@@ -2,9 +2,9 @@ import * as Discord from 'discord.js';
 import parseMessage from './utils/message-parser';
 import valid from './utils/message-validator';
 
-import { TextCommand } from './types/command';
+import { TextCommand } from './mixins/command';
 import builtInCommands from './commands';
-import { Registry } from './registry';
+import { Registry } from './Registry';
 
 import { BotSettings } from './bot-settings';
 
@@ -46,7 +46,7 @@ class Bot extends Discord.Client {
   }
 
 
-  private connect(token: string = undefined) {
+  private connect(token: string = this.BOT_LOGIN_TOKEN) {
 
     /**
      * check if a login token is given
@@ -54,7 +54,7 @@ class Bot extends Discord.Client {
     if (!this.BOT_LOGIN_TOKEN && !token) {
       return console.log("please provide a login token");
     } else {
-      this.BOT_LOGIN_TOKEN = token || this.BOT_LOGIN_TOKEN;
+      this.BOT_LOGIN_TOKEN = token;
     }
 
     this.login(this.BOT_LOGIN_TOKEN).then(() => {
@@ -80,7 +80,7 @@ class Bot extends Discord.Client {
       /**
        * get command associated with message
        */
-      let command = this.registry.getTextCommand(parsedMessage);
+      let command = this.registry.getTextCommand(parsedMessage.is);
 
       /**
        * execute command if it exists
