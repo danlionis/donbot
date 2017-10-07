@@ -10,7 +10,6 @@
     "./src/**/*"
   ],
   "files": [
-    "./typings/typings.d.ts",
-    "./typings/command.d.ts"
+    "./typings/typings.d.ts"
   ]
 }

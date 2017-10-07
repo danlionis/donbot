@@ -1,18 +1,24 @@
 import * as Discord from 'discord.js';
-import Command from '../command';
+import { TextCommand  } from '../types/command';
 
-export class Clear extends Command {
+import { BotSettings } from '../bot-settings';
+
+export class Clear extends TextCommand {
 
   constructor() {
     super();
   }
 
   static get is() {
-    return "clear the window";
+    return "clear";
   }
 
-  static get command() {
-    return "clear"
+  static get help() {
+    return `${BotSettings.BOT_CMD_PREFIX}clear <silent>`;
+  }
+
+  static get description() {
+    return "clears the last 100 chat messages"
   }
 
   static get args() {
@@ -27,16 +33,16 @@ export class Clear extends Command {
   }
 
 
-  static run() {
-    console.log("clear is running");
+  static run(message: Discord.Message, parsedMessage: ParsedMessage) {
+    message.channel.fetchMessages({ limit: 99 }).then((messages) => {
+      if (messages.array().length >= 2) {
+        message.channel.bulkDelete(messages);
+        if (parsedMessage.args[0] !== "silent" && parsedMessage.args[0] !== "s") {
+          message.channel.send(`Messages cleared by ${message.author.toString()}`)
+        }
+      }
+    })
   }
 }
 
 export default Clear;
-// export let Clear = {
-//   name: "clear",
-//   cmd: "",
-//   run: (bot: Discord.Client, message: Discord.Message) => {
-
-//   }
-// }

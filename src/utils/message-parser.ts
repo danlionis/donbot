@@ -1,7 +1,6 @@
 import * as Discord from 'discord.js';
-import { BOT_CMD_PREFIX } from '../bot-settings';
 
-export default function parseMessage(message: Discord.Message) {
+export default function parseMessage(message: Discord.Message): ParsedMessage {
 
 
   let args = message.content.split(" ");
@@ -11,12 +10,14 @@ export default function parseMessage(message: Discord.Message) {
       i--;
     }
   }
-  let command = args.shift().toLowerCase().substr(1);
+  let is = args.shift().toLowerCase().substr(1);
 
-  let msg: Command = {
-    args,
-    command
+  
+  let msg: ParsedMessage = {
+    is,
+    args
   };
+  console.log("\t[Message Parser] parsed message", msg);
 
   return msg;
 
