@@ -1,13 +1,17 @@
-// class Command {
+export class Command {
 
-//   name: string;
-//   cmd: string;
-//   description: string;
-//   neededPermissions: Array<string>;
+  constructor() {
+    console.log("constructor of a command");
+  }
 
+  static get is(): string {
+    return null;
+  }
 
+  static get command(): string {
+    return undefined;
+  }
 
-//   constructor({name, cmd}) {
-    
-//   }
-// }
+}
+
+export default Command;

@@ -1,5 +1,5 @@
 import { Clear } from './clear';
 
-export default {
+export default [
   Clear
-}
+]
