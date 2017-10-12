@@ -30,8 +30,8 @@ typings/
 # dotenv environment variables file
 .env
 
-# Compiled code
-lib/
+# Source code
+src/
 
 # Misc
 /index.js
