@@ -4,6 +4,10 @@
   "description": "",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/danlionis/donbot.git"
+  },
   "scripts": {
     "prepublish": "npm run build",
     "prebuild": "rimraf lib",
