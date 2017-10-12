@@ -1,27 +1,56 @@
 import * as Discord from 'discord.js';
+import { Registry } from '../registry';
+import { Bot } from '../';
+import { ParsedMessage } from '../types';
 
-export class TextCommand {
+
+class TextCommand {
 
   constructor() {
     console.log("constructor of a command");
   }
 
-  static get is(): string {
+  /**
+   * get the name of the command
+   */
+  public static get is(): string {
     return undefined;
   }
 
-  static get description(): string {
+  /**
+   * get the description of the command
+   */
+  public static get description(): string {
     return undefined;
   }
 
-  static get help(): string {
+  /**
+   * get the help text of the command
+   */
+  public static get help(): string {
     return undefined;
   }
 
-  static run(message: Discord.Message, parsedMessage: ParsedMessage): void {
+  /**
+   * get required permissions for the command
+   */
+  public static get permissions(): Array<string> {
+    return null;
+  }
+
+  /**
+   * Run the command
+   * @param message {Discord.Message} - raw message
+   * @param parsedMessage {ParsedMessage} - parsed message
+   * @param registry {Registry} - registry
+   */
+  public static run(message: Discord.Message, parsedMessage: ParsedMessage, bot?: Bot): void {
     message.channel.send("there is no command with this name");
   }
 
 }
 
 export default TextCommand;
+export {
+  TextCommand,
+};

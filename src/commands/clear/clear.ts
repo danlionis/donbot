@@ -1,7 +1,9 @@
 import * as Discord from 'discord.js';
-import { TextCommand  } from '../mixins/command';
+import { TextCommand } from '../../mixins/text-command';
+import { BotSettings } from '../../bot-settings';
 
-import { BotSettings } from '../bot-settings';
+import { ParsedMessage } from '../../types';
+
 
 export class Clear extends TextCommand {
 
@@ -21,18 +23,11 @@ export class Clear extends TextCommand {
     return "clears the last 100 chat messages"
   }
 
-  static get args() {
+  static get permissions(): Array<string> {
     return [
-      {
-        name: "arg1",
-        aliases: [
-          "a"
-        ]
-      }
+      "MANAGE_MESSAGES"
     ]
   }
-
-
   static run(message: Discord.Message, parsedMessage: ParsedMessage) {
     message.channel.fetchMessages({ limit: 99 }).then((messages) => {
       if (messages.array().length >= 2) {

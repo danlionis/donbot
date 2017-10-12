@@ -1,5 +1,8 @@
 import * as Discord from 'discord.js';
-import { TextCommand } from '../mixins/command';
+import { TextCommand } from '../../mixins/';
+import { ParsedMessage } from '../../types';
+
+
 
 export class Test extends TextCommand {
 
@@ -19,19 +22,15 @@ export class Test extends TextCommand {
     return "huiffee";
   }
 
-  static get args() {
+  static get permissions() {
     return [
-      {
-        name: "arg1",
-        aliases: [
-          "a"
-        ]
-      }
+      "ADMINISTRATOR",
+      "MANAGE_CHANNELS"
     ]
   }
 
-
   static run(message: Discord.Message, parsedMessage: ParsedMessage) {
+    console.log("run command");
     message.reply('test command');
   }
 }

@@ -2,64 +2,97 @@ import * as Discord from 'discord.js';
 import parseMessage from './utils/message-parser';
 import valid from './utils/message-validator';
 
-import { TextCommand } from './mixins/command';
+import { TextCommand, ChatFilter } from './mixins';
 import builtInCommands from './commands';
+import builtInFilters from './filters';
 import { Registry } from './Registry';
-
 import { BotSettings } from './bot-settings';
+
+import { BotConfig } from './types';
+
+// import { BotConfig, BotOptions } from '../types';
+
+
 
 class Bot extends Discord.Client {
 
-  private BOT_LOGIN_TOKEN: string;
-  private BOT_CMD_PREFIX: string;
-  private registry: Registry;
+  public registry: Registry;
+  public settings: BotSettings;
 
   /**
    * 
-   * @param opts
+   * @param {string} token login token for the bot
+   * @param {string} prefix prefix for bot commands
+   * @param opts options for bot
    */
-  constructor(token: string, prefix: string, opts?: Object) {
+  constructor({ token, prefix, buildInCommands = true, buildInFilters = true }: BotConfig) {
     super();
-
-    this.BOT_CMD_PREFIX = prefix;
-    this.BOT_LOGIN_TOKEN = token;
-    BotSettings.BOT_CMD_PREFIX = this.BOT_CMD_PREFIX;
-    BotSettings.BOT_CMD_PREFIX = this.BOT_CMD_PREFIX;
-    BotSettings.WATCHTOGETHER_LINK = (<any>opts).WATCHTOGETHER_LINK;
-
     this.registry = new Registry();
-    this.registerCommmands(builtInCommands)
+    this.settings = new BotSettings();
+
+    BotSettings.BOT_CMD_PREFIX = prefix;
+    BotSettings.BOT_LOGIN_TOKEN = token;
+    // BotSettings.WATCHTOGETHER_LINK = (<any>opts).WATCHTOGETHER_LINK || null;
+
+
+
+    if (buildInCommands) this.registerCommmands(builtInCommands);
+    if (buildInFilters) this.registerFilters(builtInFilters);
+
+    this.on('ready', this.ready)
   }
-  
+
+  private ready() {
+    this.messages();
+  }
+
   private registerCommmands(commands: Array<typeof TextCommand>) {
     commands.forEach(command => {
       this.registry.addTextCommand(command);
     });
   }
 
+  private registerFilters(filters: Array<typeof ChatFilter>) {
+    filters.forEach((filter) => {
+      this.registry.addChatFilter(filter);
+    })
+  }
+
+  /**
+   * set the login token
+   */
   public set loginToken(token: string) {
-    this.BOT_LOGIN_TOKEN = token;
+    BotSettings.BOT_LOGIN_TOKEN = token;
   }
 
+  /**
+   * set the command prefix
+   */
   public set commandPrefix(prefix: string) {
-    this.BOT_CMD_PREFIX = prefix;
+    BotSettings.BOT_CMD_PREFIX = prefix;
   }
 
+  public get commandPrefix(){
+    return BotSettings.BOT_CMD_PREFIX;
+  }
 
-  private connect(token: string = this.BOT_LOGIN_TOKEN) {
+  /**
+   * connect the bot
+   * @param {string} token login token for the bot 
+   */
+  public connect(token: string = BotSettings.BOT_LOGIN_TOKEN) {
 
     /**
      * check if a login token is given
      */
-    if (!this.BOT_LOGIN_TOKEN && !token) {
+    if (!BotSettings.BOT_LOGIN_TOKEN && !token) {
       return console.log("please provide a login token");
     } else {
-      this.BOT_LOGIN_TOKEN = token;
+      BotSettings.BOT_LOGIN_TOKEN = token;
     }
 
-    this.login(this.BOT_LOGIN_TOKEN).then(() => {
+    this.login(BotSettings.BOT_LOGIN_TOKEN).then(() => {
       console.log(`Bot connected ${this.user.tag}`);
-      this.messages();
     }).catch((error) => {
       console.log(error);
     })
@@ -70,7 +103,8 @@ class Bot extends Discord.Client {
       /**
        * check if message is valid
        */
-      if (!valid(message, this.BOT_CMD_PREFIX)) return;
+      if (!valid(message, BotSettings.BOT_CMD_PREFIX)) return;
+      if (!valid(message, BotSettings.BOT_CMD_PREFIX)) return;
 
       /**
        * parse message
@@ -82,19 +116,26 @@ class Bot extends Discord.Client {
        */
       let command = this.registry.getTextCommand(parsedMessage.is);
 
-      /**
-       * execute command if it exists
-       */
       if (!command) {
-        return;
+        return message.reply(`404 Command not found. Type ${BotSettings.BOT_CMD_PREFIX}help for a list of commands`);
+      }
+
+      let permission = true;
+      if (command.permissions) {
+        permission = message.member.hasPermission(command.permissions as Discord.PermissionResolvable[]);
+      }
+      /**
+       * return if user does not have the required permissions
+       */
+      if (!permission) {
+        return message.reply("Denied");
       }
       if (command.run) {
-        command.run(message, parsedMessage);
-        // console.log("[Command run]", command.run);
+        command.run(message, parsedMessage, this);
       }
     })
   }
 }
 
 export default Bot;
-export { BotSettings, Bot };
+export { Bot };

@@ -1,20 +1,22 @@
 {
-  "name": "discordbot",
+  "name": "donbot",
   "version": "1.0.0",
   "description": "",
-  "main": "./index.js",
-  "types": "./typings.d.ts",
+  "main": "./lib/index",
+  "types": "./lib/index",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "build:live": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./index.js"
   },
   "author": "Dan Lionis",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^11.2.1"
+    "discord.js": "^11.2.1",
+    "dotenv": "^4.0.0"
   },
   "devDependencies": {
-    "awesome-typescript-loader": "^3.2.3",
-    "source-map-loader": "^0.2.2",
     "typescript": "^2.5.3"
   }
 }

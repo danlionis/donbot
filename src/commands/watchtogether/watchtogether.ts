@@ -1,6 +1,9 @@
 import * as Discord from 'discord.js';
-import { TextCommand } from '../mixins/command';
-import { BotSettings } from '../bot-settings';
+import { TextCommand } from '../../mixins/';
+import { BotSettings } from '../../';
+import { ParsedMessage } from '../../types';
+
+
 
 export class WatchTogether extends TextCommand {
 
