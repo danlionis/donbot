@@ -3,7 +3,7 @@
   "version": "1.0.3",
   "description": "",
   "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "typings": "./typings/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/danlionis/donbot.git"

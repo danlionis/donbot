@@ -1,34 +1,22 @@
 import * as Discord from 'discord.js';
-import { TextCommand } from '../../mixins/text-command';
-import { BotSettings } from '../../bot-settings';
-
+import { Bot } from '../../';
+import { TextCommand } from '../../mixins';
 import { ParsedMessage } from '../../types';
-
 
 export class Clear extends TextCommand {
 
   constructor() {
-    super();
+    super({
+      command: "clear",
+      help: "clear <silent?>",
+      description: "Clears the last 100 chat messages",
+      permissions: [
+        "MANAGE_MESSAGES"
+      ]
+    });
   }
 
-  static get is() {
-    return "clear";
-  }
-
-  static get help() {
-    return `${BotSettings.BOT_CMD_PREFIX}clear <silent>`;
-  }
-
-  static get description() {
-    return "clears the last 100 chat messages"
-  }
-
-  static get permissions(): Array<string> {
-    return [
-      "MANAGE_MESSAGES"
-    ]
-  }
-  static run(message: Discord.Message, parsedMessage: ParsedMessage) {
+  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
     message.channel.fetchMessages({ limit: 99 }).then((messages) => {
       if (messages.array().length >= 2) {
         message.channel.bulkDelete(messages);

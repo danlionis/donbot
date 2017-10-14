@@ -1,41 +1,49 @@
 import * as Discord from 'discord.js';
-import { Registry } from '../registry';
 import { Bot } from '../';
-import { ParsedMessage } from '../types';
+import { ParsedMessage, TextCommandConfig } from '../types';
 
 
-class TextCommand {
+export class TextCommand {
 
-  constructor() {
-    console.log("constructor of a command");
+  private _command: string;
+  private _description: string;
+  private _help: string
+  private _permissions: Array<string | number>
+
+  constructor({ command = "", description = "", help = "", permissions = [] }: TextCommandConfig) {
+    this._command = command;
+    this._description = description;
+    this._help = help;
+    this._permissions = permissions;
   }
+
 
   /**
    * get the name of the command
    */
-  public static get is(): string {
-    return undefined;
+  public get is(): string {
+    return this._command;
   }
 
   /**
    * get the description of the command
    */
-  public static get description(): string {
-    return undefined;
+  public get description(): string {
+    return this._description;
   }
 
   /**
    * get the help text of the command
    */
-  public static get help(): string {
-    return undefined;
+  public get help(): string {
+    return this._help;
   }
 
   /**
    * get required permissions for the command
    */
-  public static get permissions(): Array<string> {
-    return null;
+  public get permissions(): Array<string | number> {
+    return this._permissions;
   }
 
   /**
@@ -44,13 +52,16 @@ class TextCommand {
    * @param parsedMessage {ParsedMessage} - parsed message
    * @param registry {Registry} - registry
    */
-  public static run(message: Discord.Message, parsedMessage: ParsedMessage, bot?: Bot): void {
-    message.channel.send("there is no command with this name");
+  //TODO: args
+  // public async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
+  //   return message.channel.send("there is no command with this name");
+  // }
+  public async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<void> {
+    if (parsedMessage.args[0] === "-h" || "h") {
+      message.author.send(this.help);
+    }
   }
 
 }
 
 export default TextCommand;
-export {
-  TextCommand,
-};

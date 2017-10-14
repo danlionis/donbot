@@ -14,7 +14,7 @@ import { BotConfig } from './types';
 
 
 
-class Bot extends Discord.Client {
+export class Bot extends Discord.Client {
 
   public registry: Registry;
   public settings: BotSettings;
@@ -30,8 +30,8 @@ class Bot extends Discord.Client {
     this.registry = new Registry();
     this.settings = new BotSettings();
 
-    BotSettings.BOT_CMD_PREFIX = prefix;
-    BotSettings.BOT_LOGIN_TOKEN = token;
+    this.settings.prefix = prefix;
+    this.settings.token = token;
     // BotSettings.WATCHTOGETHER_LINK = (<any>opts).WATCHTOGETHER_LINK || null;
 
 
@@ -46,7 +46,7 @@ class Bot extends Discord.Client {
     this.messages();
   }
 
-  private registerCommmands(commands: Array<typeof TextCommand>) {
+  private registerCommmands(commands: Array<any>) {
     commands.forEach(command => {
       this.registry.addTextCommand(command);
     });
@@ -62,36 +62,36 @@ class Bot extends Discord.Client {
    * set the login token
    */
   public set loginToken(token: string) {
-    BotSettings.BOT_LOGIN_TOKEN = token;
+    this.settings.token = token;
   }
 
   /**
    * set the command prefix
    */
   public set commandPrefix(prefix: string) {
-    BotSettings.BOT_CMD_PREFIX = prefix;
+    this.settings.prefix = prefix;
   }
 
-  public get commandPrefix(){
-    return BotSettings.BOT_CMD_PREFIX;
+  public get commandPrefix() {
+    return this.settings.prefix;
   }
 
   /**
    * connect the bot
    * @param {string} token login token for the bot 
    */
-  public connect(token: string = BotSettings.BOT_LOGIN_TOKEN) {
+  public connect(token: string = this.settings.token) {
 
     /**
      * check if a login token is given
      */
-    if (!BotSettings.BOT_LOGIN_TOKEN && !token) {
+    if (!this.settings.token && !token) {
       return console.log("please provide a login token");
     } else {
-      BotSettings.BOT_LOGIN_TOKEN = token;
+      this.settings.token = token;
     }
 
-    this.login(BotSettings.BOT_LOGIN_TOKEN).then(() => {
+    this.login(this.settings.token).then(() => {
       console.log(`Bot connected ${this.user.tag}`);
     }).catch((error) => {
       console.log(error);
@@ -100,24 +100,25 @@ class Bot extends Discord.Client {
 
   private messages() {
     this.on('message', (message: Discord.Message) => {
+      console.log("[EVENT]: Message");
       /**
        * check if message is valid
        */
-      if (!valid(message, BotSettings.BOT_CMD_PREFIX)) return;
-      if (!valid(message, BotSettings.BOT_CMD_PREFIX)) return;
+      if (!valid(message, this.settings.prefix)) return;
 
       /**
        * parse message
        */
-      let parsedMessage = parseMessage(message);
+      let parsedMessage = parseMessage(message, this.settings.prefix);
 
       /**
        * get command associated with message
        */
-      let command = this.registry.getTextCommand(parsedMessage.is);
+      let command: TextCommand = this.registry.getTextCommand(parsedMessage.is);
+
 
       if (!command) {
-        return message.reply(`404 Command not found. Type ${BotSettings.BOT_CMD_PREFIX}help for a list of commands`);
+        return message.reply(`404 Command not found. Type ${this.settings.prefix}help for a list of commands`);
       }
 
       let permission = true;
@@ -131,11 +132,10 @@ class Bot extends Discord.Client {
         return message.reply("Denied");
       }
       if (command.run) {
-        command.run(message, parsedMessage, this);
+        command.run(this, message, parsedMessage);
       }
     })
   }
 }
 
 export default Bot;
-export { Bot };

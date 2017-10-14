@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
-import { TextCommand } from '../../mixins/';
-import { BotSettings } from '../../';
+import { Bot } from '../../';
+import { TextCommand } from '../../mixins';
 import { ParsedMessage } from '../../types';
 
 
@@ -8,23 +8,19 @@ import { ParsedMessage } from '../../types';
 export class WatchTogether extends TextCommand {
 
   constructor() {
-    super();
+    super({
+      command: "wtg",
+      description: "sends a watchtogether link"
+    });
   }
 
-  static get is() {
-    return "wtg";
-  }
-
-  static get description() {
-    return "sends a watch2gether link"
-  }
-
-  static get help() {
-    return "huiffee";
-  }
-
-  static run(message: Discord.Message, parsedMessage: ParsedMessage) {
-    message.channel.send(BotSettings.WATCHTOGETHER_LINK)
+  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+    // message.channel.send(BotSettings.WATCHTOGETHER_LINK)
+    message.member.voiceChannel.members.map((member) => {
+      member.send("asdlöfj")
+    })
+    message.delete();
+    // console.log(message.member.voiceChannel.members.array());
   }
 }
 

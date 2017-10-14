@@ -9,3 +9,10 @@ export interface BotConfig {
   buildInCommands?: boolean;
   buildInFilters?: boolean;
 }
+
+export interface TextCommandConfig {
+  command: string;
+  description?: string;
+  help?: string;
+  permissions?: Array<string | number>;
+}
