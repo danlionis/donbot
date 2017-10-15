@@ -25,13 +25,15 @@ export class Bot extends Discord.Client {
    * @param {string} prefix prefix for bot commands
    * @param opts options for bot
    */
-  constructor({ token, prefix, buildInCommands = true, buildInFilters = true }: BotConfig) {
+  constructor({ token = "", prefix = "", buildInCommands = true, buildInFilters = true, extras = {} }: BotConfig) {
     super();
     this.registry = new Registry();
     this.settings = new BotSettings();
 
     this.settings.prefix = prefix;
     this.settings.token = token;
+    this.settings.extras = extras;
+    console.log(this.settings.extras);
     // BotSettings.WATCHTOGETHER_LINK = (<any>opts).WATCHTOGETHER_LINK || null;
 
 

@@ -8,6 +8,7 @@ export interface BotConfig {
   prefix?: string;
   buildInCommands?: boolean;
   buildInFilters?: boolean;
+  extras?: Object;
 }
 
 export interface TextCommandConfig {
