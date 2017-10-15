@@ -1,6 +1,7 @@
 export class BotSettings {
   private _token: string;
   private _prefix: string;
+  private _extras: Object;
   private readonly defaultPrefix: string = "."
 
   get token(): string {
@@ -17,6 +18,14 @@ export class BotSettings {
 
   set prefix(prefix: string) {
     this._prefix = prefix || this.defaultPrefix;
+  }
+
+  get extras(): Object {
+    return this._extras;
+  }
+
+  set extras(extras: Object) {
+    this._extras = extras;
   }
 
 }

@@ -16,11 +16,20 @@ export class WatchTogether extends TextCommand {
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
     // message.channel.send(BotSettings.WATCHTOGETHER_LINK)
-    message.member.voiceChannel.members.map((member) => {
-      member.send("asdlöfj")
-    })
+    let wtgLink = (<any>bot.settings.extras)["watchtogether_link"];
+    let embed = new Discord.RichEmbed()
+    embed
+      .setColor("#FACD3B")
+      .addField(`${message.member.displayName} invited you to Watch2Gether`, wtgLink)
+      .setTimestamp()
+    if (message.member.voiceChannel && parsedMessage.args[0] === "p") {
+      message.member.voiceChannel.members.map((member) => {
+        member.send(embed);
+      })
+    } else {
+      message.channel.send(embed);
+    }
     message.delete();
-    // console.log(message.member.voiceChannel.members.array());
   }
 }
 
