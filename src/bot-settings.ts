@@ -1,15 +1,33 @@
 export class BotSettings {
-  static BOT_LOGIN_TOKEN: string;
-  private static prefix: string;
-  static WATCHTOGETHER_LINK: string;
+  private _token: string;
+  private _prefix: string;
+  private _extras: Object;
+  private readonly defaultPrefix: string = "."
 
-  static get BOT_CMD_PREFIX(): string {
-    return this.prefix;
+  get token(): string {
+    return this._token
   }
 
-  static set BOT_CMD_PREFIX(prefix: string) {
-    this.prefix = prefix || ".";
+  set token(token: string) {
+    this._token = token;
   }
+
+  get prefix(): string {
+    return this._prefix || this.defaultPrefix;
+  }
+
+  set prefix(prefix: string) {
+    this._prefix = prefix || this.defaultPrefix;
+  }
+
+  get extras(): Object {
+    return this._extras;
+  }
+
+  set extras(extras: Object) {
+    this._extras = extras;
+  }
+
 }
 
 export default BotSettings;

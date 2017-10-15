@@ -1,38 +1,22 @@
 import * as Discord from 'discord.js';
-import { TextCommand } from '../../mixins/';
+import { Bot } from '../../';
+import { TextCommand } from '../../mixins';
 import { ParsedMessage } from '../../types';
 
-
-
 export class Test extends TextCommand {
-
   constructor() {
-    super();
+    super({
+      command: "test",
+      help: "huifee",
+      description: "beschreibung",
+      permissions: [
+        "ADMINSTRATOR"
+      ]
+    })
   }
 
-  static get is() {
-    return "test";
-  }
-
-  static get description() {
-    return "test description"
-  }
-
-  static get help() {
-    return "huiffee";
-  }
-
-  static get permissions() {
-    return [
-      "ADMINISTRATOR",
-      "MANAGE_CHANNELS"
-    ]
-  }
-
-  static run(message: Discord.Message, parsedMessage: ParsedMessage) {
-    console.log("run command");
-    message.reply('test command');
-  }
+  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+    super.run(bot, message, parsedMessage);
+    message.reply("Test Command")
+  }  
 }
-
-export default Test;
