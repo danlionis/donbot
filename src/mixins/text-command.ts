@@ -8,21 +8,41 @@ export class TextCommand {
   private _command: string;
   private _description: string;
   private _help: string
-  private _permissions: Array<string | number>
+  private _permissions: Array<string>
+  private _roles: Array<string>;
+  private _minRole: string;
+  private _aliases: Array<string>;
+  private _ownerOnly: boolean;
 
-  constructor({ command = "", description = "", help = "", permissions = [] }: TextCommandConfig) {
+
+  constructor({ command = "", description = "", help = "", permissions = [], roles = [], minRole = "", aliases = [], ownerOnly = false }: TextCommandConfig) {
     this._command = command;
     this._description = description;
     this._help = help;
-    this._permissions = permissions;
+    this._permissions = permissions.map(p => p.toUpperCase());
+    this._roles = roles;
+    this._minRole = minRole;
+    this._ownerOnly = ownerOnly;
+    aliases.unshift(command);
+    this._aliases = aliases;
   }
 
+  public get onwerOnly(): boolean {
+    return this._ownerOnly;
+  }
 
   /**
    * get the name of the command
    */
   public get is(): string {
     return this._command;
+  }
+
+  /**
+   * get all possilbe aliases for this command
+   */
+  public get aliases(): Array<string> {
+    return this._aliases;
   }
 
   /**
@@ -46,6 +66,14 @@ export class TextCommand {
     return this._permissions;
   }
 
+  public get roles(): Array<string> {
+    return this._roles;
+  }
+
+  public get minRole(): string {
+    return this._minRole;
+  }
+
   /**
    * Run the command
    * @param message {Discord.Message} - raw message
@@ -56,8 +84,8 @@ export class TextCommand {
   // public async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
   //   return message.channel.send("there is no command with this name");
   // }
-  public async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<void> {
-    if (parsedMessage.args[0] === "-h" || "h") {
+  public async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
+    if (parsedMessage.args[0] === "-h") {
       message.author.send(this.help);
     }
   }
