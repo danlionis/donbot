@@ -3,22 +3,23 @@ import { Bot } from '../../';
 import { TextCommand } from '../../mixins';
 import { ParsedMessage } from '../../types';
 
-export class ChangePrefix extends TextCommand {
+export class Game extends TextCommand {
 
   constructor() {
     super({
-      command: "prefix",
-      help: "prefix [new prefix]",
-      permissions: [
-        "ADMINISTRATOR"
+      command: "game",
+      description: "set the current game",
+      help: "game [game]",
+      ownerOnly: true,
+      aliases: [
+        "playing"
       ]
     })
   }
   
   async run(bot: Bot, messsage: Discord.Message, parsedMessage: ParsedMessage) {
-    bot.settings.prefix = parsedMessage.args[0]
-    messsage.reply(`Changed command prefix to ${bot.settings.prefix}`)
+    bot.user.setGame(parsedMessage.args.join(" ")).catch(err => console.log(err))
   }
 }
 
-export default ChangePrefix;
+export default Game;

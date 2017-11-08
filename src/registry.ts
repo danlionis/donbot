@@ -1,53 +1,55 @@
 import { TextCommand, ChatFilter } from './mixins';
+import { Help } from './commands/admin';
+import { Bot } from './bot';
+import { ParsedMessage } from './types';
+
+import * as Discord from 'discord.js';
+
+import * as colors from 'colors/safe';
 
 export class Registry {
 
-  private textCommands: Array<TextCommand> = new Array();
+  textCommands: Array<TextCommand> = new Array();
   private chatFilters: Array<ChatFilter> = new Array();
 
+  private _helpCommand: TextCommand;
+
   constructor() {
+    this.addTextCommand(Help);
+
   }
 
   /**
    * Adds a new command to the registry
    * @param constructor Constructor of the command class
    */
-  addTextCommand<T extends TextCommand>(constructor: new() => T) {
-
+  addTextCommand<T extends TextCommand>(constructor: new () => T) {
     let cmd: TextCommand = new constructor();
-    
     this.textCommands.push(cmd);
-    console.log("[Registry] + (textCommand)", cmd.is);
+    console.log(colors.yellow("[R]"), "+", colors.blue("(C)"), cmd.is);
   }
-
-  /**
-   * Adds a new filter to the registry
-   * @param constructor Constructor of the filter class
-   */
-  addChatFilter(constructor: typeof ChatFilter) {
-    // this.chatFilters.push(constructor);
-    // console.log("[Registry] + (filter)", constructor.filter);
-  }
-
 
   /**
    * get the command class associated with the command name
    * @param {string} name command name
    */
   getTextCommand(name: string): TextCommand {
-    for (var i = 0; i < this.textCommands.length; i++) {
-      let command: TextCommand = this.textCommands[i];
-      if (name === command.is) {
-        return command;
-      }
-    }
 
-    return null;
+    // find a textCommand where any aliase equals the provided name
+    return this.textCommands.find(tc => tc.aliases.some(a => a === name));
   }
 
-  getAllTextCommands(): Array<TextCommand> {
-    return this.textCommands;
+  // get textCommands(): Array<TextCommand> {
+  //   return this.textCommands;
+  // }
+
+  executeCommand(command: string, bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+    let cmd = this.textCommands.find(tc => tc.is === command);
+    cmd.run(bot, message, parsedMessage);
+
   }
+
+
 }
 
 export default Registry;

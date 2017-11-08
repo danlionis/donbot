@@ -5,6 +5,7 @@
     "noImplicitAny": true,
     "module": "commonjs",
     "moduleResolution": "node",
+    "declaration": true,
     "target": "es6"
   },
   "include": [

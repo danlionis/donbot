@@ -1,6 +1,7 @@
 import * as Discord from 'discord.js';
 import { Bot } from '../';
 import { ParsedMessage } from '../types';
+import * as colors from "colors/safe"
 
 
 export default function parseMessage(message: Discord.Message, cmdPrefix: string): ParsedMessage {
@@ -20,7 +21,8 @@ export default function parseMessage(message: Discord.Message, cmdPrefix: string
     is,
     args
   };
-  console.log("\t[Message Parser] parsed message", msg);
+  // console.log("[Message Parser] parsed message", msg);
+  console.log(`${colors.yellow("[C]")} by ${colors.blue(message.author.tag)}: ${msg.is} [${msg.args.join(",")}]`);
 
   return msg;
 

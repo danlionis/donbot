@@ -3,22 +3,18 @@ import { Bot } from '../../';
 import { TextCommand } from '../../mixins';
 import { ParsedMessage } from '../../types';
 
-export class Test extends TextCommand {
+export class OutputCommand extends TextCommand {
   
   constructor() {
     super({
-      command: "test",
+      command: "outputcommand",
       aliases: [
-        "testing"
+        "oc"
       ],
-      description: "Testnachricht senden",
+      description: "Outputs the contents of a command to the console",
       permissions: [
-        // "ADMINISTRATOR"
+        "ADMINISTRATOR"
       ],
-      roles: [
-        "DJ"
-      ]
-      // minRole: "Mod"
     })
   }
 

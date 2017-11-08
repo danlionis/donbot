@@ -10,7 +10,10 @@ export class WatchTogether extends TextCommand {
   constructor() {
     super({
       command: "wtg",
-      description: "sends a watchtogether link"
+      description: "sends a watchtogether link",
+      roles: [
+        "Watch2Gether"
+      ]
     });
   }
 

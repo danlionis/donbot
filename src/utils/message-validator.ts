@@ -2,10 +2,6 @@ import * as Discord from 'discord.js';
 import { Bot } from '../';
 
 export default function validate(message: Discord.Message, cmdPrefix: string): boolean {
-  /**
-   * test if the autor is a bot
-   */
-  if (message.author.bot) return false;
 
   /**
    * check if command has right prefix
@@ -19,7 +15,8 @@ export default function validate(message: Discord.Message, cmdPrefix: string): b
    */
   let expression = prefix + "[a-zA-Z]+\s*(\s*.+\s*)*"
   let regexp = new RegExp(expression);
-  console.log("\t[Message Validator] nicely formatted", regexp.test(message.content));
+  // console.log(regexp);
+  // console.log("\t[Message Validator] nicely formatted", regexp.test(message.content));
   if (!regexp.test(message.content)) return false;
 
   return true;

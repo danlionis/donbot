@@ -1,15 +1,19 @@
 import { ChatFilter } from '../../mixins';
 import * as Discord from 'discord.js';
+import { Bot } from '../../bot';
 
 export class Test extends ChatFilter {
 
-  static get filter(): string {
-    return "test"
+  constructor() {
+    super({
+      filter: "poll: "
+    })
   }
 
-  static run(message: Discord.Message) {
-    message.channel.send("test");
+  async run(bot: Bot, message: Discord.Message) {
+
   }
+
 }
 
 export default Test;
