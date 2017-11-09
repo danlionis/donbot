@@ -1,5 +1,5 @@
 import { TextCommand, ChatFilter } from './mixins';
-import { Help } from './commands/admin';
+import { Help } from './commands';
 import { Bot } from './bot';
 import { ParsedMessage } from './types';
 

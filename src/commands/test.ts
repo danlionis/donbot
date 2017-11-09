@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
-import { Bot } from '../../';
-import { TextCommand } from '../../mixins';
-import { ParsedMessage } from '../../types';
+import { Bot } from '../';
+import { TextCommand } from '../mixins';
+import { ParsedMessage } from '../types';
 
 export class Test extends TextCommand {
   
@@ -15,9 +15,6 @@ export class Test extends TextCommand {
       permissions: [
         // "ADMINISTRATOR"
       ],
-      roles: [
-        "DJ"
-      ]
       // minRole: "Mod"
     })
   }

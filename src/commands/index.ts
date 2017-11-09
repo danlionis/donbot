@@ -1,37 +1,44 @@
-import { Clear, Poll, TimeMute } from './moderation';
-import { Test } from './testing/test';
-import { Help, Game, GiveAdmin, ChangePrefix } from './admin';
-import { WatchTogether } from './other/watchtogether';
+import { Help } from './help';
+import { Random, Choice } from './general';
+import { ChangePrefix, Playing } from './admin';
+import { TimeMute, TimeDeaf, Clear, Poll } from './moderation';
+import { Join, Pause, Stop, Disconenct, Resume, Volume } from './music';
+import { Test } from './test';
+// import { WatchTogether } from './other/watchtogether';
 import { AltF4 } from './fun';
-import { Join, Stop, Disconenct, Volume } from './music';
 
 export {
   Test,
   Clear,
   Help,
-  WatchTogether,
+  // WatchTogether,
   ChangePrefix
 }
 
 export let defaultCommands = [
   Clear,
   Test,
-  WatchTogether,
+  // WatchTogether,
   ChangePrefix,
   AltF4,
   Join,
   Stop,
   Disconenct,
-  Game,
-  GiveAdmin,
+  Playing,
+  // GiveAdmin,
   Poll,
   Volume,
-  TimeMute
+  TimeMute,
+  TimeDeaf,
+  Random,
+  Choice
 ]
 
 export let musicCommands = [
   Join,
   Stop,
   Disconenct,
-  Volume
+  Volume,
+  Pause,
+  Resume
 ]
