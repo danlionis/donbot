@@ -3,7 +3,7 @@ import { Random, Choice } from './general';
 import { ChangePrefix, Playing } from './admin';
 import { TimeMute, TimeDeaf, Clear, Poll } from './moderation';
 import { Join, Pause, Stop, Disconenct, Resume, Volume } from './music';
-import { Test } from './test';
+import { Test, TrollMove } from './test';
 // import { WatchTogether } from './other/watchtogether';
 import { AltF4 } from './fun';
 
@@ -31,7 +31,8 @@ export let defaultCommands = [
   TimeMute,
   TimeDeaf,
   Random,
-  Choice
+  Choice,
+  TrollMove
 ]
 
 export let musicCommands = [

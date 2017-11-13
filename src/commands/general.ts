@@ -19,39 +19,55 @@ export class Random extends TextCommand {
 
     let min = 1;
     let max = 10;
-    let regex = /\d-\d/;
+    let regexRange = /\d-\d/;
+    let regexValid = /^\d+$/;
 
-    if (regex.test(parsedMessage.args[0])) {
+    // test if command provided a range e.g. [p]random 6-45
+    if (regexRange.test(parsedMessage.args[0])) {
       let args = parsedMessage.args[0].split("-");
       min = +args[0];
       max = +args[1];
-    } else if (parsedMessage.args.length > 0) {
+    } else if (parsedMessage.args.length > 0 && regexValid.test(parsedMessage.args[0])) {
       max = +parsedMessage.args[0];
     }
 
     let count = 1;
-    if (parsedMessage.args.length > 1) {
+    if (parsedMessage.args.length > 1 && regexValid.test(parsedMessage.args[1])) {
       count = Math.min(+parsedMessage.args[1], 200);
     }
 
     console.log(count);
 
     let numbers: Array<number> = [];
+    
     for (var i = 0; i < count; i++) {
       numbers.push(Math.floor(Math.random() * (max + 1 - min) + min));
     }
 
-    let average: number = 0;;
+    if (count > 1) {
+      
+      let average: number = 0;
+      
+      numbers.forEach(num => {
+        average += num;
+      });
 
-    console.log(numbers);
+      // round average to 1 decimal
+      average = Math.round(average / numbers.length * 10) / 10;
 
-    numbers.forEach(num => {
-      average += num;
-    });
+      let embed = new Discord.RichEmbed()
+      embed.setTitle("Random Generator")
+      embed.addField("Rolls", count, true);
+      embed.addField("Average", average, true);
+      embed.addField("Numbers", `\`\`\`${numbers.join(", ")}\`\`\``);
+      message.channel.send(embed)
+    } else {
+      message.reply(`Your random nubmer is ${numbers.toString()}`)
+    }
 
-    average = average / numbers.length;
 
-    message.reply(`\nRolls: \`${count}\` \nAverage: \`${average}\` \nNumbers: \`${numbers.toString()}\``);
+
+    // message.reply(`\nRolls: \`${count}\` \nAverage: \`${average}\` \nNumbers: \`${numbers.toString()}\``);
 
   }
 }
