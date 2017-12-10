@@ -2,7 +2,7 @@
   "name": "donbot",
   "version": "1.2.2",
   "description": "",
-  "main": "./dist/bundle.js",
+  "main": "./lib/index.js",
   "typings": "./dist/typings/index.d.ts",
   "repository": {
     "type": "git",
