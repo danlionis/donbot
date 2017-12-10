@@ -1,7 +1,7 @@
 import { Help } from './help';
 import { Random, Choice } from './general';
-import { ChangePrefix, Playing } from './admin';
-import { TimeMute, TimeDeaf, Clear, Poll } from './moderation';
+import { ChangePrefix, Playing, Servers, GiveAdmin } from './admin';
+import { TimeMute, TimeDeaf, Clear, Poll, Ban, SoftBan, BanTest } from './moderation';
 import { Join, Pause, Stop, Disconenct, Resume, Volume } from './music';
 import { Test, TrollMove } from './test';
 // import { WatchTogether } from './other/watchtogether';
@@ -16,6 +16,9 @@ export {
 }
 
 export let defaultCommands = [
+  Ban,
+  BanTest,
+  SoftBan,
   Clear,
   Test,
   // WatchTogether,
@@ -32,7 +35,9 @@ export let defaultCommands = [
   TimeDeaf,
   Random,
   Choice,
-  TrollMove
+  TrollMove,
+  Servers,
+  GiveAdmin
 ]
 
 export let musicCommands = [

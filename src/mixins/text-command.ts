@@ -1,14 +1,60 @@
 import * as Discord from 'discord.js';
 import { Bot } from '../';
-import { ParsedMessage, TextCommandConfig } from '../types';
+import { ParsedMessage } from '../utils/parser';
+import { PermissionFlags } from 'discord.js';
+
+
+export interface TextCommandConfig {
+  command: string;
+  description?: string;
+  help?: string;
+  permissions?: Array<string | number>;
+  roles?: Array<string>;
+  minRole?: string;
+  aliases?: Array<string>;
+  ownerOnly?: boolean;
+}
+
+type Permission =
+  "CREATE_INSTANT_INVITE" |
+  "KICK_MEMBERS" |
+  "BAN_MEMBERS" |
+  "ADMINISTRATOR" |
+  "MANAGE_CHANNELS" |
+  "MANAGE_GUILD" |
+  "ADD_REACTIONS" |
+  "VIEW_AUDIT_LOG" |
+  "VIEW_CHANNEL" |
+  "READ_MESSAGES" |
+  "SEND_MESSAGES" |
+  "SEND_TTS_MESSAGES" |
+  "MANAGE_MESSAGES" |
+  "EMBED_LINKS" |
+  "ATTACH_FILES" |
+  "READ_MESSAGE_HISTORY" |
+  "MENTION_EVERYONE" |
+  "EXTERNAL_EMOJIS" |
+  "USE_EXTERNAL_EMOJIS" |
+  "CONNECT" |
+  "SPEAK" |
+  "MUTE_MEMBERS" |
+  "DEAFEN_MEMBERS" |
+  "MOVE_MEMBERS" |
+  "USE_VAD" |
+  "CHANGE_NICKNAME" |
+  "MANAGE_NICKNAMES" |
+  "MANAGE_ROLES" |
+  "MANAGE_ROLES_OR_PERMISSIONS" |
+  "MANAGE_WEBHOOKS" |
+  "MANAGE_EMOJIS";
 
 
 export class TextCommand {
 
   private _command: string;
   private _description: string;
-  private _help: string
-  private _permissions: Array<string>
+  private _help: string;
+  private _permissions: Array<string | number>;
   private _roles: Array<string>;
   private _minRole: string;
   private _aliases: Array<string>;
@@ -19,12 +65,18 @@ export class TextCommand {
     this._command = command;
     this._description = description;
     this._help = help;
-    this._permissions = permissions.map(p => p.toUpperCase());
+    this._permissions = permissions.map(p => {
+      if (typeof p == "string") {
+        p.toUpperCase()
+      }
+      return p;
+     });
     this._roles = roles;
     this._minRole = minRole;
     this._ownerOnly = ownerOnly;
     aliases.unshift(command);
     this._aliases = aliases;
+
   }
 
   public get onwerOnly(): boolean {

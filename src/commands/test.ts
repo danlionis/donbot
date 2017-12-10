@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 import { Bot } from '../';
 import { TextCommand } from '../mixins';
-import { ParsedMessage } from '../types';
+import { ParsedMessage } from '../utils/parser';
 
 export class Test extends TextCommand {
 
@@ -56,10 +56,11 @@ export class TrollMove extends TextCommand {
 
       if (!c) return;
 
-      member.setVoiceChannel(c);
-      setTimeout(function () {
-        move();
-      }, 500);
+      member.setVoiceChannel(c).then(() => {
+        setTimeout(function () {
+          move();
+        }, 500);
+      });
     }
   }
 }

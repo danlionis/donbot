@@ -1,14 +1,25 @@
 import * as Discord from 'discord.js';
-import parseMessage from './utils/message-parser';
 import valid from './utils/message-validator';
 
-import { TextCommand, ChatFilter } from './mixins';
+import { TextCommand } from './mixins';
 import { defaultCommands, musicCommands } from './commands';
-import builtInFilters from './filters';
 import { Registry } from './Registry';
 import { BotSettings } from './bot-settings';
+import { Parser } from './utils/parser';
+import { Validator } from './utils/validator';
+import { setInterval } from 'timers';
 
-import { BotConfig } from './types';
+export interface BotConfig {
+  token?: string;
+  prefix?: string;
+  buildInCommands?: boolean;
+  buildInMusicCommands?: boolean;
+  buildInFilters?: boolean;
+  extras?: Object;
+  game?: string;
+  notifyUnknownCommand?: boolean;
+  owner?: string;
+}
 
 export class Bot extends Discord.Client {
 
@@ -21,14 +32,12 @@ export class Bot extends Discord.Client {
 
   /**
    * 
-   * @param {string} token login token for the bot
-   * @param {string} prefix prefix for bot commands
-   * @param opts options for bot
+   * @param param0 
    */
   constructor({ token = "", prefix = "", buildInCommands = true, buildInMusicCommands = false, buildInFilters = true, game = null, extras = {}, notifyUnknownCommand = true, owner = "" }: BotConfig) {
     super();
     this.registry = new Registry();
-    this.settings = new BotSettings();
+    this.settings = new BotSettings(owner);
     this.defaultGame = `${this.settings.prefix}help for help`;
 
     // init settings
@@ -37,7 +46,6 @@ export class Bot extends Discord.Client {
     this.settings.game = game;
     this.settings.extras = extras;
     this.settings.notifyUnknownCommand = notifyUnknownCommand;
-    this.settings.owner = owner;
 
     if (buildInCommands) this.registerCommmands(defaultCommands);
     if (buildInMusicCommands) this.registerCommmands(musicCommands);
@@ -54,12 +62,19 @@ export class Bot extends Discord.Client {
 
     console.log(`
     Bot Started as ${this.user.tag}
+    ID: ${this.user.id}
     ${this.guilds.array().length} servers
     ${this.channels.array().length} channels
     ${this.users.array().length} users
 
     OwnerId: ${this.settings.owner}
+
+    Invite Link: https://discordapp.com/oauth2/authorize?client_id=${this.user.id}&scope=bot&permissions=8
     `);
+
+    setInterval(() => {
+      this.voiceChecker();
+    }, 60 * 1000)
   }
 
   private registerCommmands(commands: Array<any>) {
@@ -68,31 +83,14 @@ export class Bot extends Discord.Client {
     });
   }
 
-  /**
-   * set the login token
-   */
-  public set loginToken(token: string) {
-    this.settings.token = token;
-  }
 
   /**
-   * set the command prefix
-   */
-  public set commandPrefix(prefix: string) {
-    this.settings.prefix = prefix;
-  }
-
-  public get commandPrefix() {
-    return this.settings.prefix;
-  }
-
-  /**
-   * connect the bot
-   * @param {string} token login token for the bot 
+   * Connect the bot to the server
+   * @param token bot login token
    */
   public connect(token: string = this.settings.token) {
 
-    /**
+    /*
      * check if a login token is given
      */
     if (!this.settings.token && !token) {
@@ -107,20 +105,21 @@ export class Bot extends Discord.Client {
   }
 
   private messages(message: Discord.Message) {
-    if (message.author.bot || message.channel.type === "dm") return;
-    /**
-     * check if message is a valid command
-     */
+    // ignore messages from other bots
+    if (message.author.bot) return;
+
+    // check if message is no private message
+    if (message.channel.type === "dm") return;
+
+    // check if message if formatted like a command
     if (!valid(message, this.settings.prefix)) return;
 
-    /**
-     * parse message
-     */
-    let parsedMessage = parseMessage(message, this.settings.prefix);
+    // parse the message
 
-    /**
-     * get command associated with message
-     */
+    // let parsedMessage = parseMessage(message, this.settings.prefix);
+    let parsedMessage = Parser.parseMessage(message, this.settings.prefix);
+
+    //get command from the registry
     let command: TextCommand = this.registry.getTextCommand(parsedMessage.is);
 
 
@@ -128,7 +127,6 @@ export class Bot extends Discord.Client {
     if (!command || (command.onwerOnly && message.author.id !== this.settings.owner)) {
       if (this.settings.notifyUnknownCommand) {
         return message.reply(`404 Command not found. Type ${this.settings.prefix}help for a list of commands`);
-        // return message.reply(`\`\`\`404 Command not found. Type ${this.settings.prefix}help for a list of commands \`\`\``)
       }
       return;
     }
@@ -140,23 +138,17 @@ export class Bot extends Discord.Client {
       allowed = true;
     }
 
-    // allow for server owner
-    // if (message.member.hasPermission("ADMINISTRATOR")) {
-    //   allowed = true;
-    // }
-
-
+    // allow if user has required permissions
     if (command.permissions.length > 0 && message.member.hasPermission(command.permissions as Discord.PermissionResolvable[])) {
       allowed = true;
     }
 
+    // allow if user has at least the min role
     if (command.permissions.length == 0 && command.roles.length == 0 && !command.minRole) {
       allowed = true;
     }
 
-    /**
-     * check if member has a required role
-     */
+    // allow if the user has some of the allowed roles
     if (message.member.roles.some(r => command.roles.indexOf(r.name) != -1)) {
       allowed = true;
     }
@@ -184,8 +176,36 @@ export class Bot extends Discord.Client {
     this.game = this.defaultGame;
   }
 
-  public getVoiceConnection(message: Discord.Message): Discord.VoiceConnection {
-    return this.voiceConnections.find(vc => vc.channel.guild.id === message.guild.id)
+  /**
+   * 
+   * @param message 
+   */
+  public getVoiceConnection(guildId: string): Discord.VoiceConnection {
+    return this.voiceConnections.find(vc => vc.channel.guild.id === guildId)
+  }
+
+  /**
+   * Check if the id matches the owner id
+   * @param id id to check
+   */
+  public isOwnerId(id: string): boolean {
+    return this.settings.owner === id;
+  }
+
+  public voiceChecker() {
+    let connections = this.voiceConnections
+
+    connections.forEach(c => {
+      if (c.channel.members.array().length <= 1) {
+        c.dispatcher.end();
+        c.disconnect();
+      }
+
+      if (!c.dispatcher || !c.dispatcher.player) {
+        c.disconnect()
+      }
+
+    })
   }
 }
 

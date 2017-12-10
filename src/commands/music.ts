@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 import { Bot } from '../';
 import { TextCommand } from '../mixins';
-import { ParsedMessage } from '../types';
+import { ParsedMessage } from '../utils/parser';
 
 let roles = [
   "DJ"
@@ -18,7 +18,7 @@ export class Join extends TextCommand {
   }
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
-    let con = bot.getVoiceConnection(message);
+    let con = bot.getVoiceConnection(message.guild.id);
 
     if (!message.member.voiceChannel) {
       return message.reply("You have to be in a Voice Channel")
@@ -44,11 +44,11 @@ export class Disconenct extends TextCommand {
   }
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
-    let con = bot.getVoiceConnection(message);
+    let con = bot.getVoiceConnection(message.guild.id);
     if (!con) {
       return;
     }
-    bot.registry.executeCommand("stop", bot, message, parsedMessage);
+    if(con.player.dispatcher) con.player.dispatcher.end();
     con.disconnect();
   }
 }
@@ -63,12 +63,12 @@ export class Stop extends TextCommand {
   }
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-    let con = bot.getVoiceConnection(message);
+    let con = bot.getVoiceConnection(message.guild.id);
 
     if (!con) {
-      message.reply("Es konnte keine Verbindung hergestellt werden");
+      return message.reply("Es konnte keine Verbindung hergestellt werden");
     } else if (con.player.dispatcher) {
-      con.player.dispatcher.end();
+      return con.player.dispatcher.end();
     }
   }
 }
@@ -83,12 +83,12 @@ export class Pause extends TextCommand {
   }
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-    let con = bot.getVoiceConnection(message);
+    let con = bot.getVoiceConnection(message.guild.id);
 
     if (!con) {
-      message.reply("Es konnte keine Verbindung hergestellt werden");
+      return message.reply("Es konnte keine Verbindung hergestellt werden");
     } else if (con.player.dispatcher) {
-      con.player.dispatcher.pause();
+      return con.player.dispatcher.pause();
     }
   }
 }
@@ -106,7 +106,7 @@ export class Resume extends TextCommand {
   }
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-    let con = bot.getVoiceConnection(message);
+    let con = bot.getVoiceConnection(message.guild.id);
 
     if (!con) {
       message.reply("Es konnte keine Verbindung hergestellt werden");
@@ -126,7 +126,7 @@ export class Volume extends TextCommand {
   }
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
-    let con = bot.getVoiceConnection(message);
+    let con = bot.getVoiceConnection(message.guild.id);
 
     if (!con) return;
 
@@ -137,9 +137,7 @@ export class Volume extends TextCommand {
       message.reply(`Volume is set to ${con.dispatcher.volume * volumeMultiplier}`)
     } else if (volume >= 1 && volume <= volumeMultiplier && con.dispatcher) {
       con.dispatcher.setVolume(volume / volumeMultiplier);
-      message.reply(`Changed volume to ${volume}`);
     }
-    console.log(volume);
   }
 }
 

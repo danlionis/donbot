@@ -7,6 +7,10 @@ export class BotSettings {
   private readonly defaultPrefix: string = "."
   private _owner: string;
 
+  constructor(owner: string) {
+    this._owner = owner;
+  }
+
   get token(): string {
     return this._token
   }
@@ -51,9 +55,9 @@ export class BotSettings {
     return this._owner;
   }
 
-  set owner(owner: string) {
-    this._owner = owner;
-  }
+  // set owner(owner: string) {
+  //   this._owner = owner;
+  // }
 
 }
 

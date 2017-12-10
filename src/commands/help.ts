@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 import { Bot } from '../';
 import { TextCommand } from '../mixins';
-import { ParsedMessage } from '../types';
+import { ParsedMessage } from '../utils/parser';
 
 
 export class Help extends TextCommand {

@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    "sourceMap": true,
-    "noImplicitAny": true,
+    "declarationDir": "./typings",
+    "noImplicitAny": false,
     "module": "commonjs",
-    "moduleResolution": "node",
     "declaration": true,
-    "target": "es6"
+    "target": "es6",
   },
   "include": [
     "./src/**/*"

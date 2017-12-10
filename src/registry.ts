@@ -1,7 +1,7 @@
-import { TextCommand, ChatFilter } from './mixins';
+import { TextCommand } from './mixins';
 import { Help } from './commands';
 import { Bot } from './bot';
-import { ParsedMessage } from './types';
+import { ParsedMessage } from './utils/parser';
 
 import * as Discord from 'discord.js';
 
@@ -10,13 +10,12 @@ import * as colors from 'colors/safe';
 export class Registry {
 
   textCommands: Array<TextCommand> = new Array();
-  private chatFilters: Array<ChatFilter> = new Array();
+  // private chatFilters: Array<ChatFilter> = new Array();
 
   private _helpCommand: TextCommand;
 
   constructor() {
     this.addTextCommand(Help);
-
   }
 
   /**
@@ -26,7 +25,7 @@ export class Registry {
   addTextCommand<T extends TextCommand>(constructor: new () => T) {
     let cmd: TextCommand = new constructor();
     this.textCommands.push(cmd);
-    console.log(colors.yellow("[R]"), "+", colors.blue("(C)"), cmd.is);
+    console.log(colors.yellow("[R]"), "+", colors.blue("(C)"), constructor.name);
   }
 
   /**
@@ -43,10 +42,16 @@ export class Registry {
   //   return this.textCommands;
   // }
 
+  /**
+   * 
+   * @param command 
+   * @param bot 
+   * @param message 
+   * @param parsedMessage 
+   */
   executeCommand(command: string, bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
     let cmd = this.textCommands.find(tc => tc.is === command);
-    cmd.run(bot, message, parsedMessage);
-
+    return cmd.run(bot, message, parsedMessage);
   }
 
 

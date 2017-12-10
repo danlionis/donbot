@@ -29,6 +29,7 @@ jspm_packages/
 
 # Compiled code
 lib/
+typings/
 
 # Misc
 /index.js

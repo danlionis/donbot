@@ -1,7 +1,8 @@
 import * as Discord from 'discord.js';
 import { Bot } from '../';
 import { TextCommand } from '../mixins';
-import { ParsedMessage } from '../types';
+import { ParsedMessage } from '../utils/parser';
+import { Parser } from '../utils/parser';
 
 export class Clear extends TextCommand {
 
@@ -14,7 +15,7 @@ export class Clear extends TextCommand {
       help: "clear <silent?>",
       description: "Clears the last 100 chat messages",
       permissions: [
-        "MANAGE_MESSAGES"
+        "MANAGE_MESSAGES",
       ]
     });
   }
@@ -82,20 +83,7 @@ export class TimeMute extends TextCommand {
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
     let muteUser = message.mentions.members.first();
-    let regexDays = /\d+d/;
-    let regexHours = /\d+h/;
-    let regexMinutes = /\d+m/;
-    let regexSeconds = /\d+s/;
-
-    let time = parsedMessage.args[1] as string;
-
-    let days = +(time.match(regexDays) || "0d")[0].slice(0, -1);
-    let hours = +(time.match(regexHours) || "0h")[0].slice(0, -1);
-    let minutes = +(time.match(regexMinutes) || "0m")[0].slice(0, -1);
-    let seconds = +(time.match(regexSeconds) || "0s")[0].slice(0, -1);
-
-
-    console.log(days, hours, minutes, seconds);
+    let { days, hours, minutes, seconds } = Parser.parseTime(parsedMessage.args[1]);
 
     let muteTime = (days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
 
@@ -120,21 +108,7 @@ export class TimeDeaf extends TextCommand {
 
   async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
     let user = message.mentions.members.first();
-    let regexDays = /\d+d/;
-    let regexHours = /\d+h/;
-    let regexMinutes = /\d+m/;
-    let regexSeconds = /\d+s/;
-
-    let time = parsedMessage.args[1] as string;
-
-    let days = +(time.match(regexDays) || "0d")[0].slice(0, -1);
-    let hours = +(time.match(regexHours) || "0h")[0].slice(0, -1);
-    let minutes = +(time.match(regexMinutes) || "0m")[0].slice(0, -1);
-    let seconds = +(time.match(regexSeconds) || "0s")[0].slice(0, -1);
-
-
-    console.log(days, hours, minutes, seconds);
-
+    let { days, hours, minutes, seconds } = Parser.parseTime(parsedMessage.args[1]);
     let muteTime = (days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
 
     user.setDeaf(true);
@@ -144,3 +118,92 @@ export class TimeDeaf extends TextCommand {
     }, muteTime);
   }
 }
+
+export class BanTest extends TextCommand {
+  constructor() {
+    super({
+      command: "testban"
+    })
+  }
+
+  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+    let bans = message.mentions.members;
+
+    bans.filter(user => !bot.isOwnerId(user.id))
+
+    console.log(bans);
+  }
+}
+
+export class Ban extends TextCommand {
+  constructor() {
+    super({
+      command: "ban",
+      description: "bans one or more user",
+      permissions: [
+        "BAN_MEMBERS"
+      ]
+    })
+  }
+
+  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+    let bans = message.mentions.members;
+
+    bans.filter(user => !bot.isOwnerId(user.id))
+
+    bans.forEach(user => {
+      if (message.member.highestRole.comparePositionTo(user.highestRole) > 0 || bot.isOwnerId(message.author.id)) {
+        user.ban();
+      } else {
+        message.reply("You don't have permission to ban this user")
+      }
+    });
+  }
+}
+
+export class SoftBan extends TextCommand {
+  constructor() {
+    super({
+      command: "softban",
+      description: "softbans one or more user",
+      permissions: [
+        "BAN_MEMBERS"
+      ]
+    })
+  }
+
+  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+    let bans = message.mentions.members;
+
+    bans.forEach(async user => {
+      if (message.member.highestRole.comparePositionTo(user.highestRole) > 0 || bot.isOwnerId(message.author.id)) {
+        let banned = await user.ban();
+        banned.guild.unban(banned);
+      } else {
+        message.reply("You don't have permission to ban this user")
+      }
+    });
+  }
+}
+
+export class Kick extends TextCommand {
+  constructor() {
+    super({
+      command: "softban",
+      description: "softbans one or more user",
+      permissions: [
+        "KICK_MEMBERS"
+      ]
+    })
+  }
+
+  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+    let kicks = message.mentions.members;
+
+    kicks.forEach(user => {
+      user.kick();
+    });
+  }
+}
+
+

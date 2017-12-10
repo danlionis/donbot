@@ -2,8 +2,8 @@
   "name": "donbot",
   "version": "1.1.1",
   "description": "",
-  "main": "./lib/index.js",
-  "typings": "./lib/index.d.ts",
+  "main": "./dist/bundle.js",
+  "typings": "./dist/typings/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/danlionis/donbot.git"
@@ -27,6 +27,8 @@
     "rimraf": "^2.6.2"
   },
   "devDependencies": {
-    "typescript": "^2.5.3"
+    "ts-loader": "^3.2.0",
+    "typescript": "^2.6.2",
+    "webpack-node-externals": "^1.6.0"
   }
 }

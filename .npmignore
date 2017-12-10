@@ -29,6 +29,7 @@ jspm_packages/
 
 # Source code
 src/
+lib/
 
 # Misc
 /index.js
