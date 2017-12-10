@@ -10,8 +10,8 @@
   },
   "scripts": {
     "prepublish": "npm run build",
-    "prebuild": "rimraf lib",
-    "build": "tsc || echo done",
+    "prebuild": "rimraf lib && rimraf dist",
+    "build": "webpack",
     "build:live": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./index.js"
@@ -29,6 +29,7 @@
   "devDependencies": {
     "ts-loader": "^3.2.0",
     "typescript": "^2.6.2",
+    "webpack": "^3.10.0",
     "webpack-node-externals": "^1.6.0"
   }
 }
