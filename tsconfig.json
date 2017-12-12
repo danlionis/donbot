@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "outDir": "./lib",
-    "declarationDir": "./typings",
     "noImplicitAny": false,
     "module": "commonjs",
     "declaration": true,

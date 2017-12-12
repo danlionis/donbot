@@ -3,7 +3,7 @@
   "version": "1.2.3",
   "description": "",
   "main": "./lib/index.js",
-  "typings": "./dist/typings/index.d.ts",
+  "typings": "./lib/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/danlionis/donbot.git"
@@ -22,7 +22,6 @@
     "@types/node": "^8.0.36",
     "colors": "^1.1.2",
     "discord.js": "^11.2.1",
-    "ffmpeg-binaries": "^3.2.2-3",
     "node-opus": "^0.2.7",
     "rimraf": "^2.6.2"
   },

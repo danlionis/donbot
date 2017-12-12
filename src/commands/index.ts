@@ -4,15 +4,10 @@ import { ChangePrefix, Playing, Servers, GiveAdmin } from './admin';
 import { TimeMute, TimeDeaf, Clear, Poll, Ban, SoftBan, BanTest } from './moderation';
 import { Join, Pause, Stop, Disconenct, Resume, Volume } from './music';
 import { Test, TrollMove } from './test';
-// import { WatchTogether } from './other/watchtogether';
 import { AltF4 } from './fun';
 
 export {
-  Test,
-  Clear,
-  Help,
-  // WatchTogether,
-  ChangePrefix
+  Help
 }
 
 export let defaultCommands = [
@@ -21,16 +16,11 @@ export let defaultCommands = [
   SoftBan,
   Clear,
   Test,
-  // WatchTogether,
   ChangePrefix,
   AltF4,
-  Join,
-  Stop,
   Disconenct,
   Playing,
-  // GiveAdmin,
   Poll,
-  Volume,
   TimeMute,
   TimeDeaf,
   Random,

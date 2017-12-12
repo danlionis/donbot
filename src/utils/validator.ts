@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 
 export namespace Validator {
-  export function validate(message: Discord.Message, cmdPrefix: string): boolean {
+  export function messageValid(message: Discord.Message, cmdPrefix: string): boolean {
 
     /**
      * check if command has right prefix
@@ -15,11 +15,9 @@ export namespace Validator {
      */
     let expression = prefix + "[a-zA-Z]+\s*(\s*.+\s*)*"
     let regexp = new RegExp(expression);
-    // console.log(regexp);
-    // console.log("\t[Message Validator] nicely formatted", regexp.test(message.content));
-    if (!regexp.test(message.content)) return false;
-
-    return true;
+    // if (!regexp.test(message.content)) return false;
+    return regexp.test(message.content)
+    // return true;
   }
 
   function escape(str: string) {

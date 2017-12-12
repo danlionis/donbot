@@ -112,7 +112,7 @@ export class Bot extends Discord.Client {
     if (message.channel.type === "dm") return;
 
     // check if message if formatted like a command
-    if (!valid(message, this.settings.prefix)) return;
+    if (!Validator.messageValid(message, this.settings.prefix)) return;
 
     // parse the message
 
@@ -197,7 +197,6 @@ export class Bot extends Discord.Client {
 
     connections.forEach(c => {
       if (c.channel.members.array().length <= 1) {
-        c.dispatcher.end();
         c.disconnect();
       }
 
