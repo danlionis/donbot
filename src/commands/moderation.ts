@@ -70,13 +70,16 @@ export class Poll extends TextCommand {
   }
 }
 
-export class TimeMute extends TextCommand {
+export class Mute extends TextCommand {
   constructor() {
     super({
-      command: "timemute",
+      command: "mute",
       description: "mute a member for a given time",
       permissions: [
         "MUTE_MEMBERS"
+      ],
+      aliases: [
+        "timemute"
       ]
     })
   }
@@ -95,13 +98,16 @@ export class TimeMute extends TextCommand {
   }
 }
 
-export class TimeDeaf extends TextCommand {
+export class Deaf extends TextCommand {
   constructor() {
     super({
-      command: "timedeaf",
+      command: "deaf",
       description: "deaf a member for a given time",
       permissions: [
         "DEAFEN_MEMBERS"
+      ],
+      aliases: [
+        "timedeaf"
       ]
     })
   }
@@ -116,22 +122,6 @@ export class TimeDeaf extends TextCommand {
     setTimeout(function () {
       user.setDeaf(false);
     }, muteTime);
-  }
-}
-
-export class BanTest extends TextCommand {
-  constructor() {
-    super({
-      command: "testban"
-    })
-  }
-
-  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
-    let bans = message.mentions.members;
-
-    bans.filter(user => !bot.isOwnerId(user.id))
-
-    console.log(bans);
   }
 }
 
@@ -205,5 +195,3 @@ export class Kick extends TextCommand {
     });
   }
 }
-
-
