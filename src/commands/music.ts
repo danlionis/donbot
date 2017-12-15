@@ -1,11 +1,12 @@
-import * as Discord from 'discord.js';
-import { Bot } from '../';
-import { TextCommand } from '../mixins';
-import { ParsedMessage } from '../utils/parser';
+import { Message, VoiceConnection } from "discord.js";
+import * as ytdl from "ytdl-core";
+import { Bot } from "../";
+import { TextCommand } from "../mixins";
+import { ParsedMessage, parseYtURL } from "../utils/parser";
 
-let roles = [
-  "DJ"
-]
+const roles = [
+  "DJ",
+];
 
 export class Join extends TextCommand {
 
@@ -13,20 +14,16 @@ export class Join extends TextCommand {
     super({
       command: "join",
       description: "join your voice channel",
-      roles: roles
-    })
+      roles,
+    });
   }
 
-  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
-    let con = bot.getVoiceConnection(message.guild.id);
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    const con = message.guild.voiceConnection;
 
     if (!message.member.voiceChannel) {
-      return message.reply("You have to be in a Voice Channel")
+      return message.reply("You have to be in a Voice Channel");
     }
-    if (con && con.channel.id === message.member.voiceChannel.id) {
-      return message.reply("The Bot is already connected to your VoiceChannel")
-    }
-
     return message.member.voiceChannel.join();
   }
 }
@@ -38,17 +35,17 @@ export class Disconenct extends TextCommand {
       description: "disconnects from your channel",
       roles: roles,
       aliases: [
-        "dc"
-      ]
-    })
+        "dc",
+      ],
+    });
   }
 
-  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
-    let con = bot.getVoiceConnection(message.guild.id);
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    const con = message.guild.voiceConnection;
     if (!con) {
       return;
     }
-    if(con.player.dispatcher) con.player.dispatcher.end();
+    if (con.player.dispatcher) con.player.dispatcher.end();
     con.disconnect();
   }
 }
@@ -58,12 +55,12 @@ export class Stop extends TextCommand {
     super({
       command: "stop",
       description: "stop streaming",
-      roles: roles
-    })
+      roles,
+    });
   }
 
-  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-    let con = bot.getVoiceConnection(message.guild.id);
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any> {
+    const con = message.guild.voiceConnection;
 
     if (!con) {
       return message.reply("Es konnte keine Verbindung hergestellt werden");
@@ -78,12 +75,12 @@ export class Pause extends TextCommand {
     super({
       command: "pause",
       description: "pauses stream",
-      roles: roles
-    })
+      roles: roles,
+    });
   }
 
-  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-    let con = bot.getVoiceConnection(message.guild.id);
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any> {
+    const con = message.guild.voiceConnection;
 
     if (!con) {
       return message.reply("Es konnte keine Verbindung hergestellt werden");
@@ -98,15 +95,15 @@ export class Resume extends TextCommand {
     super({
       command: "resume",
       description: "resumes music",
-      roles: roles,
+      roles,
       aliases: [
-        "unpause"
-      ]
-    })
+        "unpause",
+      ],
+    });
   }
 
-  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-    let con = bot.getVoiceConnection(message.guild.id);
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any> {
+    const con = message.guild.voiceConnection;
 
     if (!con) {
       message.reply("Es konnte keine Verbindung hergestellt werden");
@@ -121,23 +118,65 @@ export class Volume extends TextCommand {
     super({
       command: "volume",
       description: "set the volume from 1-10",
-      roles: roles
-    })
+      roles,
+      args: [
+        { name: "volume", pattern: /[0-10]/ },
+        { name: "updown", pattern: /up|down/i },
+      ],
+    });
   }
 
-  async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
-    let con = bot.getVoiceConnection(message.guild.id);
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    const con = message.guild.voiceConnection;
 
     if (!con) return;
 
-    let volumeMultiplier = 10
-    let volume: number = parsedMessage.args[0];
+    const volumeMultiplier = 10;
 
-    if (!volume) {
-      message.reply(`Volume is set to ${con.dispatcher.volume * volumeMultiplier}`)
-    } else if (volume >= 1 && volume <= volumeMultiplier && con.dispatcher) {
+    let volume: number;
+
+    console.log(parsedMessage.args);
+
+    if (parsedMessage.args.volume.exists) {
+      volume = +parsedMessage.args.volume.value;
       con.dispatcher.setVolume(volume / volumeMultiplier);
+    } else if (parsedMessage.args.updown.exists) {
+      const currvolume = con.dispatcher.volume * volumeMultiplier;
+      if (parsedMessage.args.updown.value === "up") {
+        volume = currvolume + 1;
+      } else {
+        volume = currvolume - 1;
+      }
+      con.dispatcher.setVolume(volume / volumeMultiplier);
+    } else if (con.dispatcher) {
+      message.reply(`Volume is set to ${con.dispatcher.volume * volumeMultiplier}`);
     }
   }
 }
 
+export class Youtube extends TextCommand {
+  constructor() {
+    super({
+      command: "yt",
+      aliases: [
+        "ytdl",
+        "youtube",
+      ],
+      args: [
+        { name: "url", pattern: /^.*(?:youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/ },
+      ],
+    });
+  }
+
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+
+    if (!message.member.voiceChannel) {
+      return message.reply("you have to join a voice channel first");
+    }
+
+    bot.registry.executeCommand("join", bot, message, parsedMessage).then(() => {
+      const stream = ytdl(parsedMessage.args.url.value || null);
+      message.guild.voiceConnection.playStream(stream);
+    });
+  }
+}

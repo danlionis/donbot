@@ -14,7 +14,8 @@
     "build": "tsc || echo done",
     "build:live": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./index.js"
+    "start": "node ./index.js",
+    "lint": "tslint --project tsconfig.json"
   },
   "author": "Dan Lionis",
   "license": "ISC",
@@ -23,10 +24,13 @@
     "colors": "^1.1.2",
     "discord.js": "^11.2.1",
     "node-opus": "^0.2.7",
-    "rimraf": "^2.6.2"
+    "ytdl-core": "^0.18.4"
   },
   "devDependencies": {
+    "ffmpeg-binaries": "^3.2.2-3",
+    "rimraf": "^2.6.2",
     "ts-loader": "^3.2.0",
+    "tslint": "^5.8.0",
     "typescript": "^2.6.2",
     "webpack": "^3.10.0",
     "webpack-node-externals": "^1.6.0"

@@ -1,27 +1,23 @@
-import * as Discord from 'discord.js';
+import * as Discord from "discord.js";
 
-export namespace Validator {
-  export function messageValid(message: Discord.Message, cmdPrefix: string): boolean {
+export function messageValid(message: Discord.Message, cmdPrefix: string): boolean {
 
-    /**
-     * check if command has right prefix
-     */
-    let sub = message.content.substr(0, cmdPrefix.length);
-    if (sub !== cmdPrefix) return false;
+  /**
+   * check if command has right prefix
+   */
+  const sub = message.content.substr(0, cmdPrefix.length);
+  if (sub !== cmdPrefix) return false;
 
-    let prefix = escape(cmdPrefix);
-    /**
-     * test if the message is in a good format
-     */
-    let expression = prefix + "[a-zA-Z]+\s*(\s*.+\s*)*"
-    let regexp = new RegExp(expression);
-    // if (!regexp.test(message.content)) return false;
-    return regexp.test(message.content)
-    // return true;
-  }
+  const prefix = escape(cmdPrefix);
+  /**
+   * test if the message is in a good format
+   */
+  const expression = prefix + "[a-zA-Z]+\s*(\s*.+\s*)*";
+  const regexp = new RegExp(expression);
+  return regexp.test(message.content);
+}
 
-  function escape(str: string) {
-    const matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g;
-    return str.replace(matchOperatorsRe, '\\$&')
-  }
+function escape(str: string) {
+  const matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g;
+  return str.replace(matchOperatorsRe, "\\$&");
 }

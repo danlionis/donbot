@@ -1,16 +1,18 @@
-import { Help } from './help';
-import { Random, Choice } from './general';
-import { ChangePrefix, Playing, Servers, GiveAdmin } from './admin';
-import { Mute, Deaf, Clear, Poll, Ban, SoftBan } from './moderation';
-import { Join, Pause, Stop, Disconenct, Resume, Volume } from './music';
-import { Test, TrollMove } from './test';
-import { AltF4 } from './fun';
+import { ChangePrefix, Playing, Servers } from "./admin";
+import { Arg } from "./args";
+import { AltF4, TrollMove } from "./fun";
+import { Choice, Random } from "./general";
+import { Help } from "./help";
+import { Ban, Clear, Deaf, Mute, Poll, SoftBan } from "./moderation";
+import { Disconenct, Join, Pause, Resume, Stop, Volume, Youtube } from "./music";
+import { Test } from "./test";
 
 export {
-  Help
-}
+  Help,
+};
 
 export let defaultCommands = [
+  Arg,
   Ban,
   SoftBan,
   Clear,
@@ -26,8 +28,8 @@ export let defaultCommands = [
   Choice,
   TrollMove,
   Servers,
-  GiveAdmin
-]
+  Youtube,
+];
 
 export let musicCommands = [
   Join,
@@ -35,5 +37,5 @@ export let musicCommands = [
   Disconenct,
   Volume,
   Pause,
-  Resume
-]
+  Resume,
+];
