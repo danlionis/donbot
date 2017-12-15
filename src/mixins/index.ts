@@ -1,1 +1,1 @@
-export { TextCommand } from './text-command';
+export { TextCommand } from "./text-command";

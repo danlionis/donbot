@@ -1,81 +1,79 @@
-import * as Discord from 'discord.js';
-import { Bot } from '../';
-import { ParsedMessage } from '../utils/parser';
-import { PermissionFlags } from 'discord.js';
-
+import { Message, PermissionResolvable } from "discord.js";
+import { Bot } from "../";
+import { CommandHandler } from "../command-handler";
+import { ParsedMessage } from "../utils/parser";
 
 export interface TextCommandConfig {
   command: string;
   description?: string;
   help?: string;
   permissions?: Array<string | number>;
-  roles?: Array<string>;
+  roles?: string[];
   minRole?: string;
-  aliases?: Array<string>;
+  aliases?: string[];
   ownerOnly?: boolean;
+  args?: Argument[];
+  flags?: Flag[];
 }
 
-type Permission =
-  "CREATE_INSTANT_INVITE" |
-  "KICK_MEMBERS" |
-  "BAN_MEMBERS" |
-  "ADMINISTRATOR" |
-  "MANAGE_CHANNELS" |
-  "MANAGE_GUILD" |
-  "ADD_REACTIONS" |
-  "VIEW_AUDIT_LOG" |
-  "VIEW_CHANNEL" |
-  "READ_MESSAGES" |
-  "SEND_MESSAGES" |
-  "SEND_TTS_MESSAGES" |
-  "MANAGE_MESSAGES" |
-  "EMBED_LINKS" |
-  "ATTACH_FILES" |
-  "READ_MESSAGE_HISTORY" |
-  "MENTION_EVERYONE" |
-  "EXTERNAL_EMOJIS" |
-  "USE_EXTERNAL_EMOJIS" |
-  "CONNECT" |
-  "SPEAK" |
-  "MUTE_MEMBERS" |
-  "DEAFEN_MEMBERS" |
-  "MOVE_MEMBERS" |
-  "USE_VAD" |
-  "CHANGE_NICKNAME" |
-  "MANAGE_NICKNAMES" |
-  "MANAGE_ROLES" |
-  "MANAGE_ROLES_OR_PERMISSIONS" |
-  "MANAGE_WEBHOOKS" |
-  "MANAGE_EMOJIS";
+export interface Argument {
+  name: string;
+  pattern: RegExp;
+  value?: string;
+  default?: any;
+  description?: string;
+}
 
+export interface Flag {
+  name: string;
+  short: string;
+  long: string;
+  description?: string;
+}
 
-export class TextCommand {
+export abstract class TextCommand {
 
   private _command: string;
   private _description: string;
   private _help: string;
   private _permissions: Array<string | number>;
-  private _roles: Array<string>;
+  private _roles: string[];
   private _minRole: string;
-  private _aliases: Array<string>;
+  private _aliases: string[];
   private _ownerOnly: boolean;
+  private _args: Argument[];
+  private _flags: Flag[];
 
-
-  constructor({ command = "", description = "", help = "", permissions = [], roles = [], minRole = "", aliases = [], ownerOnly = false }: TextCommandConfig) {
+  constructor({
+    command, description = "empty", help = "empty",
+    permissions = [], roles = [], minRole = "", aliases = [],
+    ownerOnly = false, args = [], flags = [],
+  }: TextCommandConfig) {
     this._command = command;
     this._description = description;
     this._help = help;
-    this._permissions = permissions.map(p => {
-      if (typeof p == "string") {
-        p.toUpperCase()
+    this._permissions = permissions.map((p) => {
+      if (typeof p === "string") {
+        p.toUpperCase();
       }
       return p;
-     });
+    });
     this._roles = roles;
     this._minRole = minRole;
     this._ownerOnly = ownerOnly;
-    aliases.unshift(command);
+    aliases.push(command);
     this._aliases = aliases;
+    this._args = args.map((arg) => {
+      arg.pattern = new RegExp(arg.pattern);
+      return arg;
+    });
+    this._flags = flags.map((flag) => {
+      flag.short = flag.short.toLowerCase();
+      flag.long = flag.long.toLowerCase();
+      return flag;
+    });
+
+    this._flags.push({ name: "help", short: "h", long: "help" });
 
   }
 
@@ -84,46 +82,54 @@ export class TextCommand {
   }
 
   /**
-   * get the name of the command
+   * Main name of the command
    */
   public get is(): string {
     return this._command;
   }
 
   /**
-   * get all possilbe aliases for this command
+   * All names for the command
    */
-  public get aliases(): Array<string> {
+  public get aliases(): string[] {
     return this._aliases;
   }
 
   /**
-   * get the description of the command
+   * Command description
    */
   public get description(): string {
     return this._description;
   }
 
   /**
-   * get the help text of the command
+   * Command help
    */
   public get help(): string {
     return this._help;
   }
 
   /**
-   * get required permissions for the command
+   * User permissions required by the command
    */
   public get permissions(): Array<string | number> {
     return this._permissions;
   }
 
-  public get roles(): Array<string> {
+  public get roles(): string[] {
     return this._roles;
   }
 
   public get minRole(): string {
     return this._minRole;
+  }
+
+  public get args(): Argument[] {
+    return this._args;
+  }
+
+  public get flags(): Flag[] {
+    return this._flags;
   }
 
   /**
@@ -132,15 +138,7 @@ export class TextCommand {
    * @param parsedMessage {ParsedMessage} - parsed message
    * @param registry {Registry} - registry
    */
-  //TODO: args
-  // public async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-  //   return message.channel.send("there is no command with this name");
-  // }
-  public async run(bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage): Promise<any> {
-    if (parsedMessage.args[0] === "-h") {
-      message.author.send(this.help);
-    }
-  }
+  public abstract async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any>;
 
 }
 

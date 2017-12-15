@@ -4,6 +4,7 @@
     "noImplicitAny": false,
     "module": "commonjs",
     "declaration": true,
+    "removeComments": true,
     "target": "es6"
   },
   "include": [

@@ -1,10 +1,10 @@
 export class BotSettings {
   private _token: string;
   private _prefix: string;
-  private _extras: Object;
+  private _extras: object;
   private _game: string;
   private _notifyUnknownCommand: boolean;
-  private readonly defaultPrefix: string = "."
+  private readonly defaultPrefix: string = ".";
   private _owner: string;
 
   constructor(owner: string) {
@@ -12,7 +12,7 @@ export class BotSettings {
   }
 
   get token(): string {
-    return this._token
+    return this._token;
   }
 
   set token(token: string) {
@@ -27,11 +27,11 @@ export class BotSettings {
     this._prefix = prefix || this.defaultPrefix;
   }
 
-  get extras(): Object {
+  get extras(): object {
     return this._extras;
   }
 
-  set extras(extras: Object) {
+  set extras(extras: object) {
     this._extras = extras;
   }
 
@@ -54,11 +54,6 @@ export class BotSettings {
   get owner(): string {
     return this._owner;
   }
-
-  // set owner(owner: string) {
-  //   this._owner = owner;
-  // }
-
 }
 
 export default BotSettings;
