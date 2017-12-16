@@ -34,7 +34,7 @@ export class Clear extends TextCommand {
 
       if (messages.array().length >= 2) {
         message.channel.bulkDelete(messages.filter((m) => !m.pinned));
-        if (parsedMessage.flags.silent) {
+        if (!parsedMessage.flags.silent) {
           message.channel.send(`Messages cleared by ${message.author.toString()}`);
         }
       }

@@ -135,8 +135,6 @@ export class Volume extends TextCommand {
 
     let volume: number;
 
-    console.log(parsedMessage.args);
-
     if (parsedMessage.args.volume.exists) {
       volume = +parsedMessage.args.volume.value;
       con.dispatcher.setVolume(volume / volumeMultiplier);
@@ -174,9 +172,13 @@ export class Youtube extends TextCommand {
       return message.reply("you have to join a voice channel first");
     }
 
-    bot.registry.executeCommand("join", bot, message, parsedMessage).then(() => {
-      const stream = ytdl(parsedMessage.args.url.value || null);
-      message.guild.voiceConnection.playStream(stream);
-    });
+    if (parsedMessage.args.url.exists) {
+      bot.registry.executeCommand("join", bot, message, parsedMessage).then(() => {
+        const stream = ytdl(parsedMessage.args.url.value || null);
+        message.guild.voiceConnection.playStream(stream, { volume: 0.1 });
+      });
+    } else {
+      return message.reply("Please provide a valid Youtube link");
+    }
   }
 }

@@ -102,6 +102,9 @@ export class Bot extends Discord.Client {
     Invite Link: https://discordapp.com/oauth2/authorize?client_id=${this.user.id}&scope=bot&permissions=8
     `);
 
+    // signal to pm2 that instance is ready
+    process.send("ready");
+
     setInterval(() => {
       this.voiceChecker();
     }, 60 * 1000);
