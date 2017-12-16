@@ -13,7 +13,7 @@ export class CommandHandler {
 
   /**
    * Handles an incoming command
-   * @param message sent discord message
+   * @param message recieved discord message
    */
   public handleCommand(message: Message) {
 
@@ -69,13 +69,10 @@ export class CommandHandler {
     if (!allowed) {
       return message.reply("You don't have permission to execute this command");
     }
-
     this.prerun(command, this.bot, message, parsedMessage);
-
   }
 
   private async prerun(command, bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    console.log("prerun");
     let run;
     if (parsedMessage.flags.help) {
       message.author.send(command.help);
