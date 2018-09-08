@@ -7,9 +7,7 @@ import { BotSettings } from "./bot-settings";
 import { CommandHandler } from "./command-handler";
 import { databaseCommands, defaultCommands, musicCommands } from "./commands";
 import { Datastore } from "./datastore";
-import { TextCommand } from "./mixins";
-import { Registry } from "./Registry";
-import { parseMessage } from "./utils/parser";
+import { Registry } from "./registry";
 import { isCommand } from "./utils/validator";
 
 export interface BotConfig {

@@ -1,9 +1,7 @@
 import * as colors from "colors/safe";
 import { Message, PermissionResolvable, TextChannel } from "discord.js";
 import { Bot } from "./bot";
-import { BotSettings } from "./bot-settings";
 import { TextCommand } from "./mixins/text-command";
-import { Registry } from "./Registry";
 import {
   parseArguments,
   ParsedMessage,
