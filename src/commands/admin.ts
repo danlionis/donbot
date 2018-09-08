@@ -1,8 +1,64 @@
-import { Message } from "discord.js";
+import { Message, RichEmbed } from "discord.js";
 import { Bot } from "../bot";
 import { TextCommand } from "../mixins";
 import { selfDestructMessage } from "../utils/callbacks";
 import { ParsedMessage, parseMessage } from "../utils/parser";
+
+export class Enabled extends TextCommand {
+  constructor() {
+    super({
+      command: "enabled",
+      aliases: ["active"],
+      ownerOnly: true,
+      description: "Enables or Disables a command",
+      args: [
+        {
+          name: "command",
+          pattern: /\w/,
+          description: "The command that should be activated"
+        },
+        {
+          name: "status",
+          pattern: /(0|1)|(false|true)/,
+          description: "0: disabled \n1: enabled",
+          default: 3
+        }
+      ]
+    });
+  }
+
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    const cmd = bot.registry.getTextCommand(parsedMessage.args.command.value);
+
+    if (!cmd) {
+      return message.reply("[ENABLED] Cannot find command");
+    }
+
+    // dont disable this command
+    if (cmd instanceof Enabled) {
+      return message.channel.send("Cannot set enabled status for this command");
+    }
+
+    if (
+      parsedMessage.args.status.value === "0" ||
+      parsedMessage.args.status.value === "false"
+    ) {
+      cmd.disable();
+    } else if (
+      parsedMessage.args.status.value === "1" ||
+      parsedMessage.args.status.value === "true"
+    ) {
+      cmd.enable();
+    }
+    message.channel
+      .send(
+        new RichEmbed()
+          .setTitle("Command Status")
+          .addField("Enabled", cmd.enabled, true)
+      )
+      .then(selfDestructMessage);
+  }
+}
 
 export class Shutdown extends TextCommand {
   constructor() {
@@ -92,7 +148,8 @@ export class Nuke extends TextCommand {
     super({
       command: "nuke",
       ownerOnly: true,
-      args: [{ name: "password", pattern: /\.*/ }]
+      args: [{ name: "password", pattern: /\.*/ }],
+      enabled: false
     });
   }
 

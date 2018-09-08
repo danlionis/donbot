@@ -21,7 +21,7 @@ export class Test extends TextCommand {
       if (!commands[c.group]) commands[c.group] = [];
       commands[c.group].push(c.is);
     });
-    console.log(commands);
+    // console.log(commands);
 
     return message.reply("Pong");
   }

@@ -1,5 +1,10 @@
 import * as colors from "colors/safe";
-import { Message, PermissionResolvable, TextChannel } from "discord.js";
+import {
+  Message,
+  PermissionResolvable,
+  RichEmbed,
+  TextChannel
+} from "discord.js";
 import { Bot } from "./bot";
 import { TextCommand } from "./mixins/text-command";
 import {
@@ -52,11 +57,6 @@ export class CommandHandler {
 
     let allowed = false;
 
-    // allow for bot owner
-    if (message.author.id === this.bot.settings.owner) {
-      allowed = true;
-    }
-
     // allow if user has required permissions
     if (
       command.permissions.length > 0 &&
@@ -92,16 +92,26 @@ export class CommandHandler {
       }
     }
 
+    let owner = false;
+    // allow for bot owner
+    if (message.author.id === this.bot.settings.owner) {
+      allowed = true;
+      owner = true;
+    }
+
     if (!allowed) {
       this.logCmd(message, parsedMessage, "DENIED");
       return message.reply("You don't have permission to execute this command");
+    } else if (!command.enabled && !owner) {
+      this.logCmd(message, parsedMessage, "DISABLED");
+      return message.reply("This command was temporarily disabled");
     }
     this.logCmd(message, parsedMessage);
     this.prerun(command, this.bot, message, parsedMessage);
   }
 
   private async prerun(
-    command,
+    command: TextCommand,
     bot: Bot,
     message: Message,
     parsedMessage: ParsedMessage
@@ -116,17 +126,27 @@ export class CommandHandler {
         exists: true
       };
       bot.registry.executeCommand("help", bot, message, parsedMessage);
+    } else if (parsedMessage.flags.stats) {
+      message.channel.send(
+        new RichEmbed({
+          title: "Command Stats: " + command.is,
+          fields: [{ name: "Counter", value: command.counter.toString() }]
+        })
+      );
     } else {
       run = command.run(bot, message, parsedMessage);
     }
 
+    if (run) {
+      command.increaseCounter();
+    }
+
     return run;
   }
-
   private logCmd(
     message: Message,
     parsedMessage: ParsedMessage,
-    opt?: "DENIED" | "UNKNOWN"
+    opt?: "DENIED" | "UNKNOWN" | "DISABLED"
   ) {
     const tag = message.author.tag;
     const guild = message.guild.name;
@@ -144,6 +164,8 @@ export class CommandHandler {
       send += colors.red("~ DENIED");
     } else if (opt === "UNKNOWN") {
       send += colors.red("~ UNKNOWN");
+    } else if (opt === "DISABLED") {
+      send += colors.red("~ DISABLED");
     }
 
     console.log(send);

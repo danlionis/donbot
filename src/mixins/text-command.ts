@@ -49,6 +49,7 @@ export interface TextCommandConfig {
   flags?: Flag[];
   group?: string;
   color?: ColorResolvable;
+  enabled?: boolean;
 }
 
 export interface Argument {
@@ -79,6 +80,9 @@ export abstract class TextCommand {
   private _flags: Flag[];
   private _group: string;
   private _color: ColorResolvable;
+  private _enabled: boolean;
+
+  private _counter = 0;
 
   constructor({
     command,
@@ -92,7 +96,8 @@ export abstract class TextCommand {
     args = [],
     flags = [],
     group = "unknown",
-    color = "#FFEE58"
+    color = "#FFEE58",
+    enabled = true
   }: TextCommandConfig) {
     this._command = command;
     this._description = description;
@@ -126,6 +131,13 @@ export abstract class TextCommand {
       long: "help",
       description: "Send this help message"
     });
+    this._flags.push({
+      name: "stats",
+      long: "stats",
+      description: "Send a stats for the command"
+    });
+
+    this._enabled = enabled;
   }
 
   public get onwerOnly(): boolean {
@@ -189,6 +201,25 @@ export abstract class TextCommand {
 
   public get group(): string {
     return this._group;
+  }
+
+  public get enabled(): boolean {
+    return this._enabled;
+  }
+
+  public get counter(): number {
+    return this._counter;
+  }
+
+  public disable() {
+    this._enabled = false;
+  }
+  public enable() {
+    this._enabled = true;
+  }
+
+  public increaseCounter() {
+    this._counter += 1;
   }
 
   /**
