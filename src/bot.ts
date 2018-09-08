@@ -10,6 +10,9 @@ import { Datastore } from "./datastore";
 import { Registry } from "./registry";
 import { isCommand } from "./utils/validator";
 
+import * as readline from "readline";
+import { Cli } from "./utils/cli";
+
 export interface BotConfig {
   /**
    * login token
@@ -42,6 +45,7 @@ export class Bot extends Discord.Client {
   public commandHandler: CommandHandler;
   public database: Datastore;
   public logger: Logger;
+  private cli: Cli;
 
   // private instances: number = 0;
 
@@ -139,6 +143,9 @@ export class Bot extends Discord.Client {
     setInterval(() => {
       this.voiceChecker();
     }, 60 * 1000);
+
+    // initialize the cli for console commands
+    this.cli = new Cli(this);
   }
 
   private registerCommmands(commands: any[]) {
