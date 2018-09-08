@@ -4,17 +4,15 @@ import { Bot } from "../";
 import { TextCommand } from "../mixins";
 import { ParsedMessage, parseYtURL } from "../utils/parser";
 
-const roles = [
-  "DJ",
-];
+const roles = ["DJ"];
 
 export class Join extends TextCommand {
-
   constructor() {
     super({
       command: "join",
       description: "join your voice channel",
       roles,
+      group: "voice"
     });
   }
 
@@ -22,7 +20,8 @@ export class Join extends TextCommand {
     const con = message.guild.voiceConnection;
 
     if (!message.member.voiceChannel) {
-      return message.reply("You have to be in a Voice Channel");
+      message.reply("You have to be in a Voice Channel");
+      return null;
     }
     return message.member.voiceChannel.join();
   }
@@ -34,9 +33,8 @@ export class Disconenct extends TextCommand {
       command: "disconnect",
       description: "disconnects from your channel",
       roles: roles,
-      aliases: [
-        "dc",
-      ],
+      aliases: ["dc"],
+      group: "voice"
     });
   }
 
@@ -56,10 +54,15 @@ export class Stop extends TextCommand {
       command: "stop",
       description: "stop streaming",
       roles,
+      group: "voice"
     });
   }
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any> {
+  public async run(
+    bot: Bot,
+    message: Message,
+    parsedMessage: ParsedMessage
+  ): Promise<any> {
     const con = message.guild.voiceConnection;
 
     if (!con) {
@@ -76,10 +79,15 @@ export class Pause extends TextCommand {
       command: "pause",
       description: "pauses stream",
       roles: roles,
+      group: "voice"
     });
   }
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any> {
+  public async run(
+    bot: Bot,
+    message: Message,
+    parsedMessage: ParsedMessage
+  ): Promise<any> {
     const con = message.guild.voiceConnection;
 
     if (!con) {
@@ -96,13 +104,16 @@ export class Resume extends TextCommand {
       command: "resume",
       description: "resumes music",
       roles,
-      aliases: [
-        "unpause",
-      ],
+      aliases: ["unpause"],
+      group: "voice"
     });
   }
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any> {
+  public async run(
+    bot: Bot,
+    message: Message,
+    parsedMessage: ParsedMessage
+  ): Promise<any> {
     const con = message.guild.voiceConnection;
 
     if (!con) {
@@ -121,8 +132,9 @@ export class Volume extends TextCommand {
       roles,
       args: [
         { name: "volume", pattern: /[0-10]/ },
-        { name: "updown", pattern: /up|down/i },
+        { name: "updown", pattern: /up|down/i }
       ],
+      group: "voice"
     });
   }
 
@@ -136,7 +148,7 @@ export class Volume extends TextCommand {
     let volume: number;
 
     if (parsedMessage.args.volume.exists) {
-      volume = +parsedMessage.args.volume.value;
+      volume = +parsedMessage.args.volume.value * volumeMultiplier;
       con.dispatcher.setVolume(volume / volumeMultiplier);
     } else if (parsedMessage.args.updown.exists) {
       const currvolume = con.dispatcher.volume * volumeMultiplier;
@@ -147,7 +159,9 @@ export class Volume extends TextCommand {
       }
       con.dispatcher.setVolume(volume / volumeMultiplier);
     } else if (con.dispatcher) {
-      message.reply(`Volume is set to ${con.dispatcher.volume * volumeMultiplier}`);
+      message.reply(
+        `Volume is set to ${con.dispatcher.volume * volumeMultiplier}`
+      );
     }
   }
 }
@@ -156,27 +170,35 @@ export class Youtube extends TextCommand {
   constructor() {
     super({
       command: "yt",
-      aliases: [
-        "ytdl",
-        "youtube",
-      ],
+      aliases: ["ytdl", "youtube"],
       args: [
-        { name: "url", pattern: /^.*(?:youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/ },
+        {
+          name: "url",
+          pattern: /^.*(?:youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/
+        }
       ],
+      group: "voice"
     });
   }
 
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-
     if (!message.member.voiceChannel) {
       return message.reply("you have to join a voice channel first");
     }
 
     if (parsedMessage.args.url.exists) {
-      bot.registry.executeCommand("join", bot, message, parsedMessage).then(() => {
-        const stream = ytdl(parsedMessage.args.url.value || null);
-        message.guild.voiceConnection.playStream(stream, { volume: 0.1 });
-      });
+      bot.registry
+        .executeCommand("join", bot, message, parsedMessage)
+        .then(() => {
+          const stream = ytdl(parsedMessage.args.url.value || null);
+          const disp = message.guild.voiceConnection.playStream(stream, {
+            volume: 0.1
+          });
+
+          return new Promise<string>((resolve) => {
+            disp.on("end", resolve);
+          });
+        });
     } else {
       return message.reply("Please provide a valid Youtube link");
     }

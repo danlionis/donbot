@@ -8,13 +8,16 @@ import * as Discord from "discord.js";
 import * as colors from "colors/safe";
 
 export class Registry {
-
   public textCommands: TextCommand[] = new Array();
 
   private _helpCommand: TextCommand;
 
-  constructor() {
+  constructor(private client: Bot) {
     this.addTextCommand(Help);
+  }
+
+  public addTextCommands<T extends TextCommand[]>(constructor: new () => T) {
+    console.log(constructor);
   }
 
   /**
@@ -24,7 +27,12 @@ export class Registry {
   public addTextCommand<T extends TextCommand>(constructor: new () => T) {
     const cmd: TextCommand = new constructor();
     this.textCommands.push(cmd);
-    console.log(colors.yellow("[R]"), "+", colors.blue("(C)"), constructor.name);
+    console.log(
+      colors.yellow("[R]"),
+      "+",
+      colors.blue("(C)"),
+      constructor.name
+    );
   }
 
   /**
@@ -43,11 +51,15 @@ export class Registry {
    * @param message
    * @param parsedMessage
    */
-  public executeCommand(command: string, bot: Bot, message: Discord.Message, parsedMessage: ParsedMessage) {
+  public executeCommand(
+    command: string,
+    bot: Bot,
+    message: Discord.Message,
+    parsedMessage: ParsedMessage
+  ) {
     const cmd = this.textCommands.find((tc) => tc.is === command);
     return cmd.run(bot, message, parsedMessage);
   }
-
 }
 
 export default Registry;

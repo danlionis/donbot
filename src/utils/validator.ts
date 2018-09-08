@@ -1,7 +1,14 @@
 import * as Discord from "discord.js";
 
-export function messageValid(message: Discord.Message, cmdPrefix: string): boolean {
-
+/**
+ * Checks if the given message is a valid command
+ * @param message Raw Message from Discord
+ * @param cmdPrefix Prefix the Validator should check
+ */
+export function isCommand(
+  message: Discord.Message,
+  cmdPrefix: string
+): boolean {
   /**
    * check if command has right prefix
    */
@@ -12,7 +19,7 @@ export function messageValid(message: Discord.Message, cmdPrefix: string): boole
   /**
    * test if the message is in a good format
    */
-  const expression = prefix + "[a-zA-Z]+\s*(\s*.+\s*)*";
+  const expression = prefix + "[a-zA-Z]+s*(s*.+s*)*";
   const regexp = new RegExp(expression);
   return regexp.test(message.content);
 }

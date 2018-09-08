@@ -57,8 +57,10 @@ export function parseTime(time: string): ParsedTime {
   return { days, hours, minutes, seconds };
 }
 
-export function parseMessage(message: Message, cmdPrefix: string): ParsedMessage {
-
+export function parseMessage(
+  message: Message,
+  cmdPrefix: string
+): ParsedMessage {
   const args = message.content.split(" ");
   // remove empty args
   for (let i = 0; i < args.length; i++) {
@@ -67,24 +69,26 @@ export function parseMessage(message: Message, cmdPrefix: string): ParsedMessage
       i--;
     }
   }
-  const is = args.shift().toLowerCase().substr(cmdPrefix.length);
+  const is = args
+    .shift()
+    .toLowerCase()
+    .substr(cmdPrefix.length);
 
   const msg: ParsedMessage = {
     is,
-    rawArgs: args,
+    rawArgs: args
   };
-  console.log(`${colors.yellow("[C]")} by ${colors.blue(message.author.tag)}: ${msg.is} [${msg.rawArgs.join(",")}]`);
-
   return msg;
-
 }
 
-export function parseArguments(cmdArgs: Argument[], args: string[]): ParsedArgumentObject {
-
+export function parseArguments(
+  cmdArgs: Argument[],
+  args: string[]
+): ParsedArgumentObject {
   const parsed: ParsedArgumentObject = {};
 
+  // For each expected argument look if one was provided
   cmdArgs.forEach((parseArg, i) => {
-
     let found: string[] = args.filter((arg) => {
       return parseArg.pattern.test(arg);
     });
@@ -106,24 +110,25 @@ export function parseArguments(cmdArgs: Argument[], args: string[]): ParsedArgum
       values: found,
       value: found[0],
       default: isDefault,
-      exists: exist,
+      exists: exist
     };
 
     parsed[parseArg.name] = a;
-
   });
 
   return parsed;
 }
 
-export function parseFlags(cmdFlags: Flag[], flags: string[]): ParsedFlagObject {
-
+export function parseFlags(
+  cmdFlags: Flag[],
+  flags: string[]
+): ParsedFlagObject {
   const parsed: ParsedFlagObject = {};
 
   cmdFlags.forEach((parseFlag, i) => {
     const found = flags.find((flag) => {
       // return if argument is either a long or a short flag
-      return (flag === "--" + parseFlag.long) || (flag === "-" + parseFlag.short);
+      return flag === "--" + parseFlag.long || flag === "-" + parseFlag.short;
     });
 
     parsed[parseFlag.name] = found ? true : false;
@@ -150,7 +155,7 @@ export function parseYtURL(url: string) {
 
   const parsed: ParsedYtUrl = {
     id,
-    url,
+    url
   };
 
   return parsed;

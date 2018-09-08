@@ -1,19 +1,54 @@
-import { Message, PermissionResolvable } from "discord.js";
+import { ColorResolvable, Message, PermissionResolvable } from "discord.js";
 import { Bot } from "../";
 import { CommandHandler } from "../command-handler";
 import { ParsedMessage } from "../utils/parser";
 
+export type PERMISSION =
+  | "ADMINISTRATOR"
+  | "CREATE_INSTANT_INVITE"
+  | "KICK_MEMBERS"
+  | "BAN_MEMBERS"
+  | "MANAGE_CHANNELS"
+  | "MANAGE_GUILD"
+  | "ADD_REACTIONS"
+  | "VIEW_AUDIT_LOG"
+  | "VIEW_CHANNEL"
+  | "READ_MESSAGES"
+  | "SEND_MESSAGES"
+  | "SEND_TTS_MESSAGES"
+  | "MANAGE_MESSAGES"
+  | "EMBED_LINKS"
+  | "ATTACH_FILES"
+  | "READ_MESSAGE_HISTORY"
+  | "MENTION_EVERYONE"
+  | "USE_EXTERNAL_EMOJIS"
+  | "EXTERNAL_EMOJIS"
+  | "CONNECT"
+  | "SPEAK"
+  | "MUTE_MEMBERS"
+  | "DEAFEN_MEMBERS"
+  | "MOVE_MEMBERS"
+  | "USE_VAD"
+  | "CHANGE_NICKNAME"
+  | "MANAGE_NICKNAMES"
+  | "MANAGE_ROLES"
+  | "MANAGE_ROLES_OR_PERMISSIONS"
+  | "MANAGE_WEBHOOKS"
+  | "MANAGE_EMOJIS";
+
 export interface TextCommandConfig {
   command: string;
   description?: string;
-  help?: string;
-  permissions?: Array<string | number>;
+  usage?: string;
+  permissions?: PERMISSION[];
   roles?: string[];
   minRole?: string;
   aliases?: string[];
   ownerOnly?: boolean;
   args?: Argument[];
   flags?: Flag[];
+  group?: string;
+  color?: ColorResolvable;
 }
 
 export interface Argument {
@@ -26,32 +61,42 @@ export interface Argument {
 
 export interface Flag {
   name: string;
-  short: string;
+  short?: string;
   long: string;
   description?: string;
 }
 
 export abstract class TextCommand {
-
   private _command: string;
   private _description: string;
-  private _help: string;
-  private _permissions: Array<string | number>;
+  private _usage: string;
+  private _permissions: PERMISSION[];
   private _roles: string[];
   private _minRole: string;
   private _aliases: string[];
   private _ownerOnly: boolean;
   private _args: Argument[];
   private _flags: Flag[];
+  private _group: string;
+  private _color: ColorResolvable;
 
   constructor({
-    command, description = "empty", help = "empty",
-    permissions = [], roles = [], minRole = "", aliases = [],
-    ownerOnly = false, args = [], flags = [],
+    command,
+    description,
+    usage,
+    permissions = [],
+    roles = [],
+    minRole = "",
+    aliases = [],
+    ownerOnly = false,
+    args = [],
+    flags = [],
+    group = "unknown",
+    color = "#FFEE58"
   }: TextCommandConfig) {
     this._command = command;
     this._description = description;
-    this._help = help;
+    this._usage = usage;
     this._permissions = permissions.map((p) => {
       if (typeof p === "string") {
         p.toUpperCase();
@@ -72,9 +117,15 @@ export abstract class TextCommand {
       flag.long = flag.long.toLowerCase();
       return flag;
     });
+    this._group = group;
+    this._color = color;
 
-    this._flags.push({ name: "help", short: "h", long: "help" });
-
+    this._flags.push({
+      name: "help",
+      short: "h",
+      long: "help",
+      description: "Send this help message"
+    });
   }
 
   public get onwerOnly(): boolean {
@@ -105,8 +156,12 @@ export abstract class TextCommand {
   /**
    * Command help
    */
-  public get help(): string {
-    return this._help;
+  public get usage(): string {
+    return this._usage;
+  }
+
+  public get color(): ColorResolvable {
+    return this._color;
   }
 
   /**
@@ -132,14 +187,21 @@ export abstract class TextCommand {
     return this._flags;
   }
 
+  public get group(): string {
+    return this._group;
+  }
+
   /**
    * Run the command
    * @param message {Discord.Message} - raw message
    * @param parsedMessage {ParsedMessage} - parsed message
    * @param registry {Registry} - registry
    */
-  public abstract async run(bot: Bot, message: Message, parsedMessage: ParsedMessage): Promise<any>;
-
+  public abstract async run(
+    bot: Bot,
+    message: Message,
+    parsedMessage: ParsedMessage
+  ): Promise<any>;
 }
 
 export default TextCommand;

@@ -2,14 +2,26 @@
 
 discord bot framework based on discord.js
 
-- [Installation and Usage](#Installation_and_Usage)
+- [Features](#Features)
+- [Installation](#Installation)
+- [Usage](#Usage)
 - [First Command](#First_Command)
 
-## Installation and Usage
+## Features
 
-### Install via npm
+- automatic command and argument parsing
+- easy permission validation
+- persistent datastore
+- built-in commands
+
+
+## Installation
+
+Install donbot via npm
 
 `npm install --save donbot`
+
+## Usage
 
 Import the base client
 
@@ -26,7 +38,7 @@ const bot = new Bot({
   owner: "OWNER_ID",
 });
 
-bot.connect();
+bot.login();
 ```
 
 `token` is the login token obtained from the [discord dev website](#https://discordapp.com/developers)

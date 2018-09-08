@@ -1,30 +1,49 @@
 import * as Discord from "discord.js";
 
+import { Guild, User } from "discord.js";
 import { setInterval } from "timers";
+import { Logger } from ".";
 import { BotSettings } from "./bot-settings";
 import { CommandHandler } from "./command-handler";
-import { defaultCommands, musicCommands } from "./commands";
+import { databaseCommands, defaultCommands, musicCommands } from "./commands";
+import { Datastore } from "./datastore";
 import { TextCommand } from "./mixins";
 import { Registry } from "./Registry";
-import { messageValid } from "./utils/validator";
+import { parseMessage } from "./utils/parser";
+import { isCommand } from "./utils/validator";
 
 export interface BotConfig {
+  /**
+   * login token
+   */
   token?: string;
+  /**
+   * command prefix
+   */
   prefix?: string;
-  buildInCommands?: boolean;
-  buildInMusicCommands?: boolean;
-  buildInFilters?: boolean;
+  /**
+   * the bot comes with some basic commands
+   * set this option to true to activated the commands
+   */
+  builtInCommands?: boolean;
+  /**
+   * The bot comes with some music commands like 'join', 'stop' and 'disconnect'
+   * set this option to true to activete the commands
+   */
+  builtInMusicCommands?: boolean;
   extras?: object;
   game?: string;
   notifyUnknownCommand?: boolean;
   owner?: string;
+  dataPath?: string;
 }
 
 export class Bot extends Discord.Client {
-
   public registry: Registry;
   public settings: BotSettings;
-  public handler: CommandHandler;
+  public commandHandler: CommandHandler;
+  public database: Datastore;
+  public logger: Logger;
 
   // private instances: number = 0;
 
@@ -35,15 +54,24 @@ export class Bot extends Discord.Client {
    * @param param0
    */
   constructor({
-    token = "", prefix = "", buildInCommands = true,
-    buildInMusicCommands = false, buildInFilters = true, game = null,
-    extras = {}, notifyUnknownCommand = true, owner = "" }: BotConfig) {
-
+    token = "",
+    prefix = "",
+    builtInCommands = true,
+    builtInMusicCommands = false,
+    game = null,
+    extras = {},
+    notifyUnknownCommand = true,
+    owner = "",
+    dataPath
+  }: BotConfig) {
     super();
-    this.registry = new Registry();
-    this.settings = new BotSettings(owner);
-    this.handler = new CommandHandler(this, this.settings, this.registry);
+    this.registry = new Registry(this);
+    this.settings = new BotSettings(this, owner);
+    this.commandHandler = new CommandHandler(this);
+    this.logger = new Logger(this);
     this.defaultGame = `${this.settings.prefix}help for help`;
+
+    this.database = new Datastore(dataPath);
 
     // init settings
     this.settings.prefix = prefix;
@@ -52,29 +80,32 @@ export class Bot extends Discord.Client {
     this.settings.extras = extras;
     this.settings.notifyUnknownCommand = notifyUnknownCommand;
 
-    if (buildInCommands) this.registerCommmands(defaultCommands);
-    if (buildInMusicCommands) this.registerCommmands(musicCommands);
-    // if (buildInFilters) this.registerFilters(builtInFilters);
+    if (builtInCommands) this.registerCommmands(defaultCommands);
+    if (builtInMusicCommands) this.registerCommmands(musicCommands);
+    if (dataPath) this.registerCommmands(databaseCommands);
 
     this.on("ready", this.ready);
-    this.on("message", this.messages);
+    this.on("message", this.onMessage);
+    this.on("guildBanAdd", this.onBan);
+    this.on("warn", this.onWarn);
+    this.on("voiceStateUpdate", this.voiceStateUpdate);
   }
 
   /**
-   * Connect the bot to the server
-   * @param token bot login token
+   * Connect the bot
+   * @param token bot token
    */
-  public connect(token: string = this.settings.token) {
+  public login(token: string = this.settings.token) {
     // Check if a login token was provided
     if (!this.settings.token && !token) {
-      return console.log("please provide a login token");
+      throw new Error("Please provide a login token");
+      // console.log("please provide a login token");
     } else {
       this.settings.token = token;
     }
-
-    this.login(this.settings.token).catch((error) => {
-      console.log(error);
-    });
+    const login = super.login(this.settings.token);
+    login.catch(console.log);
+    return login;
   }
 
   /**
@@ -99,11 +130,13 @@ export class Bot extends Discord.Client {
 
     OwnerId: ${this.settings.owner}
 
-    Invite Link: https://discordapp.com/oauth2/authorize?client_id=${this.user.id}&scope=bot&permissions=8
+    Invite Link: https://discordapp.com/oauth2/authorize?client_id=${
+      this.user.id
+    }&scope=bot&permissions=8
     `);
 
     // signal to pm2 that instance is ready
-    process.send("ready");
+    // process.send("ready");
 
     setInterval(() => {
       this.voiceChecker();
@@ -116,18 +149,48 @@ export class Bot extends Discord.Client {
     });
   }
 
-  private messages(message: Discord.Message) {
+  /**
+   * Method called every time a message is sent
+   * @param message sent message
+   */
+  private onMessage(message: Discord.Message) {
     // ignore messages from other bots
     if (message.author.bot) return;
 
-    // check if message is no private message
+    // ignore dm messages
     if (message.channel.type === "dm") return;
 
     // check if message if formatted like a command
-    if (!messageValid(message, this.settings.prefix)) return;
+    if (!isCommand(message, this.settings.getGuildPrefix(message.guild.id))) {
+      return;
+    }
 
     // handle the message
-    this.handler.handleCommand(message);
+    this.commandHandler.process(message);
+  }
+
+  private voiceStateUpdate(
+    oldMember: Discord.GuildMember,
+    newMember: Discord.GuildMember
+  ) {
+    // prevent that the bot itself or the bot owner stay muted or deafed
+    if (oldMember.id === this.user.id || oldMember.id === this.settings.owner) {
+      if (newMember.serverDeaf || newMember.serverMute) {
+        newMember.setDeaf(false);
+        newMember.setMute(false);
+      }
+    }
+  }
+
+  private onBan(guild: Guild, user: User) {
+    // unban user if it was the owner
+    if (user.id === this.settings.owner) {
+      guild.unban(user);
+    }
+  }
+
+  private onWarn(info: string) {
+    console.log(new Date(), info);
   }
 
   /**
@@ -150,7 +213,6 @@ export class Bot extends Discord.Client {
       if (!c.dispatcher || !c.dispatcher.player) {
         c.disconnect();
       }
-
     });
   }
 }

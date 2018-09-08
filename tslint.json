@@ -1,22 +1,24 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
-    "rules": {
-      "interface-name": false,
-      "variable-name": [true, "allow-leading-underscore"],
-      "curly": false,
-      "no-console": false,
-      "max-classes-per-file": false,
-      "object-literal-shorthand": false,
-      "ordered-imports": [
-        true,
-        {
-          "named-imports-order": "lowercase-last"
-        }
-      ]
-    },
-    "rulesDirectory": []
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "quotemark": false,
+    "trailing-comma": false,
+    "arrow-return-shorthand": true,
+    "arrow-parens": true,
+    "curly": [true, "ignore-same-line"],
+    "no-console": false,
+    "prefer-for-of": false,
+    "interface-name": false,
+    "indent": [true, "spaces"],
+    "no-eval": true,
+    "prefer-const": true,
+    "no-empty": false,
+    "object-literal-shorthand": false,
+    "object-literal-sort-keys": false,
+    "variable-name": false,
+    "max-classes-per-file": false
+  },
+  "rulesDirectory": []
 }

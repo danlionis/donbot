@@ -1,3 +1,5 @@
+import { Bot } from ".";
+
 export class BotSettings {
   private _token: string;
   private _prefix: string;
@@ -6,8 +8,11 @@ export class BotSettings {
   private _notifyUnknownCommand: boolean;
   private readonly defaultPrefix: string = ".";
   private _owner: string;
+  private _botLogChannel: string;
 
-  constructor(owner: string) {
+  private readonly prefixKey = "prefix";
+
+  constructor(private bot: Bot, owner: string) {
     this._owner = owner;
   }
 
@@ -25,6 +30,25 @@ export class BotSettings {
 
   set prefix(prefix: string) {
     this._prefix = prefix || this.defaultPrefix;
+  }
+
+  get botLogChannel() {
+    return this._botLogChannel || "bot-log";
+  }
+
+  set botLogChannel(channelname: string) {
+    this._botLogChannel = channelname;
+  }
+
+  public getGuildPrefix(guildid: string) {
+    return this.bot.database.get<string>(
+      guildid + "." + this.prefixKey,
+      this.defaultPrefix
+    );
+  }
+
+  public setGuildPrefix(guildid: string, prefix: string) {
+    return this.bot.database.set(guildid + "." + this.prefixKey, prefix, false);
   }
 
   get extras(): object {
