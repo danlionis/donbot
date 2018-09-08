@@ -26,6 +26,7 @@
     "dotenv": "^5.0.0",
     "ffmpeg-binaries": "^3.2.2-3",
     "google-tts-api": "0.0.2",
+    "lodash": "^4.17.10",
     "node-opus": "^0.2.7",
     "ytdl-core": "^0.18.4"
   },

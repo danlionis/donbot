@@ -16,6 +16,7 @@ export class Shutdown extends TextCommand {
 
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
     process.exit(0);
+    console.log("BOT SHUTTING DOWN");
   }
 }
 
