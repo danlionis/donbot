@@ -19,8 +19,6 @@ export class Clear extends TextCommand {
 
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
     const limit = parseInt(parsedMessage.args.count.value, 10) + 1;
-    console.log(limit);
-
     let messages = await message.channel.fetchMessages({ limit });
     const time = new Date().getTime() - 14 * 24 * 60 * 60 * 1000;
 

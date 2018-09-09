@@ -1,7 +1,76 @@
-import { Message, VoiceConnection } from "discord.js";
+import {
+  GuildMember,
+  Message,
+  VoiceChannel,
+  VoiceConnection
+} from "discord.js";
 import { Bot } from "../";
 import { TextCommand } from "../mixins";
 import { ParsedMessage } from "../utils/parser";
+
+export class Yeet extends TextCommand {
+  constructor() {
+    super({
+      command: "yeet",
+      group: "fun",
+      description: "Get YEETED into a random channel",
+      permissions: ["MOVE_MEMBERS"]
+    });
+  }
+
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    let members: GuildMember[];
+    if (message.mentions.members.array().length > 0) {
+      members = message.mentions.members.array();
+    } else {
+      members = [message.member];
+    }
+
+    const channels = bot.channels
+      .filter((c) => c.type === "voice")
+      .array() as VoiceChannel[];
+
+    for (let i = 0; i < members.length; i++) {
+      const m = members[i];
+      const c = this.pickChannel(channels);
+      const hasPermission = c.permissionsFor(m).has("CONNECT");
+      if (!hasPermission) {
+        i--;
+      } else {
+        m.setVoiceChannel(c);
+      }
+    }
+  }
+
+  private pickChannel(channels: VoiceChannel[]) {
+    const index = Math.floor(Math.random() * channels.length);
+    return channels[index];
+  }
+}
+
+export class MagischeMiesmuschel extends TextCommand {
+  private answers: string[] = [
+    "Frag doch einfach nochmal...",
+    "Ja",
+    "Nein",
+    "Ich habe deine Frage leider nicht verstanden",
+    "Was würde deine Großmutter dazu sagen"
+  ];
+
+  constructor() {
+    super({
+      command: "magischemiesmuschel",
+      aliases: ["mm"],
+      group: "fun",
+      description: "Frag die Magische Miesmuschel etwas"
+    });
+  }
+
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    const index = Math.floor(Math.random() * this.answers.length);
+    return message.channel.send(this.answers[index], { tts: true });
+  }
+}
 
 export class AltF4 extends TextCommand {
   constructor() {
