@@ -26,7 +26,7 @@ export async function textToSpeech(
   if (!text) {
     return message.channel.send("Please provide a message");
   }
-  const locale: string = bot.database.get(langKey, "en");
+  const locale: string = bot.database.get(guildLangKey, "en");
 
   text.trim().substr(0, 200);
 
