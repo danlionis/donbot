@@ -7,6 +7,7 @@ import {
 import { Bot } from "../";
 import { TextCommand } from "../mixins";
 import { ParsedMessage } from "../utils/parser";
+import { textToSpeech } from "../utils/texttospeech";
 
 export class Yeet extends TextCommand {
   constructor() {
@@ -68,7 +69,9 @@ export class MagischeMiesmuschel extends TextCommand {
 
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
     const index = Math.floor(Math.random() * this.answers.length);
-    return message.channel.send(this.answers[index], { tts: true });
+    const text = this.answers[index];
+    textToSpeech(bot, message, parsedMessage, text);
+    // return message.channel.send(this.answers[index], { tts: true });
   }
 }
 
@@ -156,6 +159,65 @@ export class TextToSpeech extends TextCommand {
     });
   }
 
+  // public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+  //   const langKey = message.guild.id + "." + this.langKey;
+
+  //   if (parsedMessage.flags.lang) {
+  //     if (parsedMessage.args.lang.exists) {
+  //       bot.database.set(langKey, parsedMessage.args.lang.value);
+  //       return message.channel.send(
+  //         `TTS language set to \`${parsedMessage.args.lang.value}\``
+  //       );
+  //     } else {
+  //       return message.channel.send(
+  //         `TTS language is curently set to \`${bot.database.get(
+  //           langKey,
+  //           "de"
+  //         )}\``
+  //       );
+  //     }
+  //   }
+
+  //   // dynamic import 'google-tts-api'
+  //   try {
+  //     this.tts = await import("google-tts-api");
+  //   } catch (error) {
+  //     console.log(
+  //       "This command requires a peer dependency of 'google-tts-api'!"
+  //     );
+  //     return message.reply(
+  //       "There was an error executing this command. Please look at the log for more information"
+  //     );
+  //   }
+
+  //   const text = parsedMessage.rawArgs.join(" ");
+
+  //   if (!text) {
+  //     return message.channel.send("Please provide a message");
+  //   }
+  //   const locale: string = bot.database.get(langKey, "en");
+  //   const url = await this.getTtsUrl(parsedMessage.rawArgs.join(" "), locale);
+
+  //   const vc: VoiceConnection = await bot.registry.executeCommand(
+  //     "join",
+  //     bot,
+  //     message,
+  //     parsedMessage
+  //   );
+
+  //   if (vc) {
+  //     console.log("vc", vc.channel.name);
+  //     try {
+  //       const dispatcher = vc.playArbitraryInput(url);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //     // dispatcher.on("end", (_) => {
+  //     //   vc.disconnect();
+  //     // });
+  //   }
+  // }
+
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
     const langKey = message.guild.id + "." + this.langKey;
 
@@ -175,39 +237,14 @@ export class TextToSpeech extends TextCommand {
       }
     }
 
-    // dynamic import 'google-tts-api'
-    try {
-      this.tts = await import("google-tts-api");
-    } catch (error) {
-      console.log(
-        "This command requires a peer dependency of 'google-tts-api'!"
-      );
-      return message.reply(
-        "There was an error executing this command. Please look at the log for more information"
-      );
-    }
+    console.log("tts");
 
-    const text = parsedMessage.rawArgs.join(" ");
-
-    if (!text) {
-      return message.channel.send("Please provide a message");
-    }
-    const locale: string = bot.database.get(langKey, "en");
-    const url = await this.getTtsUrl(parsedMessage.rawArgs.join(" "), locale);
-
-    const vc: VoiceConnection = await bot.registry.executeCommand(
-      "join",
+    await textToSpeech(
       bot,
       message,
-      parsedMessage
+      parsedMessage,
+      parsedMessage.rawArgs.join(" ")
     );
-
-    if (vc) {
-      const dispatcher = vc.playArbitraryInput(url);
-      dispatcher.on("end", (_) => {
-        vc.disconnect();
-      });
-    }
   }
 
   private async getTtsUrl(text: string, locale: string = "en") {

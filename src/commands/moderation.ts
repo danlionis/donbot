@@ -10,7 +10,7 @@ export class Clear extends TextCommand {
       command: "clear",
       aliases: ["cls"],
       usage: "clear <amount>",
-      description: "Clears the last 100 chat messages",
+      description: "Clears the last 10 chat messages",
       permissions: ["MANAGE_MESSAGES"],
       group: "moderation",
       args: [{ name: "count", default: 10, pattern: /^[0-9][0-9]?$/ }]
