@@ -131,7 +131,7 @@ export class Volume extends TextCommand {
       description: "set the volume from 1-10",
       roles,
       args: [
-        { name: "volume", pattern: /[0-10]/ },
+        { name: "volume", pattern: /10|[0-9]/ },
         { name: "updown", pattern: /up|down/i }
       ],
       group: "voice"
