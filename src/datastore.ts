@@ -6,6 +6,21 @@ export interface DatastoreOptions {
   seperator?: string;
 }
 
+interface GetOptions<T> {
+  guildId?: string;
+  defaultValue?: T;
+}
+
+interface SetOptions<T> {
+  guildId?: string;
+  merge?: boolean;
+}
+
+interface DeleteOptions<T> {
+  value?: string;
+  guildId?: string;
+}
+
 export class Datastore {
   private root = {};
   private readonly dir;
@@ -37,7 +52,11 @@ export class Datastore {
     return result;
   }
 
-  public get<T>(key: string, defaultValue?: any): T {
+  public get<T>(key: string, getOptions?: GetOptions<T>): T {
+    const { guildId, defaultValue } = getOptions;
+    if (guildId) {
+      key = `${guildId}.${key}`;
+    }
     const pathSegments = this.getPathSegments(key);
     let result = pathSegments.reduce((o, i) => {
       if (!o[i]) {
@@ -96,8 +115,26 @@ export class Datastore {
     });
   }
 
-  public async set<T>(key: string, value: T, merge = false) {
+  public async delete<T>(key: string, deleteOptions?: DeleteOptions<T>) {
+    const { guildId, value } = deleteOptions;
+
+    if (value) {
+      const result = this.get<any[]>(key, { guildId });
+      result.splice(result.indexOf(value));
+    }
+
+    this.saveToFile();
+
+  }
+
+  public async set<T>(key: string, value: T, setOptions?: SetOptions<T>) {
+    const { merge, guildId } = setOptions;
     let ref = this.root;
+
+    if (guildId) {
+      key = `${guildId}.${key}`;
+    }
+
     const pathSegments = this.getPathSegments(key);
 
     for (let i = 0; i < pathSegments.length - 1; i++) {

@@ -3,6 +3,7 @@ import { Bot } from "../bot";
 import { ParsedMessage } from "./parser";
 
 const langKey = "tts.lang";
+const volumeKey = "tts.volume";
 
 export async function textToSpeech(
   bot: Bot,
@@ -26,11 +27,12 @@ export async function textToSpeech(
   if (!text) {
     return message.channel.send("Please provide a message");
   }
-  const locale: string = bot.database.get(guildLangKey, "en");
+  const locale: string = bot.database.get(guildLangKey, { defaultValue: "en" });
 
   text.trim().substr(0, 200);
 
   const url = await tts(text, locale, 1);
+
   console.log(url);
 
   const vc: VoiceConnection = await bot.registry.executeCommand(
@@ -41,9 +43,10 @@ export async function textToSpeech(
   );
 
   if (vc) {
-    console.log("vc", vc.channel.name);
     try {
-      const dispatcher = vc.playArbitraryInput(url);
+      const dispatcher = vc.playArbitraryInput(url, {
+        volume: bot.database.get(volumeKey, { guildId: message.guild.id })
+      });
       dispatcher.on("end", (_) => {
         vc.disconnect();
       });

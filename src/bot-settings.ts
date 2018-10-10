@@ -41,14 +41,20 @@ export class BotSettings {
   }
 
   public getGuildPrefix(guildid: string) {
-    return this.bot.database.get<string>(
-      guildid + "." + this.prefixKey,
-      this.defaultPrefix
-    );
+    // return this.bot.database.get<string>(
+    //   guildid + "." + this.prefixKey,
+    //   this.defaultPrefix
+    // );
+    return this.bot.database.get<string>(this.prefixKey, {
+      defaultValue: this.prefix,
+      guildId: guildid
+    });
   }
 
   public setGuildPrefix(guildid: string, prefix: string) {
-    return this.bot.database.set(guildid + "." + this.prefixKey, prefix, false);
+    return this.bot.database.set(guildid + "." + this.prefixKey, prefix, {
+      merge: false
+    });
   }
 
   get extras(): object {

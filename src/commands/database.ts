@@ -54,7 +54,7 @@ export class GetDb extends TextCommand {
       }
     }
 
-    const result = bot.database.get(key, "");
+    const result = bot.database.get(key, {defaultValue: ""});
     // message.channel.send(`\`\`\`${JSON.stringify(result, null, 2)}\`\`\``);
     return message.channel
       .send(JSON.stringify(result, null, 2), { code: "json" })
