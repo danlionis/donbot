@@ -57,7 +57,7 @@ export class Bot extends Discord.Client {
    */
   constructor({
     token = "",
-    prefix = "",
+    prefix = ".",
     builtInCommands = true,
     builtInMusicCommands = false,
     game = null,
