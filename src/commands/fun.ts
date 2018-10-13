@@ -229,15 +229,12 @@ export class TextToSpeech extends TextCommand {
         );
       } else {
         return message.channel.send(
-          `TTS language is curently set to \`${bot.database.get(
-            langKey,
-            "de"
-          )}\``
+          `TTS language is curently set to \`${bot.database.get(langKey, {
+            defaultValue: "de"
+          })}\``
         );
       }
     }
-
-    console.log("tts");
 
     await textToSpeech(
       bot,
@@ -245,15 +242,5 @@ export class TextToSpeech extends TextCommand {
       parsedMessage,
       parsedMessage.rawArgs.join(" ")
     );
-  }
-
-  private async getTtsUrl(text: string, locale: string = "en") {
-    text = this.truncateText(text);
-    const url = await this.tts(text, locale, 1);
-    return url;
-  }
-
-  private truncateText(text: string) {
-    return text.trim().substr(0, 200);
   }
 }
