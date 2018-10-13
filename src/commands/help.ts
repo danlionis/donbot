@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { Bot } from "../";
 import { TextCommand } from "../mixins";
 import { ParsedMessage } from "../utils/parser";
+import { millisToTime } from "../utils/converter";
 
 export class Help extends TextCommand {
   constructor() {
@@ -116,7 +117,7 @@ export class Status extends TextCommand {
     const embed = new Discord.RichEmbed()
       .setTitle("Bot Status")
       .setColor("#FF0000")
-      .addField("Uptime", this.toTime(bot.uptime))
+      .addField("Uptime", millisToTime(bot.uptime))
       .addField(
         "UserStats",
         `${bot.users.array().length} users on ${
@@ -125,27 +126,6 @@ export class Status extends TextCommand {
       )
       .addField("Ping", Math.floor(bot.ping));
     message.channel.send(embed);
-  }
-
-  private toTime(uptime: number) {
-    uptime = uptime / 1000;
-
-    const d: number | string = Math.floor(uptime / 86400);
-    let h: number | string = Math.floor(uptime / 3600);
-    let m: number | string = Math.floor((uptime - h * 3600) / 60);
-    let s: number | string = Math.floor(uptime - h * 3600 - m * 60);
-
-    if (h < 10) {
-      h = "0" + h;
-    }
-    if (m < 10) {
-      m = "0" + m;
-    }
-    if (s < 10) {
-      s = "0" + s;
-    }
-
-    return `${d}d ${h}h ${m}m ${s}s`;
   }
 }
 

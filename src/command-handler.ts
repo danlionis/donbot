@@ -99,10 +99,18 @@ export class CommandHandler {
       owner = true;
     }
 
+    const disabledFor = this.bot.database.get<string[]>(
+      `commands.${command.is}.disabledFor`,
+      { guildId: message.guild.id, defaultValue: [] }
+    );
+
+    const commandDisabled =
+      disabledFor.indexOf(message.member.id) >= 0 || !command.enabled;
+
     if (!allowed) {
       this.logCmd(message, parsedMessage, "DENIED");
       return message.reply("You don't have permission to execute this command");
-    } else if (!command.enabled && !owner) {
+    } else if (commandDisabled && !owner) {
       this.logCmd(message, parsedMessage, "DISABLED");
       return message.reply("This command was temporarily disabled");
     }

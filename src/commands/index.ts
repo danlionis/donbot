@@ -1,4 +1,4 @@
-import { ChangePrefix, Enabled, Playing, Servers, Shutdown } from "./admin";
+import { ChangePrefix, Enabled, Playing, Servers, Shutdown, SystemInfo } from "./admin";
 import { Arg } from "./args";
 import { ClearDb, GetDb, ReloadDb, SetDb } from "./database";
 import { AltF4, MagischeMiesmuschel, TextToSpeech, TrollMove, Yeet } from "./fun";
@@ -53,7 +53,8 @@ export let defaultCommands = [
   Shutdown,
   Enabled,
   MagischeMiesmuschel,
-  Yeet
+  Yeet,
+  SystemInfo
 ];
 
 export let databaseCommands = [GetDb, SetDb, ClearDb, ReloadDb];

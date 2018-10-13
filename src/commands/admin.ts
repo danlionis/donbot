@@ -1,8 +1,43 @@
 import { Message, RichEmbed } from "discord.js";
+import * as si from "systeminformation";
 import { Bot } from "../bot";
 import { TextCommand } from "../mixins";
 import { selfDestructMessage } from "../utils/callbacks";
+import { millisToTime } from "../utils/converter";
 import { ParsedMessage, parseMessage } from "../utils/parser";
+import { Help } from "./help";
+
+export class SystemInfo extends TextCommand {
+  constructor() {
+    super({
+      command: "sys",
+      ownerOnly: true
+    });
+  }
+
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    const uptimeUnix = await si.time().uptime;
+    const uptime = millisToTime(+uptimeUnix * 1000);
+    const localTime = await si.time().current;
+    const cpuTemp = (await si.cpuTemperature()).main;
+    const memUsed = (await si.mem()).used / 1048576;
+    const memTotal = (await si.mem()).total / 1048576;
+    const memPercent = ((memUsed * 100) / memTotal).toFixed(2);
+    const cpuLoad = (await si.currentLoad()).currentload;
+    const netstat = await si.networkStats();
+    const sysInfoEmbed = new RichEmbed();
+    sysInfoEmbed
+      .addField("Uptime", uptime)
+      .addField("Local Time", new Date(localTime))
+      .addField("Cpu Temp", cpuTemp)
+      .addField(
+        "Memory",
+        `${memUsed.toFixed(2)}MB / ${memTotal.toFixed(2)}MB (${memPercent}%)`
+      )
+      .addField("Cpu Load", `${cpuLoad.toFixed(2)}%`);
+    return message.channel.send(sysInfoEmbed);
+  }
+}
 
 export class Enabled extends TextCommand {
   constructor() {
@@ -35,10 +70,52 @@ export class Enabled extends TextCommand {
     }
 
     // dont disable this command
-    if (cmd instanceof Enabled) {
+    if (cmd instanceof Enabled || cmd instanceof Help) {
       return message.channel.send("Cannot set enabled status for this command");
     }
 
+    if (message.mentions.users.array().length <= 0) {
+      return this.changeGlobal(bot, message, parsedMessage, cmd);
+    } else {
+      return this.changeForUser(bot, message, parsedMessage, cmd);
+    }
+  }
+
+  private async changeForUser(
+    bot: Bot,
+    message: Message,
+    parsedMessage: ParsedMessage,
+    cmd: TextCommand
+  ) {
+    if (
+      parsedMessage.args.status.value === "0" ||
+      parsedMessage.args.status.value === "false"
+    ) {
+      await bot.database.set(
+        `commands.${cmd.is}.disabledFor`,
+        [message.member.id],
+        {
+          merge: true,
+          guildId: message.guild.id
+        }
+      );
+    } else if (
+      parsedMessage.args.status.value === "1" ||
+      parsedMessage.args.status.value === "true"
+    ) {
+      bot.database.delete(`commands.${cmd.is}.disabledFor`, {
+        guildId: message.guild.id,
+        value: message.member.id
+      });
+    }
+  }
+
+  private async changeGlobal(
+    bot: Bot,
+    message: Message,
+    parsedMessage: ParsedMessage,
+    cmd: TextCommand
+  ) {
     if (
       parsedMessage.args.status.value === "0" ||
       parsedMessage.args.status.value === "false"
@@ -50,7 +127,7 @@ export class Enabled extends TextCommand {
     ) {
       cmd.enable();
     }
-    message.channel
+    return message.channel
       .send(
         new RichEmbed()
           .setTitle("Command Status")
@@ -88,10 +165,10 @@ export class ChangePrefix extends TextCommand {
   }
 
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const prefix = parsedMessage.rawArgs[0];
+    const prefix = parsedMessage.rawArgs[0] || bot.settings.prefix;
     bot.settings.setGuildPrefix(message.guild.id, prefix);
-    bot.settings.prefix = prefix;
-    message.reply(`Changed command prefix to ${bot.settings.prefix}`);
+    // bot.settings.prefix = prefix;
+    message.reply(`Changed command prefix to ${prefix}`);
   }
 }
 
