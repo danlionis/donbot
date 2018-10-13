@@ -27,17 +27,21 @@
     "ffmpeg-binaries": "^3.2.2",
     "google-tts-api": "0.0.2",
     "lodash": "^4.17.10",
-    "node-opus": "^0.2.7",
+    "systeminformation": "^3.45.5",
     "ytdl-core": "^0.18.4"
   },
   "devDependencies": {
     "@types/conf": "^1.4.0",
     "@types/node": "^8.0.36",
+    "@types/systeminformation": "^3.23.0",
     "rimraf": "^2.6.2",
     "ts-loader": "^3.2.0",
     "tslint": "^5.8.0",
-    "typescript": "^2.6.2",
+    "typescript": "^2.9.2",
     "webpack": "^3.10.0",
     "webpack-node-externals": "^1.6.0"
+  },
+  "peerDependencies": {
+    "node-opus": "^0.2.7"
   }
 }
