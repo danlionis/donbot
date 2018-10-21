@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 import { Bot } from "../";
 import { TextCommand } from "../mixins";
-import { ParsedMessage } from "../utils/parser";
 import { millisToTime } from "../utils/converter";
+import { ParsedMessage } from "../utils/parser";
 
 export class Help extends TextCommand {
   constructor() {

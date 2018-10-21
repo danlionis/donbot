@@ -7,6 +7,30 @@ import { millisToTime } from "../utils/converter";
 import { ParsedMessage, parseMessage } from "../utils/parser";
 import { Help } from "./help";
 
+export class Eval extends TextCommand {
+  constructor() {
+    super({
+      command: "eval",
+      ownerOnly: true,
+      group: "admin"
+    });
+  }
+
+  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
+    let res: any;
+    try {
+      // tslint:disable-next-line:no-eval
+      res = eval(parsedMessage.rawArgs.join(" "));
+    } catch (err) {
+      res = err.toString().split("\n")[0];
+    } finally {
+      if (res) {
+        message.channel.send(res);
+      }
+    }
+  }
+}
+
 export class SystemInfo extends TextCommand {
   constructor() {
     super({

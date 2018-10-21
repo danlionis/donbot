@@ -1,7 +1,21 @@
-import { ChangePrefix, Enabled, Playing, Servers, Shutdown, SystemInfo } from "./admin";
+import {
+  ChangePrefix,
+  Enabled,
+  Eval,
+  Playing,
+  Servers,
+  Shutdown,
+  SystemInfo
+} from "./admin";
 import { Arg } from "./args";
 import { ClearDb, GetDb, ReloadDb, SetDb } from "./database";
-import { AltF4, MagischeMiesmuschel, TextToSpeech, TrollMove, Yeet } from "./fun";
+import {
+  AltF4,
+  MagischeMiesmuschel,
+  TextToSpeech,
+  TrollMove,
+  Yeet
+} from "./fun";
 import { Choice, Random } from "./general";
 import { Help, Status } from "./help";
 import {
@@ -54,7 +68,8 @@ export let defaultCommands = [
   Enabled,
   MagischeMiesmuschel,
   Yeet,
-  SystemInfo
+  SystemInfo,
+  Eval
 ];
 
 export let databaseCommands = [GetDb, SetDb, ClearDb, ReloadDb];
