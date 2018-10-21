@@ -202,7 +202,6 @@ export class Bot extends Discord.Client {
    * set the current playing game
    */
   public set game(game: string) {
-    console.log("game", game);
     this.user.setGame(game);
     this.settings.game = game;
   }
