@@ -1,8 +1,8 @@
 import {
+  Channel,
   GuildMember,
   Message,
-  VoiceChannel,
-  VoiceConnection
+  VoiceChannel
 } from "discord.js";
 import { Bot } from "../";
 import { TextCommand } from "../mixins";
@@ -34,16 +34,29 @@ export class Yeet extends TextCommand {
     for (let i = 0; i < members.length; i++) {
       const m = members[i];
       const c = this.pickChannel(channels);
-      const hasPermission = c.permissionsFor(m).has("CONNECT");
-      if (!hasPermission) {
+      const memberCanJoin = c.permissionsFor(m).has("CONNECT");
+      const authorCanJoin = c.permissionsFor(message.member).has("CONNECT");
+
+      // no user should yeet a user with a higher rolw
+      const authorHigherThanMember =
+        m.highestRole.position < message.member.highestRole.position;
+      if (!memberCanJoin || !authorCanJoin) {
+        // iterate over same index again
         i--;
+      } else if (!authorHigherThanMember) {
+        message.channel.send("Permission denied");
+        continue;
       } else {
         m.setVoiceChannel(c);
       }
     }
   }
 
-  private pickChannel(channels: VoiceChannel[]) {
+  /**
+   * Picks a random channel
+   * @param channels possible voice channels
+   */
+  private pickChannel<T extends Channel>(channels: T[]): T {
     const index = Math.floor(Math.random() * channels.length);
     return channels[index];
   }
@@ -137,7 +150,6 @@ export class TrollMove extends TextCommand {
 }
 
 export class TextToSpeech extends TextCommand {
-  private tts: any;
   private readonly langKey = "tts.lang";
 
   constructor() {
