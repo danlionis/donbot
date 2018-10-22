@@ -25,7 +25,7 @@ export class Eval extends TextCommand {
       res = err.toString().split("\n")[0];
     } finally {
       if (res) {
-        message.channel.send(res);
+        message.channel.send(JSON.stringify(res));
       }
     }
   }
@@ -78,7 +78,7 @@ export class Enabled extends TextCommand {
         },
         {
           name: "status",
-          pattern: /(0|1)|(false|true)/,
+          pattern: /(false|true)/,
           description: "0: disabled \n1: enabled",
           default: 3
         }
@@ -112,19 +112,17 @@ export class Enabled extends TextCommand {
     cmd: TextCommand
   ) {
     if (
-      parsedMessage.args.status.value === "0" ||
       parsedMessage.args.status.value === "false"
     ) {
       await bot.database.set(
         `commands.${cmd.is}.disabledFor`,
-        [message.member.id],
+        [message.mentions.users.array()[0].id],
         {
           merge: true,
           guildId: message.guild.id
         }
       );
     } else if (
-      parsedMessage.args.status.value === "1" ||
       parsedMessage.args.status.value === "true"
     ) {
       bot.database.delete(`commands.${cmd.is}.disabledFor`, {
