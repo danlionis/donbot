@@ -119,8 +119,8 @@ export class Datastore {
     const { guildId, value } = deleteOptions;
 
     if (value) {
-      const result = this.get<any[]>(key, { guildId });
-      result.splice(result.indexOf(value));
+      let result = this.get<any[]>(key, { guildId });
+      result = result.splice(result.indexOf(value));
     }
 
     this.saveToFile();
