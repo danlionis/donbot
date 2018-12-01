@@ -43,6 +43,10 @@ export class Disconenct extends TextCommand {
     if (!con) {
       return;
     }
+
+    if (!con.channel.equals(message.member.voiceChannel)) {
+      return message.reply("Cannot disconnect from a different voice channel");
+    }
     if (con.player.dispatcher) con.player.dispatcher.end();
     con.disconnect();
   }

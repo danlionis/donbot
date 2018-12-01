@@ -57,13 +57,13 @@ export class CommandHandler {
 
     let allowed = false;
 
-    // allow if user has required permissions
-
+    /*
+      Allow if the user has the permissions specified in the command
+     */
     const perms = command.permissions as PermissionResolvable;
-
     if (
       command.permissions.length > 0 &&
-      message.member.hasPermissions(perms)
+      message.member.hasPermission(perms)
     ) {
       allowed = true;
     }

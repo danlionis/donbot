@@ -167,7 +167,8 @@ export class TextToSpeech extends TextCommand {
           description: "set the locale code to be used for tts"
         }
       ],
-      group: "fun"
+      group: "fun",
+      enabled: false
     });
   }
 

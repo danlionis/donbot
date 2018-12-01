@@ -52,7 +52,10 @@ export class Datastore {
     return result;
   }
 
-  public get<T>(key: string, getOptions?: GetOptions<T>): T {
+  public get<T>(
+    key: string,
+    getOptions: GetOptions<T> = { guildId: null, defaultValue: null }
+  ): T {
     const { guildId, defaultValue } = getOptions;
     if (guildId) {
       key = `${guildId}.${key}`;
@@ -115,19 +118,23 @@ export class Datastore {
     });
   }
 
-  public async delete<T>(key: string, deleteOptions?: DeleteOptions<T>) {
+  public async delete<T>(
+    key: string,
+    deleteOptions: DeleteOptions<T> = { guildId: null, value: null }
+  ) {
     const { guildId, value } = deleteOptions;
 
     if (value) {
       let result = this.get<any[]>(key, { guildId });
       result = result.splice(result.indexOf(value));
+    } else {
+      delete this.data[key];
     }
 
     this.saveToFile();
-
   }
 
-  public async set<T>(key: string, value: T, setOptions?: SetOptions<T>) {
+  public async set<T>(key: string, value: T, setOptions: SetOptions<T> = {merge: false, guildId: null}) {
     const { merge, guildId } = setOptions;
     let ref = this.root;
 

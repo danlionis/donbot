@@ -54,11 +54,11 @@ export class SystemInfo extends TextCommand {
       .addField("Uptime", uptime)
       .addField("Local Time", new Date(localTime))
       .addField("Cpu Temp", cpuTemp)
+      .addField("Cpu Load", `${cpuLoad.toFixed(2)}%`)
       .addField(
         "Memory",
         `${memUsed.toFixed(2)}MB / ${memTotal.toFixed(2)}MB (${memPercent}%)`
-      )
-      .addField("Cpu Load", `${cpuLoad.toFixed(2)}%`);
+      );
     return message.channel.send(sysInfoEmbed);
   }
 }
@@ -111,9 +111,7 @@ export class Enabled extends TextCommand {
     parsedMessage: ParsedMessage,
     cmd: TextCommand
   ) {
-    if (
-      parsedMessage.args.status.value === "false"
-    ) {
+    if (parsedMessage.args.status.value === "false") {
       await bot.database.set(
         `commands.${cmd.is}.disabledFor`,
         [message.mentions.users.array()[0].id],
@@ -122,9 +120,7 @@ export class Enabled extends TextCommand {
           guildId: message.guild.id
         }
       );
-    } else if (
-      parsedMessage.args.status.value === "true"
-    ) {
+    } else if (parsedMessage.args.status.value === "true") {
       bot.database.delete(`commands.${cmd.is}.disabledFor`, {
         guildId: message.guild.id,
         value: message.member.id
