@@ -1,3 +1,9 @@
+
+/**
+ * Convert a uptime into a human readable string
+ * with the format #d#h#m#s
+ * @param uptime uptime in milliseconds
+ */
 export function millisToTime(uptime: number) {
   // convert mills in sec
   uptime = uptime / 1000;

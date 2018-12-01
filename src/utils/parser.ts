@@ -26,6 +26,9 @@ export interface ParsedArgument {
    * The first argument that matched with the pattern
    */
   readonly value: string;
+  /**
+   * If this is true then the returned value was a default value 
+   */
   readonly default: boolean;
   readonly exists: boolean;
 }

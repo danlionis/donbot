@@ -15,17 +15,24 @@ import { Cli } from "./utils/cli";
 
 export interface BotConfig {
   /**
-   * login token
+   * Token used to login to the Discord Api
+   * To obtain a token you have to create an application at
+   * https://discordapp.com/developers/applications/
+   * and convert it to a bot user
    */
   token?: string;
+
   /**
-   * command prefix
+   * To be registered as a command the Discord message has
+   * to start with this symbol
    */
   prefix?: string;
+
   /**
    * the bot comes with some basic commands
    * set this option to true to activated the commands
    */
+
   builtInCommands?: boolean;
   /**
    * The bot comes with some music commands like 'join', 'stop' and 'disconnect'
@@ -33,9 +40,28 @@ export interface BotConfig {
    */
   builtInMusicCommands?: boolean;
   extras?: object;
+
+  /**
+   * The game the bot should display as "Playing ..."
+   */
   game?: string;
+
+  /**
+   * If this option is set to true the bot will
+   * respond with a "Command not found message"
+   */
   notifyUnknownCommand?: boolean;
+
+  /**
+   * The Discord ID of the owner
+   *
+   * the registerd user bypasses permission checks while executing commands
+   */
   owner?: string;
+
+  /**
+   * Relative Path to the datastore directory
+   */
   dataPath?: string;
 }
 
@@ -86,6 +112,7 @@ export class Bot extends Discord.Client {
     if (builtInMusicCommands) this.registerCommmands(musicCommands);
     if (dataPath) this.registerCommmands(databaseCommands);
 
+    // register listeners
     this.on("ready", this.ready);
     this.on("message", this.onMessage);
     this.on("guildBanAdd", this.onBan);
@@ -94,8 +121,8 @@ export class Bot extends Discord.Client {
   }
 
   /**
-   * Connect the bot
-   * @param token bot token
+   * Connect the bot to the Server
+   * @param token login token (defaults to the initially provided token)
    */
   public login(token: string = this.settings.token) {
     // Check if a login token was provided
@@ -155,7 +182,7 @@ export class Bot extends Discord.Client {
   }
 
   /**
-   * Method called every time a message is sent
+   * Method called every time a message was sent on the server
    * @param message sent message
    */
   private onMessage(message: Discord.Message) {
