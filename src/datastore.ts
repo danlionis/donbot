@@ -6,6 +6,10 @@ export interface DatastoreOptions {
   seperator?: string;
 }
 
+interface HasOptions {
+  guildId?: string;
+}
+
 interface GetOptions<T> {
   guildId?: string;
   defaultValue?: T;
@@ -38,11 +42,15 @@ export class Datastore {
     return this.root;
   }
 
-  public has(key: string) {
+  public has(key: string, hasOptions: HasOptions = { guildId: null }) {
+    const { guildId } = hasOptions;
+    if (guildId) {
+      key = `${guildId}.${key}`;
+    }
     const pathSegments = this.getPathSegments(key);
     let result = true;
     pathSegments.reduce((o, i) => {
-      if (!o[i]) {
+      if (o[i] === undefined) {
         result = false;
         return "";
       }
@@ -62,7 +70,7 @@ export class Datastore {
     }
     const pathSegments = this.getPathSegments(key);
     let result = pathSegments.reduce((o, i) => {
-      if (!o[i]) {
+      if (o[i] === undefined) {
         return "";
       }
       return o[i];
@@ -134,7 +142,11 @@ export class Datastore {
     this.saveToFile();
   }
 
-  public async set<T>(key: string, value: T, setOptions: SetOptions<T> = {merge: false, guildId: null}) {
+  public async set<T>(
+    key: string,
+    value: T,
+    setOptions: SetOptions<T> = { merge: false, guildId: null }
+  ) {
     const { merge, guildId } = setOptions;
     let ref = this.root;
 
