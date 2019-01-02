@@ -7,11 +7,10 @@ import { BotSettings } from "./bot-settings";
 import { CommandHandler } from "./command-handler";
 import { databaseCommands, defaultCommands, musicCommands } from "./commands";
 import { Datastore } from "./datastore";
+import { Plugin } from "./mixins";
 import { Registry } from "./registry";
-import { isCommand } from "./utils/validator";
-
-import * as readline from "readline";
 import { Cli } from "./utils/cli";
+import { isCommand } from "./utils/validator";
 
 export interface BotConfig {
   /**
@@ -118,6 +117,7 @@ export class Bot extends Discord.Client {
     this.on("guildBanAdd", this.onBan);
     this.on("warn", this.onWarn);
     this.on("voiceStateUpdate", this.voiceStateUpdate);
+    this.on("error", this.onWarn)
   }
 
   /**
@@ -143,6 +143,12 @@ export class Bot extends Discord.Client {
    */
   public isOwnerId(id: string): boolean {
     return this.settings.owner === id;
+  }
+
+  public async registerPlugin(plugin: Plugin) {
+    // console.log(plugin.name);
+    // return plugin.register(this);
+    return this.registry.loadPlugin(plugin);
   }
 
   private ready() {
@@ -189,7 +195,7 @@ export class Bot extends Discord.Client {
     // ignore messages from other bots
     if (message.author.bot) return;
 
-    // ignore dm messages
+    // ignore dm messagess
     if (message.channel.type === "dm") return;
 
     // check if message if formatted like a command

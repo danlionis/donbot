@@ -1,6 +1,6 @@
 import { Bot } from "./bot";
 import { Help } from "./commands";
-import { TextCommand } from "./mixins";
+import { Plugin, TextCommand } from "./mixins";
 import { ParsedMessage } from "./utils/parser";
 
 import * as Discord from "discord.js";
@@ -30,9 +30,28 @@ export class Registry {
     console.log(
       colors.yellow("[R]"),
       "+",
-      colors.blue("(C)"),
+      colors.bgBlue("(C)"),
       constructor.name
     );
+  }
+
+  /**
+   * loadPlugin loads a plugin
+   * Plugins must implement the `Plugin` interface
+   */
+  public async loadPlugin(plugin: Plugin) {
+    const success = await plugin.register(this.client);
+    if (success) {
+      console.log(
+        colors.yellow("[R]"),
+        "+",
+        colors.bgGreen(colors.black("(P)")),
+        plugin.name
+      );
+      return success;
+    }
+
+    console.log("Error loading plugin: ", plugin.name);
   }
 
   /**

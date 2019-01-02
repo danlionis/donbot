@@ -1,7 +1,7 @@
 import { Bot } from "./bot";
 import { Datastore } from "./datastore";
 export { BotSettings } from "./bot-settings";
-export { TextCommand } from "./mixins";
+export { TextCommand, Plugin } from "./mixins";
 export { ParsedMessage, ParsedTime } from "./utils/parser";
 
 export { Logger } from "./logger";

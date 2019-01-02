@@ -126,7 +126,7 @@ export class Cli {
 
   private switchCurrentTextChannel(tc: string) {
     console.log("switch");
-    const index = Number.parseInt(tc);
+    const index = Number.parseInt(tc, 10);
     const textChannel = this.getAllTextChannels[index];
 
     if (textChannel) {

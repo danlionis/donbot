@@ -41,9 +41,9 @@ export class CommandHandler {
       if (this.bot.settings.notifyUnknownCommand) {
         this.logCmd(message, parsedMessage, "UNKNOWN");
         return message.reply(
-          `404 Command not found. Type ${
-            this.bot.settings.prefix
-          }help for a list of commands`
+          `404 Command not found. Type ${this.bot.settings.getGuildPrefix(
+            message.guild.id
+          )}help for a list of commands`
         );
       }
       return;
@@ -61,10 +61,7 @@ export class CommandHandler {
       Allow if the user has the permissions specified in the command
      */
     const perms = command.permissions as PermissionResolvable;
-    if (
-      command.permissions.length > 0 &&
-      message.member.hasPermission(perms)
-    ) {
+    if (command.permissions.length > 0 && message.member.hasPermission(perms)) {
       allowed = true;
     }
 
@@ -86,7 +83,7 @@ export class CommandHandler {
 
     if (command.minRole) {
       const minRole =
-        message.guild.roles.find("name", command.minRole) ||
+        message.guild.roles.find((role) => role.name === command.minRole) ||
         message.guild.defaultRole;
       if (message.member.highestRole.comparePositionTo(minRole) >= 0) {
         allowed = true;

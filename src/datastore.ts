@@ -76,7 +76,7 @@ export class Datastore {
       return o[i];
     }, this.root);
 
-    if (!result) {
+    if (result === "") {
       result = defaultValue || null;
     }
     return result as T;

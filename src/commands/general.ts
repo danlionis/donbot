@@ -3,6 +3,133 @@ import { Bot } from "../";
 import { TextCommand } from "../mixins";
 import { ParsedMessage } from "../utils/parser";
 
+export class Counter extends TextCommand {
+  private db_key: string = "counters";
+  constructor() {
+    super({
+      command: "counter",
+      minRole: "Member"
+    });
+  }
+
+  public async run(
+    bot: Bot,
+    message: Discord.Message,
+    parsedMessage: ParsedMessage
+  ) {
+    if (parsedMessage.rawArgs[0] === "new") {
+      return this.newCounter(bot, message, parsedMessage);
+    }
+
+    if (parsedMessage.rawArgs[0] === "add") {
+      return this.addToCounter(bot, message, parsedMessage);
+    }
+
+    if (parsedMessage.rawArgs[0] === "list") {
+      return this.listCounters(bot, message, parsedMessage);
+    }
+
+    return message.reply("Unknown method");
+
+    // if (parsedMessage.rawArgs[0] === "delete") {
+    //   return this.deleteCounter(bot, message, parsedMessage);
+    // }
+  }
+
+  private newCounter(
+    bot: Bot,
+    message: Discord.Message,
+    parsedMessage: ParsedMessage
+  ) {
+    const counterName = parsedMessage.rawArgs[1];
+    const key = `${this.db_key}.${counterName}`;
+    if (bot.database.has(key, { guildId: message.guild.id })) {
+      return message.reply("this counter already exists");
+    }
+
+    bot.database.set(key, 0, {
+      guildId: message.guild.id
+    });
+    return message.reply(`Created counter: ${counterName}`);
+  }
+
+  private addToCounter(
+    bot: Bot,
+    message: Discord.Message,
+    parsedMessage: ParsedMessage
+  ) {
+    const counterName = parsedMessage.rawArgs[1];
+    const key = `${this.db_key}.${counterName}`;
+
+    // Error if the counter does not exist
+    if (!bot.database.has(key, { guildId: message.guild.id })) {
+      return message.reply(
+        `this counter does not exist, but you can create it with \`${
+          this.is
+        } new ${counterName}\``
+      );
+    }
+
+    const value =
+      (bot.database.get(key, { guildId: message.guild.id }) as number) + 1;
+    bot.database.set(key, value, { guildId: message.guild.id });
+    const embed = new Discord.RichEmbed()
+      .setTitle(`Counter`)
+      .addField(counterName, value);
+    return message.channel.send(embed);
+  }
+
+  private listCounters(
+    bot: Bot,
+    message: Discord.Message,
+    parsedMessage: ParsedMessage
+  ) {
+    const counters = bot.database.get(this.db_key, {
+      guildId: message.guild.id
+    });
+
+    const embed = new Discord.RichEmbed().setTitle("Counters");
+
+    for (const c in counters) {
+      if (counters.hasOwnProperty(c)) {
+        if (c.startsWith("_")) {
+          continue;
+        }
+        const value = counters[c];
+        embed.addField(c, value);
+      }
+    }
+    return message.channel.send(embed);
+  }
+
+  /**
+   * NOT WORKING
+   * @param bot
+   * @param message
+   * @param parsedMessage
+   */
+  private deleteCounter(
+    bot: Bot,
+    message: Discord.Message,
+    parsedMessage: ParsedMessage
+  ) {
+    const counterName = parsedMessage.rawArgs[1];
+    const key = `${this.db_key}.${counterName}`;
+
+    console.log(key);
+    if (!bot.database.has(key, { guildId: message.guild.id })) {
+      return message.reply("no counter to delete");
+    }
+
+    const value = bot.database.get(key, { guildId: message.guild.id });
+
+    bot.database.delete(key, { guildId: message.guild.id });
+
+    const hiddenKey = `${this.db_key}._${counterName}`;
+    bot.database.set(hiddenKey, value, { guildId: message.guild.id });
+  }
+}
+
 export class Random extends TextCommand {
   constructor() {
     super({
@@ -56,7 +183,7 @@ export class Random extends TextCommand {
       });
 
       // round average to 1 decimal
-      average = Math.round(average / numbers.length * 10) / 10;
+      average = Math.round((average / numbers.length) * 10) / 10;
 
       const embed = new Discord.RichEmbed();
       embed.setTitle("Random Generator");

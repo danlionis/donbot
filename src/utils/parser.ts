@@ -27,7 +27,7 @@ export interface ParsedArgument {
    */
   readonly value: string;
   /**
-   * If this is true then the returned value was a default value 
+   * If this is true then the returned value was a default value
    */
   readonly default: boolean;
   readonly exists: boolean;

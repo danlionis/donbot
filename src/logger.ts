@@ -24,21 +24,31 @@ export class Logger {
   }
 
   private async getChannel(guild: Guild) {
-    let c: TextChannel = guild.channels.find(
-      "name",
-      this.bot.settings.botLogChannel
+    let channel: TextChannel = guild.channels.find(
+      (c) => c.name === this.bot.settings.botLogChannel
     ) as TextChannel;
-    if (!c) {
-      c = (await guild.createChannel(
-        this.bot.settings.botLogChannel,
-        "text"
-      )) as TextChannel;
-
-      c.overwritePermissions(guild.roles.find("name", "@everyone"), {
-        SEND_MESSAGES: false
-      });
-      c.overwritePermissions(this.bot.user.id, { SEND_MESSAGES: true });
+    if (!channel) {
+      channel = await this.createChannel(guild);
     }
-    return c;
+    return channel;
+  }
+
+  private async createChannel(guild: Guild) {
+    const channel = (await guild.createChannel(
+      this.bot.settings.botLogChannel,
+      "text"
+    )) as TextChannel;
+
+    // nobody should be allowed to send messages into the channel
+    channel.overwritePermissions(
+      guild.roles.find((r) => r.name === "@everyone"),
+      {
+        SEND_MESSAGES: false
+      }
+    );
+    // allow the bot to send messages
+    channel.overwritePermissions(this.bot.user.id, { SEND_MESSAGES: true });
+
+    return channel;
   }
 }

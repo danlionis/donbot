@@ -16,7 +16,7 @@ import {
   TrollMove,
   Yeet
 } from "./fun";
-import { Choice, Random } from "./general";
+import { Choice, Random, Counter } from "./general";
 import { Help, Status } from "./help";
 import {
   Ban,
@@ -42,6 +42,7 @@ import { Ping, Test } from "./test";
 export { Help };
 
 export let defaultCommands = [
+  Counter,
   Arg,
   Ban,
   SoftBan,

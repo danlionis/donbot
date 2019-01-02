@@ -9,7 +9,6 @@
     "url": "git://github.com/danlionis/donbot.git"
   },
   "scripts": {
-    "prepublish": "npm run build",
     "prebuild": "rimraf lib && rimraf dist",
     "build": "tsc || echo done",
     "build:live": "tsc --watch",
@@ -27,12 +26,14 @@
     "ffmpeg-binaries": "^3.2.2",
     "google-tts-api": "0.0.2",
     "lodash": "^4.17.11",
+    "node-fetch": "^2.3.0",
     "systeminformation": "^3.45.7",
     "ytdl-core": "^0.18.7"
   },
   "devDependencies": {
     "@types/conf": "^1.4.0",
     "@types/node": "^8.10.36",
+    "@types/node-fetch": "^2.1.4",
     "@types/systeminformation": "^3.23.0",
     "rimraf": "^2.6.2",
     "ts-loader": "^3.5.0",

@@ -51,6 +51,8 @@ export class SystemInfo extends TextCommand {
     const netstat = await si.networkStats();
     const sysInfoEmbed = new RichEmbed();
     sysInfoEmbed
+      .setTitle("System Status")
+      .setColor("#FF0000")
       .addField("Uptime", uptime)
       .addField("Local Time", new Date(localTime))
       .addField("Cpu Temp", cpuTemp)
@@ -221,7 +223,7 @@ export class Servers extends TextCommand {
 
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
     if (parsedMessage.rawArgs[0] === "leave") {
-      const guild = bot.guilds.find("id", parsedMessage.rawArgs[1]);
+      const guild = bot.guilds.find((g) => g.id === parsedMessage.rawArgs[1]);
       guild.leave();
       message.delete();
     } else {
