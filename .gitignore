@@ -32,5 +32,6 @@ lib/
 typings/
 
 # Misc
-/index.js
 /start.bat
+data/db.json
+examples/quickstart/db.json
