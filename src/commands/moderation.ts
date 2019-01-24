@@ -28,18 +28,6 @@ export class Clear extends TextCommand {
     if (messages.array().length >= 2) {
       await message.channel.bulkDelete(messages);
     }
-    const content = new RichEmbed()
-      .setAuthor(message.member.user.tag, message.member.user.avatarURL)
-      .setColor(this.color)
-      .setTimestamp()
-      .addField("Target", `${message.channel.toString()}`, true)
-      .addField(
-        "Action",
-        `cleared ${messages.array().length - 1} messages`,
-        true
-      );
-
-    bot.logger.logToChannel(message.guild, content);
   }
 }
 
