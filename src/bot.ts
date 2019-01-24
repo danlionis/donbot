@@ -9,7 +9,6 @@ import { databaseCommands, defaultCommands, musicCommands } from "./commands";
 import { Datastore } from "./datastore";
 import { Plugin } from "./mixins";
 import { Registry } from "./registry";
-import { Cli } from "./utils/cli";
 import { isCommand } from "./utils/validator";
 
 export interface BotConfig {
@@ -70,7 +69,6 @@ export class Bot extends Discord.Client {
   public commandHandler: CommandHandler;
   public database: Datastore;
   public logger: Logger;
-  private cli: Cli;
 
   // private instances: number = 0;
 
@@ -117,7 +115,7 @@ export class Bot extends Discord.Client {
     this.on("guildBanAdd", this.onBan);
     this.on("warn", this.onWarn);
     this.on("voiceStateUpdate", this.voiceStateUpdate);
-    this.on("error", this.onWarn)
+    this.on("error", this.onWarn);
   }
 
   /**
@@ -176,9 +174,6 @@ export class Bot extends Discord.Client {
     setInterval(() => {
       this.voiceChecker();
     }, 60 * 1000);
-
-    // initialize the cli for console commands
-    this.cli = new Cli(this);
   }
 
   private registerCommmands(commands: any[]) {
