@@ -199,6 +199,10 @@ export class Youtube extends TextCommand {
             volume: 0.1
           });
 
+          disp.on("error", (err) => {
+            console.log("error", err);
+          });
+
           return new Promise<string>((resolve) => {
             disp.on("end", resolve);
           });
