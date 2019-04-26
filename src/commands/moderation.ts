@@ -315,7 +315,6 @@ export class MoveTo extends TextCommand {
     const channel = message.mentions.members.first().voiceChannel;
 
     const allowed = channel.permissionsFor(message.author).has("CONNECT");
-
     if (!allowed) {
       return message.reply(`Insufficient permissions to join voice channel!`);
     }
@@ -342,6 +341,11 @@ export class MoveHere extends TextCommand {
 
   public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
     const channel = message.member.voiceChannel;
+
+    const allowed = channel.permissionsFor(message.author).has("CONNECT");
+    if (!allowed) {
+      return message.reply(`Insufficient permissions move out of channel!`);
+    }
 
     if (!channel) {
       return message.reply(`You have to be in a voicechannel `);
