@@ -51,14 +51,17 @@ export class Help extends TextCommand {
       .setColor("#FAFAFA")
       .setTitle(`Commands for Server: ${message.guild.name}`);
 
-    let text: string = "";
+    const texts: string[] = [];
 
     for (const command of commands) {
-      text += `\`${bot.settings.getGuildPrefix(message.guild.id)}${
-        command.is
-      }\` - ${command.description}\n\n`;
+      texts.push(
+        `\`${bot.settings.getGuildPrefix(message.guild.id)}${command.is}\` - ${
+          command.description
+        }\n\n`
+      );
     }
-    embed.setDescription(text);
+
+    embed.setDescription(texts.sort().join(""));
     message.author.send(embed);
   }
 
