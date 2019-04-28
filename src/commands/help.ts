@@ -1,135 +1,43 @@
 import * as Discord from "discord.js";
-import { Bot } from "../";
-import { TextCommand } from "../mixins";
-import { millisToTime } from "../utils/converter";
-import { ParsedMessage } from "../utils/parser";
+import { Arg, Command, CommandResult } from "../parser";
+import { has_permission } from "../validator/permission";
 
-export class Help extends TextCommand {
-  constructor() {
-    super({
-      command: "help",
-      usage: "help <command?>",
-      aliases: ["h"],
-      description: "Send this Help Message",
-      flags: [{ name: "log", short: "c", long: "command-log" }],
-      args: [{ name: "command", pattern: /\w+/ }]
-    });
-  }
-
-  public async run(
-    bot: Bot,
-    message: Discord.Message,
-    parsedMessage: ParsedMessage
-  ) {
-    const embed = new Discord.RichEmbed();
-
-    if (parsedMessage.args.command.exists) {
-      const command = bot.registry.getTextCommand(
-        parsedMessage.args.command.value
-      );
-      if (parsedMessage.flags.log) {
-        console.log(command);
+export let Help = new Command({
+  name: "help",
+  about: "Shows a list of all commands"
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      positional: true,
+      help: "help for specific command"
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    if (matches.value_of("COMMAND")) {
+      const cmd = bot.find_command(matches.value_of("COMMAND"));
+      if (!cmd) {
+        msg.reply("Unknown command");
+        return CommandResult.Failed;
       }
-      this.sendHelpForCommand(bot, message, command);
-    } else {
-      this.sendHelp(bot, message);
-    }
-  }
-
-  private sendHelp(bot: Bot, message: Discord.Message) {
-    const embed = new Discord.RichEmbed();
-
-    let commands: TextCommand[];
-
-    if (message.author.id === bot.settings.owner) {
-      commands = bot.registry.textCommands;
-    } else {
-      commands = bot.registry.textCommands.filter((c) => c.onwerOnly === false);
+      bot.reply_send_help(msg, cmd);
+      return CommandResult.Success;
     }
 
-    embed
-      .setColor("#FAFAFA")
-      .setTitle(`Commands for Server: ${message.guild.name}`);
+    const commands = bot.registry;
 
     const texts: string[] = [];
 
-    for (const command of commands) {
-      texts.push(
-        `\`${bot.settings.getGuildPrefix(message.guild.id)}${command.is}\` - ${
-          command.description
-        }\n\n`
-      );
+    for (const cmd of commands) {
+      if (has_permission(bot, msg, cmd)) {
+        texts.push(
+          `\`${bot.config.prefix}${cmd.config.name}\` - ${cmd.config.about}\n`
+        );
+      }
     }
 
-    embed.setDescription(texts.sort().join(""));
-    message.author.send(embed);
-  }
-
-  /**
-   * send detailed help for a single command
-   */
-  private sendHelpForCommand(
-    bot: Bot,
-    message: Discord.Message,
-    command: TextCommand
-  ) {
     const embed = new Discord.RichEmbed();
-    const aliases = command.aliases.map((a) => bot.settings.prefix + a);
 
-    embed.setTitle(command.is);
-
-    if (command.description) {
-      embed.setDescription(command.description);
-    }
-
-    if (command.usage) {
-      embed.addField("Usage", command.usage);
-    }
-
-    if (aliases.length > 1) {
-      embed.addField("Aliases", aliases.join(` `), true);
-    }
-
-    if (command.flags.length > 0) {
-      const flags = command.flags;
-      let text = "";
-      flags.forEach((f) => {
-        text += `\`-${f.short}\`, \`--${f.long}\` \t\t\t\t ${f.description}\n`;
-      });
-      embed.addField("Flags", text);
-    }
-
-    console.log(command.color);
-    embed.setColor(command.color);
-    message.author.send(embed);
-  }
-}
-
-export class Status extends TextCommand {
-  constructor() {
-    super({
-      command: "status"
-    });
-  }
-
-  public async run(
-    bot: Bot,
-    message: Discord.Message,
-    parsedMessage: ParsedMessage
-  ) {
-    const embed = new Discord.RichEmbed()
-      .setTitle("Bot Status")
-      .setColor("#FF0000")
-      .addField("Uptime", millisToTime(bot.uptime))
-      .addField(
-        "UserStats",
-        `${bot.users.array().length} users on ${
-          bot.guilds.array().length
-        } servers`
-      )
-      .addField("Ping", Math.floor(bot.ping));
-    message.channel.send(embed);
-  }
-}
-
-export default Help;
+    embed.setDescription(texts.sort().join("\n"));
+    msg.author.send(embed);
+  });

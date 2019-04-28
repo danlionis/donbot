@@ -1,358 +1,165 @@
-import { Message, RichEmbed, TextChannel } from "discord.js";
-import { Bot } from "../";
-import { TextCommand } from "../mixins";
-import { ParsedMessage } from "../utils/parser";
-import { parseTime } from "../utils/parser";
+import * as Discord from "discord.js";
+import { Arg, Command, CommandResult } from "../parser";
+import { find_voice_channel } from "../utils/fuzzy_finder";
 
-export class Clear extends TextCommand {
-  constructor() {
-    super({
-      command: "clear",
-      aliases: ["cls"],
-      usage: "clear <amount>",
-      description: "Clears the last 10 chat messages",
-      permissions: ["MANAGE_MESSAGES"],
-      group: "moderation",
-      args: [{ name: "count", default: 10, pattern: /^[0-9][0-9]?$/ }]
-    });
-  }
+export let Silence = new Command({
+  name: "silence",
+  about: "Control the mute status in you channel",
+  permissions: ["MUTE_MEMBERS"]
+})
+  .subcommand(
+    new Command({ name: "on", about: "mutes everyone" }).handler(
+      async (bot, msg, matches) => {
+        if (msg.member.voiceChannel) {
+          msg.member.voiceChannel.members.forEach((m) => {
+            if (m.id !== msg.member.id) {
+              m.setMute(true);
+            }
+          });
+        }
+      }
+    )
+  )
+  .subcommand(
+    new Command({ name: "off", about: "mutes everyone" }).handler(
+      async (bot, msg, matches) => {
+        if (msg.member.voiceChannel) {
+          msg.member.voiceChannel.members.forEach((m) => {
+            if (m.id !== msg.member.id) {
+              m.setMute(false);
+            }
+          });
+        }
+      }
+    )
+  );
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const limit = parseInt(parsedMessage.args.count.value, 10) + 1;
-    let messages = await message.channel.fetchMessages({ limit });
-    const time = new Date().getTime() - 14 * 24 * 60 * 60 * 1000;
+export let Clear = new Command({
+  name: "clear",
+  about: "Clears the chat",
+  permissions: ["MANAGE_MESSAGES"]
+})
+  .arg(
+    new Arg({
+      name: "COUNT",
+      help: "The amount of messages to delete",
+      positional: true,
+      default: 10
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    let limit = parseInt(matches.value_of("COUNT"), 10) + 1;
+    limit = Math.min(limit, 100);
+    let messages = await msg.channel.fetchMessages({ limit });
+    const time = new Date().getTime() - 14 * 24 * 60 * 60 * 1000; // last 2 weeks
 
     messages = messages.filter((m) => m.createdAt.getTime() > time);
     messages = messages.filter((m) => !m.pinned);
 
     if (messages.array().length >= 2) {
-      await message.channel.bulkDelete(messages);
+      await msg.channel.bulkDelete(messages);
     }
-  }
-}
+  });
 
-export class Poll extends TextCommand {
-  constructor() {
-    super({
-      command: "poll",
-      aliases: ["vote"],
-      description: "start a new vote",
-      usage: "poll [title]",
-      group: "moderation"
-    });
-  }
+export let Move = new Command({
+  name: "move",
+  about: "Mass Mover",
+  permissions: ["MOVE_MEMBERS"]
+})
+  .subcommand(
+    new Command({ name: "from", about: "Move members to own channel" })
+      .arg(
+        new Arg({
+          name: "TARGET",
+          help: "Target user where your whole channel will move to",
+          positional: true,
+          can_mention: true,
+          required: true
+        })
+      )
+      .handler(async (bot, msg, matches) => {
+        const target = matches.value_of("TARGET");
+        let channel: Discord.VoiceChannel;
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    message.delete();
-    const embed = new RichEmbed();
+        if (target instanceof Discord.GuildMember) {
+          channel = target.voiceChannel;
+        } else {
+          channel = find_voice_channel(
+            msg.guild.channels
+              .filter((c) => c.type === "voice")
+              .array() as Discord.VoiceChannel[],
+            target
+          );
+        }
 
-    embed
-      .setFooter(`Poll by ${message.member.displayName}`)
-      .setAuthor(parsedMessage.rawArgs.join(" "))
-      .setColor("#2196F3");
+        if (!channel) {
+          msg.reply("Target not found");
+          return CommandResult.Failed;
+        }
 
-    message.channel.send(embed).then((poll: Message) => {
-      poll.react("👍").then((_1) => {
-        poll.react("👎").then((_2) => {
-          poll.react("🤷");
+        console.log(channel.name);
+
+        if (!msg.member.voiceChannel) {
+          msg.reply("you have to be in a voice channel");
+          return CommandResult.Failed;
+        }
+
+        // no permission check because we dont change channels
+        channel.members.forEach((m) => {
+          m.setVoiceChannel(msg.member.voiceChannel);
         });
-      });
-    });
-  }
-}
 
-export class Mute extends TextCommand {
-  constructor() {
-    super({
-      command: "mute",
-      description: "mute a member for a given time",
-      permissions: ["MUTE_MEMBERS"],
-      aliases: ["timemute"],
-      args: [
-        {
-          name: "time",
-          pattern: /^(?!$)(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/,
-          default: "10m"
+        return CommandResult.Success;
+      })
+  )
+  .subcommand(
+    new Command({
+      name: "to",
+      about: "Move members to other channel"
+    })
+      .arg(
+        new Arg({
+          name: "TARGET",
+          help: "Target user where your whole channel will move to",
+          positional: true,
+          can_mention: true,
+          required: true
+        })
+      )
+      .handler(async (bot, msg, matches) => {
+        const target = matches.value_of("TARGET");
+        let channel: Discord.VoiceChannel;
+        if (target instanceof Discord.GuildMember) {
+          channel = target.voiceChannel;
+        } else {
+          channel = find_voice_channel(
+            msg.guild.channels
+              .filter((c) => c.type === "voice")
+              .array() as Discord.VoiceChannel[],
+            target
+          );
         }
-      ],
-      group: "moderation",
-      color: "#ff5722"
-    });
-  }
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const muteUsers = message.mentions.members;
-    const { days, hours, minutes, seconds } = parseTime(
-      parsedMessage.args.time.value
-    );
-
-    const muteTime =
-      days * 24 * 60 * 60 * 1000 +
-      hours * 60 * 60 * 1000 +
-      minutes * 60 * 1000 +
-      seconds * 1000;
-
-    const content = new RichEmbed()
-      .setAuthor(message.member.user.tag, message.member.user.avatarURL)
-      .setColor(this.color)
-      .setTimestamp()
-      .addField(
-        "Target",
-        muteUsers
-          .array()
-          .map((u) => u.user.tag)
-          .join(", "),
-        true
-      )
-      .addField("Action", `Mute for ${parsedMessage.args.time.value}`, true);
-
-    bot.logger.logToChannel(message.guild, content);
-
-    muteUsers.forEach((u) => {
-      u.setMute(true);
-    });
-
-    setTimeout(() => {
-      muteUsers.forEach((u) => {
-        u.setMute(false);
-      });
-    }, muteTime);
-  }
-}
-
-export class Deaf extends TextCommand {
-  constructor() {
-    super({
-      command: "deaf",
-      description: "deaf a member for a given time",
-      permissions: ["DEAFEN_MEMBERS"],
-      aliases: ["timedeaf"],
-      args: [
-        // { name: "time", pattern: /(\d+d)?(\d+h)?(\d+m)?(\d+s)?/, default: "10m" },
-        {
-          name: "time",
-          pattern: /^(?!$)(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/,
-          default: "10m"
+        if (!channel) {
+          msg.reply("Target not found");
+          return CommandResult.Failed;
         }
-      ],
-      group: "moderation",
-      color: "#ff5722"
-    });
-  }
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const deafUsers = message.mentions.members;
-    const { days, hours, minutes, seconds } = parseTime(
-      parsedMessage.args.time.value
-    );
-    const muteTime =
-      days * 24 * 60 * 60 * 1000 +
-      hours * 60 * 60 * 1000 +
-      minutes * 60 * 1000 +
-      seconds * 1000;
+        const allowed = channel.permissionsFor(msg.author).has("CONNECT");
+        if (!allowed) {
+          return CommandResult.PermissionDenied;
+        }
 
-    const content = new RichEmbed()
-      .setAuthor(message.member.user.tag, message.member.user.avatarURL)
-      .setColor(this.color)
-      .setTimestamp()
-      .addField(
-        "Target",
-        deafUsers
-          .array()
-          .map((u) => u.toString())
-          .join(", "),
-        true
-      )
-      .addField("Action", `Deaf for ${parsedMessage.args.time.value}`, true);
+        if (!msg.member.voiceChannel) {
+          msg.reply("you have to be in a voice channel");
+          return CommandResult.Failed;
+        }
 
-    bot.logger.logToChannel(message.guild, content);
-
-    deafUsers.forEach((user) => {
-      user.setDeaf(true);
-    });
-
-    setTimeout(() => {
-      deafUsers.forEach((user) => {
-        user.setDeaf(false);
-      });
-    }, muteTime);
-  }
-}
-
-export class Ban extends TextCommand {
-  constructor() {
-    super({
-      command: "ban",
-      description: "bans one or more user",
-      permissions: ["BAN_MEMBERS"],
-      group: "moderation",
-      color: "#b71c1c"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const bans = message.mentions.members;
-
-    bans.filter((user) => !bot.isOwnerId(user.id));
-
-    const content = new RichEmbed()
-      .setAuthor(message.member.user.tag, message.member.user.avatarURL)
-      .setColor(this.color)
-      .setTimestamp()
-      .addField(
-        "Target",
-        bans
-          .array()
-          .map((u) => u.user.tag)
-          .join(", "),
-        true
-      )
-      .addField("Action", `Ban`);
-    bot.logger.logToChannel(message.guild, content);
-
-    bans.forEach((user) => {
-      if (
-        message.member.highestRole.comparePositionTo(user.highestRole) > 0 ||
-        bot.isOwnerId(message.author.id)
-      ) {
-        user.ban();
-      } else {
-        message.reply("You don't have permission to ban this user");
-      }
-    });
-  }
-}
-
-export class SoftBan extends TextCommand {
-  constructor() {
-    super({
-      command: "softban",
-      description: "softbans one or more user",
-      permissions: ["BAN_MEMBERS"],
-      group: "moderation"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const bans = message.mentions.members;
-
-    bans.forEach(async (user) => {
-      if (
-        message.member.highestRole.comparePositionTo(user.highestRole) > 0 ||
-        bot.isOwnerId(message.author.id)
-      ) {
-        const banned = await user.ban();
-        banned.guild.unban(banned);
-
-        const content = new RichEmbed()
-          .setAuthor(message.member.user.tag, message.member.user.avatarURL)
-          .setColor(message.member.displayHexColor)
-          .setTimestamp()
-          .addField(
-            "Target",
-            bans
-              .array()
-              .map((u) => u.user.tag)
-              .join(", "),
-            true
-          )
-          .addField("Action", `SoftBan`);
-
-        bot.logger.logToChannel(message.guild, content);
-      } else {
-        message.reply("You don't have permission to ban this user");
-      }
-    });
-  }
-}
-
-export class Kick extends TextCommand {
-  constructor() {
-    super({
-      command: "softban",
-      description: "softbans one or more user",
-      permissions: ["KICK_MEMBERS"],
-      group: "moderation"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const kicks = message.mentions.members;
-
-    const content = new RichEmbed()
-      .setAuthor(message.member.user.tag, message.member.user.avatarURL)
-      .setColor(message.member.displayHexColor)
-      .setTimestamp()
-      .addField(
-        "Target",
-        kicks
-          .array()
-          .map((u) => u.user.tag)
-          .join(", "),
-        true
-      )
-      .addField("Action", `Kick`);
-
-    bot.logger.logToChannel(message.guild, content);
-
-    kicks.forEach((user) => {
-      user.kick();
-    });
-  }
-}
-
-export class MoveTo extends TextCommand {
-  constructor() {
-    super({
-      command: "moveto",
-      aliases: ["to"],
-      permissions: ["MOVE_MEMBERS"],
-      group: "moderation"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const channel = message.mentions.members.first().voiceChannel;
-
-    const allowed = channel.permissionsFor(message.author).has("CONNECT");
-    if (!allowed) {
-      return message.reply(`Insufficient permissions to join voice channel!`);
-    }
-
-    if (!channel) {
-      return message.reply(`Target user is not in a voice channel`);
-    }
-
-    message.member.voiceChannel.members.forEach((m) => {
-      m.setVoiceChannel(channel);
-    });
-  }
-}
-
-export class MoveHere extends TextCommand {
-  constructor() {
-    super({
-      command: "movehere",
-      aliases: ["here"],
-      permissions: ["MOVE_MEMBERS"],
-      group: "moderation"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const channel = message.member.voiceChannel;
-
-    const allowed = channel.permissionsFor(message.author).has("CONNECT");
-    if (!allowed) {
-      return message.reply(`Insufficient permissions move out of channel!`);
-    }
-
-    if (!channel) {
-      return message.reply(`You have to be in a voicechannel `);
-    }
-
-    message.mentions.members.first().voiceChannel.members.forEach((m) => {
-      m.setVoiceChannel(channel);
-    });
-  }
-}
+        msg.member.voiceChannel.members.forEach((m) => {
+          m.setVoiceChannel(channel);
+        });
+      })
+  )
+  .handler(async (bot, msg, matches) => {
+    return CommandResult.SendHelp;
+  });
