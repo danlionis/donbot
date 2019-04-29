@@ -1,289 +1,241 @@
-import { Message, RichEmbed } from "discord.js";
-import * as si from "systeminformation";
-import { Bot } from "../bot";
-import { TextCommand } from "../mixins";
-import { selfDestructMessage } from "../utils/callbacks";
-import { millisToTime } from "../utils/converter";
-import { ParsedMessage, parseMessage } from "../utils/parser";
-import { Help } from "./help";
+import * as Discord from "discord.js";
+import { handle_cmd } from "../command_handler";
+import { Arg, Command, CommandResult } from "../parser";
 
-export class Eval extends TextCommand {
-  constructor() {
-    super({
-      command: "eval",
-      ownerOnly: true,
-      group: "admin"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    let res: any;
-    try {
-      // tslint:disable-next-line:no-eval
-      res = eval(parsedMessage.rawArgs.join(" "));
-    } catch (err) {
-      res = err.toString().split("\n")[0];
-    } finally {
-      if (res) {
-        message.channel.send(JSON.stringify(res));
-      }
-    }
-  }
-}
-
-export class SystemInfo extends TextCommand {
-  constructor() {
-    super({
-      command: "sys",
-      ownerOnly: true
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const uptimeUnix = await si.time().uptime;
-    const uptime = millisToTime(+uptimeUnix * 1000);
-    const localTime = await si.time().current;
-    const cpuTemp = (await si.cpuTemperature()).main;
-    const memUsed = (await si.mem()).used / 1048576;
-    const memTotal = (await si.mem()).total / 1048576;
-    const memPercent = ((memUsed * 100) / memTotal).toFixed(2);
-    const cpuLoad = (await si.currentLoad()).currentload;
-    const netstat = await si.networkStats();
-    const sysInfoEmbed = new RichEmbed();
-    sysInfoEmbed
-      .setTitle("System Status")
-      .setColor("#FF0000")
-      .addField("Uptime", uptime)
-      .addField("Local Time", new Date(localTime))
-      .addField("Cpu Temp", cpuTemp)
-      .addField("Cpu Load", `${cpuLoad.toFixed(2)}%`)
-      .addField(
-        "Memory",
-        `${memUsed.toFixed(2)}MB / ${memTotal.toFixed(2)}MB (${memPercent}%)`
+export let Perms = new Command({
+  name: "perms",
+  about: "Manage Command permissions",
+  owner_only: true
+}).subcommand(
+  new Command({ name: "user" })
+    .arg(
+      new Arg({
+        name: "MEMBER",
+        positional: true,
+        required: true,
+        can_mention: true,
+        help: "User that should be managed"
+      })
+    )
+    .arg(
+      new Arg({
+        name: "STATUS",
+        positional: true,
+        required: true,
+        possible_values: ["allow", "deny"],
+        help: "Allow or deny"
+      })
+    )
+    .arg(
+      new Arg({
+        name: "COMMAND",
+        positional: true,
+        required: true,
+        take_multiple: true,
+        help: "Command / Subcommands"
+      })
+    )
+    .handler(async (bot, msg, matches) => {
+      const allow = matches.value_of("STATUS") === "allow";
+      const cmd = bot.find_command(
+        (matches.value_of("COMMAND") as string[]).join(" ")
       );
-    return message.channel.send(sysInfoEmbed);
-  }
-}
+      const member = matches.value_of("MEMBER") as Discord.GuildMember;
+      bot.set_perm(member, cmd, allow);
+      console.log(bot._perms);
+    })
+);
 
-export class Enabled extends TextCommand {
-  constructor() {
-    super({
-      command: "enabled",
-      aliases: ["active"],
-      ownerOnly: true,
-      description: "Enables or Disables a command",
-      args: [
-        {
-          name: "command",
-          pattern: /\w/,
-          description: "The command that should be activated"
-        },
-        {
-          name: "status",
-          pattern: /(false|true)/,
-          description: "0: disabled \n1: enabled",
-          default: 3
-        }
-      ]
-    });
-  }
+export let Exec = new Command({
+  name: "exec",
+  about: "Let the bot execute a command",
+  owner_only: true
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      positional: true,
+      take_multiple: true,
+      required: true
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    msg.author = bot.user;
+    msg.member = bot.guilds.find((g) => g === msg.guild).member(bot.user);
+    handle_cmd(bot, (matches.value_of("COMMAND") as string[]).join(" "), msg);
+  });
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const cmd = bot.registry.getTextCommand(parsedMessage.args.command.value);
-
-    if (!cmd) {
-      return message.reply("[ENABLED] Cannot find command");
-    }
-
-    // dont disable this command
-    if (cmd instanceof Enabled || cmd instanceof Help) {
-      return message.channel.send("Cannot set enabled status for this command");
-    }
-
-    if (message.mentions.users.array().length <= 0) {
-      return this.changeGlobal(bot, message, parsedMessage, cmd);
-    } else {
-      return this.changeForUser(bot, message, parsedMessage, cmd);
-    }
-  }
-
-  private async changeForUser(
-    bot: Bot,
-    message: Message,
-    parsedMessage: ParsedMessage,
-    cmd: TextCommand
-  ) {
-    if (parsedMessage.args.status.value === "false") {
-      await bot.database.set(
-        `commands.${cmd.is}.disabledFor`,
-        [message.mentions.users.array()[0].id],
-        {
-          merge: true,
-          guildId: message.guild.id
-        }
-      );
-    } else if (parsedMessage.args.status.value === "true") {
-      bot.database.delete(`commands.${cmd.is}.disabledFor`, {
-        guildId: message.guild.id,
-        value: message.member.id
-      });
-    }
-  }
-
-  private async changeGlobal(
-    bot: Bot,
-    message: Message,
-    parsedMessage: ParsedMessage,
-    cmd: TextCommand
-  ) {
-    if (
-      parsedMessage.args.status.value === "0" ||
-      parsedMessage.args.status.value === "false"
-    ) {
-      cmd.disable();
-    } else if (
-      parsedMessage.args.status.value === "1" ||
-      parsedMessage.args.status.value === "true"
-    ) {
-      cmd.enable();
-    }
-    return message.channel
-      .send(
-        new RichEmbed()
-          .setTitle("Command Status")
-          .addField("Enabled", cmd.enabled, true)
+export let Alias = new Command({
+  name: "alias",
+  about: "Manage command aliases",
+  owner_only: true
+})
+  .subcommand(
+    new Command({ name: "set", about: "Set a new alias" })
+      .arg(
+        new Arg({
+          name: "ALIAS",
+          positional: true,
+          required: true,
+          help: "New Alias"
+        })
       )
-      .then(selfDestructMessage);
+      .arg(
+        new Arg({
+          name: "COMMAND",
+          positional: true,
+          required: true,
+          take_multiple: true,
+          help: "Comman to execute when alias is called"
+        })
+      )
+      .handler(async (bot, msg, matches) => {
+        const alias = matches.value_of("ALIAS");
+        const cmd = (matches.value_of("COMMAND") as string[]).join(" ");
+
+        if (bot.registry.map((c) => c.config.name).indexOf(alias) >= 0) {
+          msg.channel.send(`Cannot set alias. Command ${alias} already exists`);
+          return CommandResult.Failed;
+        }
+
+        bot.set_alias(alias, cmd);
+      })
+  )
+  .subcommand(
+    new Command({ name: "list", about: "List all aliases" }).handler(
+      async (bot, msg) => {
+        let res = "ALIASES:\n";
+        res += bot.aliases.map((a) => `${a.key} -> ${a.value}`).join("\n");
+        msg.channel.send(res, { code: true });
+      }
+    )
+  )
+  .subcommand(
+    new Command({ name: "remove", about: "Remove an alias" })
+      .arg(
+        new Arg({
+          name: "ALIAS",
+          required: true,
+          positional: true,
+          help: "Alias to remove"
+        })
+      )
+      .handler(async (bot, msg, matches) => {})
+  );
+
+export let Delete = new Command({
+  name: "delete",
+  permissions: ["MANAGE_MESSAGES"],
+  about: "Delete your message and still execute a command"
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      take_multiple: true,
+      required: true,
+      help: "Command to execute",
+      positional: true
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    msg.delete();
+
+    const exec_cmd: string = (matches.value_of("COMMAND") as string[]).join(
+      " "
+    );
+
+    const res = await handle_cmd(bot, exec_cmd, msg);
+    return res;
+  });
+
+export let Eval = new Command({
+  name: "eval",
+  about: "Execute javascript",
+  owner_only: true
+})
+  .arg(
+    new Arg({
+      name: "INPUT",
+      positional: true,
+      take_multiple: true,
+      required: true
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const input = (matches.value_of("INPUT") as string[]).join(" ");
+    const res = isolate_eval(input);
+    console.log("eval: ", res);
+
+    msg.channel.send(JSON.stringify(res), { code: "json" });
+  });
+
+const isolate_eval = (input: string) => {
+  try {
+    // tslint:disable-next-line: no-eval
+    return eval(input);
+  } catch (err) {
+    return err.toString();
   }
-}
+};
 
-export class Shutdown extends TextCommand {
-  constructor() {
-    super({
-      command: "shutdown",
-      description: "Shutdown the Bot",
-      ownerOnly: true,
-      group: "admin"
-    });
-  }
+export let Game = new Command({
+  name: "game",
+  about: "Set the current game",
+  owner_only: true
+})
+  .arg(
+    new Arg({
+      name: "RESET",
+      long: "reset",
+      short: "r",
+      help: "Resets the game"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "GAME",
+      positional: true,
+      take_multiple: true
+    })
+  )
+  .arg(
+    new Arg({
+      name: "TYPE",
+      long: "type",
+      short: "t",
+      takes_value: true,
+      help: "Activity type",
+      possible_values: ["WATCHING", "PLAYING", "LISTENING", "STREAMING"],
+      default: "PLAYING"
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    if (matches.value_of("RESET")) {
+      bot.user.setActivity("");
+      return CommandResult.Success;
+    }
+    if (matches.value_of("GAME")) {
+      const game = (matches.value_of("GAME") as string[]).join(" ");
+      // const type = matches.value_of("TYPE");
+      const type = bot.user.presence.game
+        ? bot.user.presence.game.type
+        : "PLAYING";
+      bot.user.setActivity(game, { type });
 
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    process.exit(0);
-    console.log("BOT SHUTTING DOWN");
-  }
-}
+      return CommandResult.Success;
+    }
+    if (matches.value_of("TYPE")) {
+      if (!bot.user.presence.game) {
+        return CommandResult.Error;
+      }
 
-export class ChangePrefix extends TextCommand {
-  constructor() {
-    super({
-      command: "prefix",
-      description: "set a new prefix for all commands",
-      usage: "prefix [new prefix]",
-      ownerOnly: true,
-      group: "admin"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    const prefix = parsedMessage.rawArgs[0] || bot.settings.prefix;
-    bot.settings.setGuildPrefix(message.guild.id, prefix);
-    // bot.settings.prefix = prefix;
-    message.reply(`Changed command prefix to ${prefix}`);
-  }
-}
-
-export class Playing extends TextCommand {
-  constructor() {
-    super({
-      command: "game",
-      description: "set the current game",
-      usage: "game [game]",
-      ownerOnly: true,
-      group: "admin",
-      aliases: ["playing"]
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    bot.user
-      .setGame(parsedMessage.rawArgs.join(" "))
-      .catch((err) => console.log(err));
-  }
-}
-
-export class Servers extends TextCommand {
-  constructor() {
-    super({
-      command: "servers",
-      ownerOnly: true,
-      description: "show all servers",
-      group: "admin"
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    if (parsedMessage.rawArgs[0] === "leave") {
-      const guild = bot.guilds.find((g) => g.id === parsedMessage.rawArgs[1]);
-      guild.leave();
-      message.delete();
-    } else {
-      let text: string = "\n";
-
-      bot.guilds.forEach((g) => {
-        text += `${g.id} : ${g.name}\n`;
+      const current = bot.user.presence.game.name;
+      bot.user.setPresence({
+        game: { name: current, type: matches.value_of("TYPE") }
       });
 
-      console.log(text);
-
-      return message.reply(text).then(selfDestructMessage);
+      return CommandResult.Success;
     }
-  }
-}
 
-export class Nuke extends TextCommand {
-  constructor() {
-    super({
-      command: "nuke",
-      ownerOnly: true,
-      args: [{ name: "password", pattern: /\.*/ }],
-      enabled: false
-    });
-  }
-
-  public async run(bot: Bot, message: Message, parsedMessage: ParsedMessage) {
-    return null;
-    if (
-      !parsedMessage.args.password.exists ||
-      parsedMessage.args.password.value !== "alkohol"
-    ) {
-      console.log("passed");
-    }
-    console.log("not passed");
-    // return;
-
-    const guild = message.guild;
-
-    guild.channels.forEach(async (c) => {
-      if (c.deletable) {
-        c.delete().catch(console.log);
-      }
-    });
-
-    // guild.members.forEach(async (m) => {
-    //   m.ban().catch(console.log);
-    // });
-
-    guild.roles.forEach(async (r) => {
-      r.delete().catch(console.log);
-    });
-
-    // message.guild.channels.forEach((channel) => {
-    //   if (channel.deletable) {
-    //     channel.delete();
-    //   }
-    // });
-    // message.guild.members.forEach((member) => {
-    //   member.ban();
-    // });
-  }
-}
+    return CommandResult.SendHelp;
+  });

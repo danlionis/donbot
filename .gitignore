@@ -35,3 +35,4 @@ typings/
 /start.bat
 data/db.json
 examples/quickstart/db.json
+config/config.bot.yaml

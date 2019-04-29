@@ -1,252 +1,160 @@
 import * as Discord from "discord.js";
+import * as fs from "fs";
+import { handle_cmd } from "./command_handler";
+import { Config, load_config } from "./config";
+import { Command, CommandResult } from "./parser/command";
+import { Perms } from "./validator/permission";
+import { command_valid } from "./validator/validator";
 
-import { Guild, User } from "discord.js";
-import { setInterval } from "timers";
-import { Logger } from ".";
-import { BotSettings } from "./bot-settings";
-import { CommandHandler } from "./command-handler";
-import { databaseCommands, defaultCommands, musicCommands } from "./commands";
-import { Datastore } from "./datastore";
-import { Plugin } from "./mixins";
-import { Registry } from "./registry";
-import { isCommand } from "./utils/validator";
-
-export interface BotConfig {
-  /**
-   * Token used to login to the Discord Api
-   * To obtain a token you have to create an application at
-   * https://discordapp.com/developers/applications/
-   * and convert it to a bot user
-   */
-  token?: string;
-
-  /**
-   * To be registered as a command the Discord message has
-   * to start with this symbol
-   */
-  prefix?: string;
-
-  /**
-   * the bot comes with some basic commands
-   * set this option to true to activated the commands
-   */
-
-  builtInCommands?: boolean;
-  /**
-   * The bot comes with some music commands like 'join', 'stop' and 'disconnect'
-   * set this option to true to activete the commands
-   */
-  builtInMusicCommands?: boolean;
-  extras?: object;
-
-  /**
-   * The game the bot should display as "Playing ..."
-   */
-  game?: string;
-
-  /**
-   * If this option is set to true the bot will
-   * respond with a "Command not found message"
-   */
-  notifyUnknownCommand?: boolean;
-
-  /**
-   * The Discord ID of the owner
-   *
-   * the registerd user bypasses permission checks while executing commands
-   */
-  owner?: string;
-
-  /**
-   * Relative Path to the datastore directory
-   */
-  dataPath?: string;
+interface BotConfig {
+  prefix: string;
 }
 
 export class Bot extends Discord.Client {
-  public registry: Registry;
-  public settings: BotSettings;
-  public commandHandler: CommandHandler;
-  public database: Datastore;
-  public logger: Logger;
+  public readonly registry: Command[] = [];
+  public readonly config: Config;
 
-  // private instances: number = 0;
+  public readonly _aliases: Map<string, string> = new Map();
+  public readonly _perms: { [user_id: string]: Perms } = {};
 
-  private readonly defaultGame: string;
-
-  /**
-   * Creates a new bot instance which is the core of this module
-   * @param param0
-   */
-  constructor({
-    token = "",
-    prefix = ".",
-    builtInCommands = true,
-    builtInMusicCommands = false,
-    game = null,
-    extras = {},
-    notifyUnknownCommand = true,
-    owner = "",
-    dataPath
-  }: BotConfig) {
+  constructor() {
     super();
-    this.registry = new Registry(this);
-    this.settings = new BotSettings(this, owner);
-    this.commandHandler = new CommandHandler(this);
-    this.logger = new Logger(this);
-    this.defaultGame = `${this.settings.prefix}help for help`;
-
-    this.database = new Datastore(dataPath);
-
-    // init settings
-    this.settings.prefix = prefix;
-    this.settings.token = token;
-    this.settings.game = game;
-    this.settings.extras = extras;
-    this.settings.notifyUnknownCommand = notifyUnknownCommand;
-
-    if (builtInCommands) this.registerCommmands(defaultCommands);
-    if (builtInMusicCommands) this.registerCommmands(musicCommands);
-    if (dataPath) this.registerCommmands(databaseCommands);
-
-    // register listeners
-    this.on("ready", this.ready);
+    // this.config = config;
+    this.config = load_config();
     this.on("message", this.onMessage);
-    this.on("guildBanAdd", this.onBan);
-    this.on("warn", this.onWarn);
-    this.on("voiceStateUpdate", this.voiceStateUpdate);
-    this.on("error", this.onWarn);
+    this.load_default_commands();
+
+    this.on("ready", this.on_ready);
+
+    load_config();
   }
 
-  /**
-   * Connect the bot to the Server
-   * @param token login token (defaults to the initially provided token)
-   */
-  public login(token: string = this.settings.token) {
-    // Check if a login token was provided
-    if (!this.settings.token && !token) {
-      throw new Error("Please provide a login token");
-      // console.log("please provide a login token");
-    } else {
-      this.settings.token = token;
-    }
-    const login = super.login(this.settings.token);
-    login.catch(console.log);
-    return login;
-  }
-
-  /**
-   * Check if the id matches the owner id
-   * @param id id to check
-   */
-  public isOwnerId(id: string): boolean {
-    return this.settings.owner === id;
-  }
-
-  public async registerPlugin(plugin: Plugin) {
-    // console.log(plugin.name);
-    // return plugin.register(this);
-    return this.registry.loadPlugin(plugin);
-  }
-
-  private ready() {
-    if (this.settings.game) {
-      this.user.setGame(this.settings.game);
-    }
-
-    console.log(`
-    Bot Started as ${this.user.tag}
-    ID: ${this.user.id}
-    ${this.guilds.array().length} servers
-    ${this.channels.array().length} channels
-    ${this.users.array().length} users
-
-    OwnerId: ${this.settings.owner}
-
-    Invite Link: https://discordapp.com/oauth2/authorize?client_id=${
-      this.user.id
-    }&scope=bot&permissions=8
-    `);
-
-    // signal to pm2 that instance is ready
-    // process.send("ready");
-
-    setInterval(() => {
-      this.voiceChecker();
-    }, 60 * 1000);
-  }
-
-  private registerCommmands(commands: any[]) {
-    commands.forEach((command) => {
-      this.registry.addTextCommand(command);
+  public register_commands(...commands: Command[]) {
+    commands.forEach((c) => {
+      const valid = command_valid(c);
+      if (valid) {
+        console.log(JSON.stringify(valid, null, 2));
+      }
     });
+    this.registry.push(...commands);
   }
 
-  /**
-   * Method called every time a message was sent on the server
-   * @param message sent message
-   */
-  private onMessage(message: Discord.Message) {
-    // ignore messages from other bots
-    if (message.author.bot) return;
+  public find_command(name: string): Command {
+    return this.registry.find((c) => c.config.name === name);
+  }
+
+  public async on_ready() {
+    console.log("ready");
+  }
+
+  public async onMessage(msg: Discord.Message) {
+    // dont allow bots to interact with the bot
+    if (msg.author.bot) return;
 
     // ignore dm messagess
-    if (message.channel.type === "dm") return;
+    if (msg.channel.type === "dm") return;
 
-    // check if message if formatted like a command
-    if (!isCommand(message, this.settings.getGuildPrefix(message.guild.id))) {
+    if (!msg.content.startsWith(this.config.prefix)) {
       return;
     }
 
-    // handle the message
-    this.commandHandler.process(message);
+    const content = msg.content.substr(this.config.prefix.length);
+
+    handle_cmd(this, content, msg);
   }
 
-  private voiceStateUpdate(
-    oldMember: Discord.GuildMember,
-    newMember: Discord.GuildMember
-  ) {
-    // prevent that the bot itself or the bot owner stay muted or deafed
-    if (oldMember.id === this.user.id || oldMember.id === this.settings.owner) {
-      if (newMember.serverDeaf || newMember.serverMute) {
-        newMember.setDeaf(false);
-        newMember.setMute(false);
-      }
+  public async login(token?: string): Promise<string> {
+    return super.login(token || this.config.token);
+  }
+
+  public set_alias(key: string, value: string) {
+    this._aliases.set(key, value);
+  }
+
+  public get_alias(key: string): string {
+    return this._aliases.get(key) || key;
+  }
+
+  public set_perm(member: Discord.GuildMember, cmd: Command, allow: boolean) {
+    if (!this._perms[member.id]) {
+      this._perms[member.id] = {
+        allowed: [],
+        denied: []
+      };
+    }
+
+    if (allow) {
+      this._perms[member.id].allowed.push(cmd.config.name);
+    } else {
+      this._perms[member.id].denied.push(cmd.config.name);
     }
   }
 
-  private onBan(guild: Guild, user: User) {
-    // unban user if it was the owner
-    if (user.id === this.settings.owner) {
-      guild.unban(user);
+  public has_perm(member: Discord.GuildMember, full_cmd_name: string) {
+    if (!this._perms[member.id]) {
+      return false;
+    }
+    return this._perms[member.id].allowed.indexOf(full_cmd_name) >= 0
+      ? true
+      : false;
+  }
+
+  public get aliases(): Array<{ key: string; value: string }> {
+    const res = [];
+
+    this._aliases.forEach((value, key) => {
+      res.push({ key, value });
+    });
+
+    return res;
+  }
+
+  public remove_alias(key: string) {}
+
+  public reply_send_help(msg: Discord.Message, cmd: Command) {
+    if (cmd) {
+      const mins = 1;
+      msg.channel.send(cmd.help(), { code: true });
+      // .then(async (m: Discord.Message) => await m.delete(mins * 60 * 1000));
+
+      // msg.delete(mins * 10 * 1000);
     }
   }
 
-  private onWarn(info: string) {
-    console.log(new Date(), info);
+  // public reply_cmd_help(msg: Discord.Message, cmd: Command) {}
+
+  public reply_permission_denied(msg: Discord.Message) {
+    msg.reply("Insufficient permission");
   }
 
-  /**
-   * set the current playing game
-   */
-  public set game(game: string) {
-    this.user.setGame(game);
-    this.settings.game = game;
+  public reply_command_not_found(msg: Discord.Message) {
+    msg.reply("404: Command not found");
   }
 
-  private voiceChecker() {
-    const connections = this.voiceConnections;
+  public reply_error(msg: Discord.Message) {
+    msg.reply("500: There was an error");
+  }
 
-    connections.forEach((c) => {
-      if (c.channel.members.array().length <= 1) {
-        c.disconnect();
-      }
+  public is_owner(id: string): boolean {
+    return this.config.owner_id === id;
+  }
 
-      if (!c.dispatcher || !c.dispatcher.player) {
-        c.disconnect();
-      }
+  private load_default_commands() {
+    const command_dir = __dirname + "/commands/";
+    fs.readdir(command_dir, (err, files) => {
+      if (err) throw err;
+
+      files.forEach((f) => {
+        // Dynamically import every command out of the commands folder
+        import(command_dir + f).then((imp) => {
+          for (const cmd in imp) {
+            if (imp[cmd] instanceof Command) {
+              const element = imp[cmd];
+              this.register_commands(element);
+            }
+          }
+        });
+      });
     });
   }
 }
-
-export default Bot;
