@@ -1,3 +1,9 @@
 token: "--login-token--"
 owner_id: "--owner-id--"
 prefix: "."
+bot_name: "Donbot"
+
+delete_failded_commands: false
+delete_send_help_commands: false
+delete_permission_denied_commands: false
+delete_error_commands: false

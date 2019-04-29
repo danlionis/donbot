@@ -1,6 +1,37 @@
 import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
 
+export let Delay = new Command({
+  name: "delay",
+  about: "Delays a command vor a given amount of seconds"
+})
+  .arg(
+    new Arg({
+      name: "TIME",
+      positional: true,
+      required: true,
+      help: "Time to delay (in seconds)"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      required: true,
+      take_multiple: true,
+      positional: true,
+      help: "Command to execute after the time"
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
+
+    const delay_time: number = parseInt(matches.value_of("TIME"), 10);
+
+    setTimeout(() => {
+      handle_cmd(bot, delay_cmd.join(" "), msg);
+    }, delay_time * 1000);
+  });
+
 export let Echo = new Command({
   name: "echo",
   about: "echos what you said"
@@ -66,7 +97,6 @@ export let Repeat = new Command({
     })
   )
   .handler(async (bot, msg, matches) => {
-    // console.log(matches.);
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
 
     if (repeat_cmd[0] === Repeat.config.name) {
@@ -75,7 +105,7 @@ export let Repeat = new Command({
 
     let repeat_amout: number = parseInt(matches.value_of("AMOUNT") || "1", 10);
 
-    repeat_amout = Math.min(repeat_amout, 10);
+    repeat_amout = Math.min(repeat_amout, 20);
 
     for (let i = 0; i < repeat_amout; i++) {
       let content = repeat_cmd.join(" ");

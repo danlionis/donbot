@@ -1,11 +1,13 @@
 import * as fs from "fs";
 import * as yaml from "js-yaml";
+import * as path from "path";
 import { promisify } from "util";
 
 export interface Config {
   token: string;
-  owner_id: string;
   prefix: string;
+  owner_id: string;
+  bot_name: string;
 }
 
 export function load_config(): Config {
@@ -14,10 +16,17 @@ export function load_config(): Config {
     "utf8"
   );
 
-  const doc: Partial<Config> = yaml.safeLoad(file);
+  const doc: Config = yaml.safeLoad(file);
 
-  file = fs.readFileSync(__dirname + "/../config/config.bot.yaml", "utf8");
-  const res: Config = { ...doc, ...yaml.safeLoad(file) };
-
+  let res: Config;
+  try {
+    file = fs.readFileSync(
+      path.resolve(__dirname + "/../config/config.bot.yaml"),
+      "utf8"
+    );
+    res = { ...doc, ...yaml.safeLoad(file) };
+  } catch {
+    res = { ...doc };
+  }
   return res;
 }

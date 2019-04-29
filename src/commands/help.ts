@@ -24,20 +24,29 @@ export let Help = new Command({
       return CommandResult.Success;
     }
 
-    const commands = bot.registry;
+    const commands = bot.registry.sort();
 
     const texts: string[] = [];
 
+    const longest_name = Math.max(...commands.map((c) => c.config.name.length));
+
+    commands.sort((a, b) => a.config.name.localeCompare(b.config.name));
+
     for (const cmd of commands) {
-      if (has_permission(bot, msg, cmd)) {
+      const [allowed] = has_permission(bot, msg, cmd);
+      if (allowed) {
         texts.push(
-          `\`${bot.config.prefix}${cmd.config.name}\` - ${cmd.config.about}\n`
+          `\t${cmd.config.name} ${" ".repeat(
+            longest_name - cmd.config.name.length
+          )} ${cmd.config.about}`
         );
       }
     }
 
-    const embed = new Discord.RichEmbed();
+    const header = `${bot.config.bot_name}\n\nPREFIX: ${
+      bot.config.prefix
+    }\n\nCOMMANDS:\n`;
 
-    embed.setDescription(texts.sort().join("\n"));
-    msg.author.send(embed);
+    const res = header + texts.join("\n");
+    msg.channel.send(res, { code: true });
   });

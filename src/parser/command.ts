@@ -1,12 +1,14 @@
 import * as Discord from "discord.js";
 import { Bot } from "../bot";
 import { Arg } from "./arg";
+import { CommandContext } from "./context";
 import { Matches } from "./matches";
 
-export type HanlderFn = (
+export type HanlderFn<T> = (
   bot: Bot,
   message: Discord.Message,
-  matches: Matches
+  matches: Matches,
+  ctx: CommandContext<T>
 ) => Promise<CommandResult | void> | void;
 
 export enum CommandResult {
@@ -29,13 +31,17 @@ export class Command {
   public readonly config: CommandConfig;
   public readonly args: Arg[] = [];
   public readonly subcommands: Command[] = [];
-  private _handler_fn: HanlderFn;
+  private _handler_fn: HanlderFn<any>;
+  private _context: CommandContext<any>;
 
   private _parent_command: string = "";
 
   constructor(config: CommandConfig) {
-    this._handler_fn = () => {
+    this._context = new CommandContext();
+
+    this._handler_fn = async () => {
       console.log("unimplemented");
+      return CommandResult.SendHelp;
     };
     const default_config: Partial<CommandConfig> = {
       about: "No information",
@@ -71,13 +77,21 @@ export class Command {
     return this;
   }
 
-  public handler(fn: HanlderFn): Command {
+  public handler(fn: HanlderFn<any>): Command {
     this._handler_fn = fn;
     return this;
   }
 
-  public get handler_fn(): HanlderFn {
+  public get handler_fn(): HanlderFn<any> {
     return this._handler_fn;
+  }
+
+  public set context(ctx: CommandContext<any>) {
+    this._context = ctx;
+  }
+
+  public get context(): CommandContext<any> {
+    return this._context;
   }
 
   public owner_only(owner_only: boolean = true): Command {
@@ -120,6 +134,7 @@ export class Command {
     // command name
     let usage = this.full_cmd_name + " ";
     // if there are options display the hint
+    usage += flags.length > 0 ? "[FLAGS] " : "";
     usage += options.length > 0 ? "[OPTIONS] " : "";
 
     // add positional args

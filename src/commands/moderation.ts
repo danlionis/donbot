@@ -1,38 +1,46 @@
 import * as Discord from "discord.js";
 import { Arg, Command, CommandResult } from "../parser";
+import { CommandContext } from "../parser/context";
 import { find_voice_channel } from "../utils/fuzzy_finder";
+import { can_modify } from "../validator/permission";
 
 export let Silence = new Command({
   name: "silence",
   about: "Control the mute status in you channel",
   permissions: ["MUTE_MEMBERS"]
 })
-  .subcommand(
-    new Command({ name: "on", about: "mutes everyone" }).handler(
-      async (bot, msg, matches) => {
-        if (msg.member.voiceChannel) {
-          msg.member.voiceChannel.members.forEach((m) => {
-            if (m.id !== msg.member.id) {
-              m.setMute(true);
-            }
-          });
-        }
-      }
-    )
+  .arg(
+    new Arg({
+      name: "ACTION",
+      positional: true,
+      possible_values: ["on", "off"],
+      default: "on"
+    })
   )
-  .subcommand(
-    new Command({ name: "off", about: "mutes everyone" }).handler(
-      async (bot, msg, matches) => {
-        if (msg.member.voiceChannel) {
-          msg.member.voiceChannel.members.forEach((m) => {
-            if (m.id !== msg.member.id) {
-              m.setMute(false);
-            }
-          });
-        }
-      }
-    )
-  );
+  .handler(async (bot, msg, matches) => {
+    const action = matches.value_of("ACTION");
+
+    if (!msg.member.voiceChannel) {
+      return CommandResult.Failed;
+    }
+
+    if (action === "on") {
+      msg.member.voiceChannel.members
+        .filter((m) => m !== msg.member)
+        .filter((m) => can_modify(bot, msg.member, m))
+        .forEach((m) => {
+          m.setMute(true);
+        });
+      return CommandResult.Success;
+    }
+
+    if (action === "off") {
+      msg.member.voiceChannel.members.forEach((m) => {
+        m.setMute(false);
+      });
+      return CommandResult.Success;
+    }
+  });
 
 export let Clear = new Command({
   name: "clear",

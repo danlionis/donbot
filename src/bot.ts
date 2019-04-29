@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { handle_cmd } from "./command_handler";
 import { Config, load_config } from "./config";
 import { Command, CommandResult } from "./parser/command";
+import { Perms } from "./validator/permission";
 import { command_valid } from "./validator/validator";
 
 interface BotConfig {
@@ -11,8 +12,10 @@ interface BotConfig {
 
 export class Bot extends Discord.Client {
   public readonly registry: Command[] = [];
-  // public readonly config: BotConfig;
   public readonly config: Config;
+
+  public readonly _aliases: Map<string, string> = new Map();
+  public readonly _perms: { [user_id: string]: Perms } = {};
 
   constructor() {
     super();
@@ -20,6 +23,8 @@ export class Bot extends Discord.Client {
     this.config = load_config();
     this.on("message", this.onMessage);
     this.load_default_commands();
+
+    this.on("ready", this.on_ready);
 
     load_config();
   }
@@ -36,6 +41,10 @@ export class Bot extends Discord.Client {
 
   public find_command(name: string): Command {
     return this.registry.find((c) => c.config.name === name);
+  }
+
+  public async on_ready() {
+    console.log("ready");
   }
 
   public async onMessage(msg: Discord.Message) {
@@ -58,9 +67,57 @@ export class Bot extends Discord.Client {
     return super.login(token || this.config.token);
   }
 
+  public set_alias(key: string, value: string) {
+    this._aliases.set(key, value);
+  }
+
+  public get_alias(key: string): string {
+    return this._aliases.get(key) || key;
+  }
+
+  public set_perm(member: Discord.GuildMember, cmd: Command, allow: boolean) {
+    if (!this._perms[member.id]) {
+      this._perms[member.id] = {
+        allowed: [],
+        denied: []
+      };
+    }
+
+    if (allow) {
+      this._perms[member.id].allowed.push(cmd.config.name);
+    } else {
+      this._perms[member.id].denied.push(cmd.config.name);
+    }
+  }
+
+  public has_perm(member: Discord.GuildMember, full_cmd_name: string) {
+    if (!this._perms[member.id]) {
+      return false;
+    }
+    return this._perms[member.id].allowed.indexOf(full_cmd_name) >= 0
+      ? true
+      : false;
+  }
+
+  public get aliases(): Array<{ key: string; value: string }> {
+    const res = [];
+
+    this._aliases.forEach((value, key) => {
+      res.push({ key, value });
+    });
+
+    return res;
+  }
+
+  public remove_alias(key: string) {}
+
   public reply_send_help(msg: Discord.Message, cmd: Command) {
     if (cmd) {
+      const mins = 1;
       msg.channel.send(cmd.help(), { code: true });
+      // .then(async (m: Discord.Message) => await m.delete(mins * 60 * 1000));
+
+      // msg.delete(mins * 10 * 1000);
     }
   }
 

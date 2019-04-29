@@ -9,10 +9,6 @@ interface MatchError {
   wrong_args: string[];
 }
 
-// enum MatchError {
-//   MissingRequiredArg
-// }
-
 /**
  * Parses a message and returns the command with argument matches
  *
@@ -28,21 +24,29 @@ export async function parse_message(
 ): Promise<[Command, Matches, MatchError] | undefined> {
   const content = msg_content.split(" ");
 
+  // split alias for multiple commands and insert them at the start
+  const alias = bot.get_alias(content.shift()).split(" ");
+  content.unshift(...alias);
+
   let cmd = bot.find_command(content.shift());
 
   if (!cmd) {
     console.log("parse_message: [ERROR] command not found");
     return undefined;
   }
-  console.log("parse_message: command found", cmd.config.name);
+  // console.log("parse_message: command found", cmd.config.name);
 
   let matches = parse_command(cmd, content);
 
+  // check if any subcommand matches
+  // if so shift the matches to the subcommand matches
+  // repeat for every found subcommand
+  // like this only the most nested matches are returned
   while (matches.subcommand_matches[0]) {
     const [c, m] = matches.subcommand_matches;
     matches = m;
     cmd = c;
-    console.log("parse_message: sub match", matches, cmd);
+    // console.log("parse_message: sub match", matches, cmd);
   }
 
   // convert mentions in to GuildMembers
@@ -80,7 +84,7 @@ export async function parse_message(
   const required_args = cmd.args.filter((a) => a.config.required);
   for (const a of required_args) {
     if (!matches.value_of(a.config.name)) {
-      console.log("missing required arg");
+      // console.log("missing required arg");
       missing_args.push(a.config.name);
     }
   }
@@ -90,7 +94,7 @@ export async function parse_message(
   const possible_args = cmd.args.filter((a) => a.config.possible_values);
   for (const a of possible_args) {
     const value = matches.value_of(a.config.name);
-    console.log("parser: value", value);
+    // console.log("parser: value", value);
     if (value) {
       if (a.config.possible_values.indexOf(value) < 0) {
         wrong_args.push(a.config.name);
@@ -131,13 +135,13 @@ export function parse_command(cmd: Command, content: string[]): Matches {
   for (let i = 0; i < content.length; i++) {
     const word = content[i];
     // if word
-    console.log("parse_command: word", word);
+    // console.log("parse_command: word", word);
 
     if (cmd.subcommands.length) {
       // parse subcommands
       const sub_cmd = find_sub_cmd(cmd, word);
       if (sub_cmd) {
-        console.log("parse_command: found sub command:", sub_cmd.config.name);
+        // console.log("parse_command: found sub command:", sub_cmd.config.name);
         const sub_matches = parse_command(sub_cmd, content.slice(i + 1));
         matches.set_subcommand_match(sub_cmd, sub_matches);
         break;
@@ -150,7 +154,7 @@ export function parse_command(cmd: Command, content: string[]): Matches {
     }
 
     if (flag_take_value) {
-      console.log("parse_command: take value from flag command");
+      // console.log("parse_command: take value from flag command");
       const prev = content[i - 1];
       const key = find_flag_argument(cmd, prev);
       matches.set_arg_match(key.config.name, word);
@@ -163,7 +167,7 @@ export function parse_command(cmd: Command, content: string[]): Matches {
       // parse all flag arguments
       const flag_arg = find_flag_argument(cmd, word);
       if (flag_arg) {
-        console.log("parse_command: found flag arg:", flag_arg.config.name);
+        // console.log("parse_command: found flag arg:", flag_arg.config.name);
         if (flag_arg.config.takes_value) {
           flag_take_value = true;
         } else {

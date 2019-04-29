@@ -1,6 +1,22 @@
 import * as Discord from "discord.js";
 import { Arg, Command, CommandResult } from "../parser";
 
+export let Context = new Command({
+  name: "ctx",
+  about: "Context Test",
+  owner_only: true
+}).handler(async (bot, msg, matches, ctx) => {
+  if (!ctx.data) {
+    ctx.data = 0;
+    ctx.expire_in(10);
+  }
+
+  ctx.data += 1;
+
+  // ctx.data += 1;
+  console.log(ctx.data);
+});
+
 export let Error = new Command({
   name: "error",
   about: "this errors everything",

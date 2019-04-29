@@ -11,10 +11,7 @@ export async function handle_cmd(
 ) {
   const parsed = await parse_message(bot, content, msg);
 
-  // console.log("on_message: parsed", parsed);
-
   if (parsed === undefined) {
-    console.log("command not found");
     bot.reply_command_not_found(msg);
     return CommandResult.NotFound;
   }
@@ -25,9 +22,15 @@ export async function handle_cmd(
 
   if (matches.value_of("debug")) {
     const args = allowed ? matches.toObject(cmd) : {};
+    const author = msg.author.tag;
     msg.channel.send(
       JSON.stringify(
-        { cmd: cmd.full_cmd_name, args: args, allowed: reason || allowed },
+        {
+          author,
+          cmd: cmd.full_cmd_name,
+          args: args,
+          allowed: reason || allowed
+        },
         null,
         2
       ),
@@ -42,11 +45,10 @@ export async function handle_cmd(
   }
 
   if (matches.value_of("help")) {
-    msg.channel.send(cmd.help(), { code: true });
+    // msg.channel.send(cmd.help(), { code: true });
+    bot.reply_send_help(msg, cmd);
     return CommandResult.SendHelp;
   }
-
-  console.log("on_message: error", error);
 
   if (error) {
     let error_text = "";
@@ -63,7 +65,7 @@ export async function handle_cmd(
     return CommandResult.Error;
   }
 
-  const res = await cmd.handler_fn(bot, msg, matches);
+  const res = await cmd.handler_fn(bot, msg, matches, cmd.context);
 
   if (res) {
     switch (res) {
