@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { Bot } from "./bot";
+import { log_cmd_exec } from "./logging";
 import { Command, CommandResult } from "./parser";
 import { parse_message } from "./parser/parser";
 import { has_permission } from "./validator/permission";
@@ -10,6 +11,7 @@ export async function handle_cmd(
   msg: Discord.Message
 ) {
   const parsed = await parse_message(bot, content, msg);
+  const author = msg.author.tag;
 
   if (parsed === undefined) {
     bot.reply_command_not_found(msg);
@@ -22,7 +24,6 @@ export async function handle_cmd(
 
   if (matches.value_of("debug")) {
     const args = allowed ? matches.toObject(cmd) : {};
-    const author = msg.author.tag;
     msg.channel.send(
       JSON.stringify(
         {
@@ -65,7 +66,9 @@ export async function handle_cmd(
     return CommandResult.Error;
   }
 
-  const res = await cmd.handler_fn(bot, msg, matches, cmd.context);
+  const res =
+    (await cmd.handler_fn(bot, msg, matches, cmd.context)) ||
+    CommandResult.Success;
 
   if (res) {
     switch (res) {
@@ -73,6 +76,7 @@ export async function handle_cmd(
         bot.reply_permission_denied(msg);
         break;
       case CommandResult.SendHelp:
+      case CommandResult.Unimplemented:
         bot.reply_send_help(msg, cmd);
         break;
 
@@ -81,5 +85,7 @@ export async function handle_cmd(
     }
   }
 
-  return res || CommandResult.Success;
+  log_cmd_exec(msg.guild.name, author, content, res);
+
+  return res;
 }

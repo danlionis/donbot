@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { Arg, Command, CommandResult } from "../parser";
+import { can_modify } from "../validator/permission";
 
 export let Yeet = new Command({
   name: "yeet",
@@ -16,10 +17,8 @@ export let Yeet = new Command({
   )
   .handler(async (bot, msg, matches) => {
     const m = matches.value_of("TARGET") as Discord.GuildMember;
-    const author_higher =
-      m.highestRole.position <= msg.member.highestRole.position;
 
-    if (!author_higher) {
+    if (!can_modify(bot, msg.member, m)) {
       return CommandResult.PermissionDenied;
     }
 
@@ -30,7 +29,8 @@ export let Yeet = new Command({
     channels = channels.filter(
       (_c) =>
         _c.permissionsFor(m).has("CONNECT") &&
-        _c.permissionsFor(msg.member).has("CONNECT")
+        _c.permissionsFor(msg.member).has("CONNECT") &&
+        _c.members.array().length === 0
     );
 
     const c = channels[Math.floor(Math.random() * channels.length)];

@@ -2,59 +2,127 @@ import * as Discord from "discord.js";
 import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
 
+const PermsCommand = new Command({
+  name: "command",
+  about: "Enable/Disable a command"
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      positional: true,
+      help: "Command you want to manage"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "STATUS",
+      positional: true,
+      help: "New command status",
+      possible_values: ["on", "off"]
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const cmd = bot.find_command(matches.value_of("COMMAND"));
+    const status = matches.value_of("STATUS");
+
+    if (cmd) {
+      if (status === "on") {
+        bot.perms.allow_cmd(cmd);
+      } else if (status === "off") {
+        bot.perms.deny_cmd(cmd);
+      }
+    }
+
+    let res = `DISABLED COMMANDS:\n`;
+    res += bot.perms
+      .get_disabled_commands()
+      .map((c) => "\t" + c)
+      .join("\n");
+
+    msg.channel.send(res, { code: true });
+  });
+
+const PermsUser = new Command({ name: "user" })
+  .arg(
+    new Arg({
+      name: "MEMBER",
+      positional: true,
+      required: true,
+      can_mention: true,
+      help: "User that should be managed"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "STATUS",
+      positional: true,
+      possible_values: ["allow", "deny", "reset"],
+      help: "Allow, deny or reset explicit permission"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      positional: true,
+      take_multiple: true,
+      help: "Command / Subcommands"
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const member = matches.value_of("MEMBER") as Discord.GuildMember;
+    const status = matches.value_of("STATUS");
+
+    if (status) {
+      const cmd = bot.find_command(
+        (matches.value_of("COMMAND") as string[]).join(" ")
+      );
+      if (status === "allow") {
+        bot.perms.allow_user_cmd(member, cmd);
+      } else if (status === "deny") {
+        bot.perms.deny_user_cmd(member, cmd);
+      } else {
+        bot.perms.reset_user_cmd(member, cmd);
+      }
+    }
+
+    let res = `Explicit user permissions: ${member.displayName}\n`;
+    res += "\nALLOWED:\n";
+    res += bot.perms
+      .get_user_allowed(member)
+      .map((p) => "\t" + p)
+      .join("\n");
+
+    res += "\nDENIED:\n";
+    res += bot.perms
+      .get_user_denied(member)
+      .map((p) => "\t" + p)
+      .join("\n");
+
+    msg.channel.send(res, { code: true });
+    return CommandResult.Success;
+  });
+
 export let Perms = new Command({
   name: "perms",
   about: "Manage Command permissions",
   owner_only: true
-}).subcommand(
-  new Command({ name: "user" })
-    .arg(
-      new Arg({
-        name: "MEMBER",
-        positional: true,
-        required: true,
-        can_mention: true,
-        help: "User that should be managed"
-      })
-    )
-    .arg(
-      new Arg({
-        name: "STATUS",
-        positional: true,
-        required: true,
-        possible_values: ["allow", "deny", "reset"],
-        help: "Allow, deny or reset explicit permission"
-      })
-    )
-    .arg(
-      new Arg({
-        name: "COMMAND",
-        positional: true,
-        required: true,
-        take_multiple: true,
-        help: "Command / Subcommands"
-      })
-    )
-    .handler(async (bot, msg, matches) => {
-      const status = matches.value_of("STATUS");
-      const cmd = bot.find_command(
-        (matches.value_of("COMMAND") as string[]).join(" ")
-      );
-      const member = matches.value_of("MEMBER") as Discord.GuildMember;
-      if (status === "allow" || status === "deny") {
-        bot.set_perm(member, cmd, status);
-      } else {
-        bot.reset_perm(member, cmd);
-      }
-      console.log(bot._perms);
-    })
-);
+})
+  .subcommand(PermsCommand)
+  .subcommand(PermsUser);
 
 export let Exec = new Command({
   name: "exec",
-  about: "Let the bot execute a command",
+  about: "Execute a command for another user",
   owner_only: true
 })
+  .arg(
+    new Arg({
+      name: "MEMBER",
+      positional: true,
+      required: true,
+      can_mention: true
+    })
+  )
   .arg(
     new Arg({
       name: "COMMAND",
@@ -64,8 +132,8 @@ export let Exec = new Command({
     })
   )
   .handler(async (bot, msg, matches) => {
-    msg.author = bot.user;
-    msg.member = bot.guilds.find((g) => g === msg.guild).member(bot.user);
+    msg.member = matches.value_of("MEMBER") as Discord.GuildMember;
+    msg.author = msg.member.user;
     handle_cmd(bot, (matches.value_of("COMMAND") as string[]).join(" "), msg);
   });
 
@@ -142,7 +210,11 @@ export let Delete = new Command({
     })
   )
   .handler(async (bot, msg, matches) => {
-    msg.delete();
+    console.log("del");
+    msg
+      .delete()
+      .then(() => console.log("deleted"))
+      .catch((e) => console.log(e));
 
     const exec_cmd: string = (matches.value_of("COMMAND") as string[]).join(
       " "

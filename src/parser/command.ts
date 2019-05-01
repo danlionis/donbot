@@ -17,7 +17,8 @@ export enum CommandResult {
   Failed,
   SendHelp,
   PermissionDenied,
-  NotFound
+  NotFound,
+  Unimplemented
 }
 
 interface CommandConfig {
@@ -40,8 +41,7 @@ export class Command {
     this._context = new CommandContext();
 
     this._handler_fn = async () => {
-      console.log("unimplemented");
-      return CommandResult.SendHelp;
+      return CommandResult.Unimplemented;
     };
     const default_config: Partial<CommandConfig> = {
       about: "No information",
@@ -136,11 +136,6 @@ export class Command {
     // if there are options display the hint
     usage += flags.length > 0 ? "[FLAGS] " : "";
     usage += options.length > 0 ? "[OPTIONS] " : "";
-
-    // add positional args
-    // usage += pos_args
-    // .map((a) => `${a.config.take_multiple ? "..." : ""}[${a.config.name}] `)
-    // .join("");
 
     for (const a of pos_args) {
       let p = "";

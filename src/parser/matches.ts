@@ -23,21 +23,12 @@ export class Matches {
         res[k] = v || null;
       }
     }
-
-    // for (const [k, v] of this._arg_matches) {
-    //   if (v instanceof Discord.GuildMember) {
-    //     res[k] = v.toString();
-    //   } else {
-    //     res[k] = v;
-    //   }
-    // }
-
     return res;
-
-    // return JSON.stringify(res, null, 2);
   }
 
   public set_arg_match(key: string, value: any, merge: boolean = false) {
+    if (!value) return;
+
     // used for multiple input
     if (merge) {
       const old: any[] = this._arg_matches.get(key);

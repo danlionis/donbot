@@ -2,11 +2,6 @@ import * as Discord from "discord.js";
 import { Bot } from "../bot";
 import { Command } from "../parser";
 
-export interface Perms {
-  allowed: string[];
-  denied: string[];
-}
-
 export function can_modify(
   bot: Bot,
   self: Discord.GuildMember,
@@ -42,11 +37,15 @@ export function has_permission(
     return [true, "owner"];
   }
 
-  if (bot.is_denied(msg.member, cmd.full_cmd_name)) {
+  if (bot.perms.cmd_is_disabled(cmd)) {
+    return [false, "cmd_disabled"];
+  }
+
+  if (bot.perms.user_is_denied(msg.member, cmd.full_cmd_name)) {
     return [false, "explicit_denied"];
   }
 
-  if (bot.has_perm(msg.member, cmd.full_cmd_name)) {
+  if (bot.perms.user_is_allowed(msg.member, cmd.full_cmd_name)) {
     return [true, "explicit_allowed"];
   }
 
@@ -54,7 +53,6 @@ export function has_permission(
     return [false, "no_owner"];
   }
 
-  // console.log("has permissions");
   allowed = msg.member.hasPermission(cmd.config
     .permissions as Discord.PermissionResolvable);
   if (allowed) {
