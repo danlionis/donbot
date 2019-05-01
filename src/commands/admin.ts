@@ -22,8 +22,8 @@ export let Perms = new Command({
         name: "STATUS",
         positional: true,
         required: true,
-        possible_values: ["allow", "deny"],
-        help: "Allow or deny"
+        possible_values: ["allow", "deny", "reset"],
+        help: "Allow, deny or reset explicit permission"
       })
     )
     .arg(
@@ -36,12 +36,16 @@ export let Perms = new Command({
       })
     )
     .handler(async (bot, msg, matches) => {
-      const allow = matches.value_of("STATUS") === "allow";
+      const status = matches.value_of("STATUS");
       const cmd = bot.find_command(
         (matches.value_of("COMMAND") as string[]).join(" ")
       );
       const member = matches.value_of("MEMBER") as Discord.GuildMember;
-      bot.set_perm(member, cmd, allow);
+      if (status === "allow" || status === "deny") {
+        bot.set_perm(member, cmd, status);
+      } else {
+        bot.reset_perm(member, cmd);
+      }
       console.log(bot._perms);
     })
 );

@@ -109,6 +109,18 @@ export class Bot extends Discord.Client {
       : false;
   }
 
+  public reset_perm(member: Discord.GuildMember, cmd: Command) {
+    if (!this._perms[member.id]) {
+      return;
+    }
+
+    const ia = this._perms[member.id].allowed.indexOf(cmd.full_cmd_name);
+    const id = this._perms[member.id].denied.indexOf(cmd.full_cmd_name);
+
+    this._perms[member.id].allowed.splice(ia);
+    this._perms[member.id].denied.splice(id);
+  }
+
   public get aliases(): Array<{ key: string; value: string }> {
     const res = [];
 
