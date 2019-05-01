@@ -99,6 +99,16 @@ export class Bot extends Discord.Client {
       : false;
   }
 
+  public is_denied(member: Discord.GuildMember, full_cmd_name: string) {
+    if (!this._perms[member.id]) {
+      return false;
+    }
+
+    return this._perms[member.id].denied.indexOf(full_cmd_name) >= 0
+      ? true
+      : false;
+  }
+
   public get aliases(): Array<{ key: string; value: string }> {
     const res = [];
 

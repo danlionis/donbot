@@ -38,16 +38,20 @@ export function has_permission(
   let allowed: boolean;
   let reason: string;
 
-  if (bot.has_perm(msg.member, cmd.full_cmd_name)) {
-    return [true, "explicit_allowed"];
-  }
-
   if (bot.is_owner(msg.author.id)) {
     return [true, "owner"];
   }
 
+  if (bot.is_denied(msg.member, cmd.full_cmd_name)) {
+    return [false, "explicit_denied"];
+  }
+
+  if (bot.has_perm(msg.member, cmd.full_cmd_name)) {
+    return [true, "explicit_allowed"];
+  }
+
   if (cmd.config.owner_only) {
-    return [false, undefined];
+    return [false, "no_owner"];
   }
 
   // console.log("has permissions");
