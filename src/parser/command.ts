@@ -106,6 +106,7 @@ export class Command {
 
   public subcommand(cmd: Command): Command {
     cmd.permissions(...this.config.permissions);
+    cmd.owner_only(this.config.owner_only || false);
     this.subcommands.push(cmd);
     cmd.parent_command = this._parent_command + this.config.name + " ";
     return this;
