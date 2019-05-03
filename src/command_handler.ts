@@ -14,7 +14,7 @@ export async function handle_cmd(
   const author = msg.author.tag;
 
   if (parsed === undefined) {
-    bot.reply_command_not_found(msg);
+    bot.reply_command_not_found(content, msg);
     return CommandResult.NotFound;
   }
 
@@ -41,7 +41,7 @@ export async function handle_cmd(
   }
 
   if (!allowed) {
-    bot.reply_permission_denied(msg);
+    bot.reply_permission_denied(content, msg);
     return CommandResult.PermissionDenied;
   }
 
@@ -73,7 +73,7 @@ export async function handle_cmd(
   if (res) {
     switch (res) {
       case CommandResult.PermissionDenied:
-        bot.reply_permission_denied(msg);
+        bot.reply_permission_denied(content, msg);
         break;
       case CommandResult.SendHelp:
       case CommandResult.Unimplemented:
@@ -85,7 +85,7 @@ export async function handle_cmd(
     }
   }
 
-  log_cmd_exec(msg.guild.name, author, content, res);
+  log_cmd_exec(bot, msg.guild.nameAcronym, author, content, res);
 
   return res;
 }

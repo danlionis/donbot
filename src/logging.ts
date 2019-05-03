@@ -3,12 +3,13 @@ import { Bot } from "./bot";
 import { Command, CommandResult } from "./parser";
 
 export function log_cmd_exec(
+  bot: Bot,
   guild: string,
   author: string,
   content: string,
   cmd_res: CommandResult
 ) {
-  let res = `cmd: ${guild} - ${author}: ${content} - `;
+  let res = `cmd: ${new Date().toISOString()} ${guild} - ${author}: ${content} - `;
 
   switch (cmd_res) {
     case CommandResult.Unimplemented:
@@ -31,5 +32,7 @@ export function log_cmd_exec(
       break;
   }
 
-  res += console.log(res);
+  console.log(res);
+
+  bot.add_log(res);
 }
