@@ -4,6 +4,33 @@ import { CommandContext } from "../parser/context";
 import { find_voice_channel } from "../utils/fuzzy_finder";
 import { can_modify } from "../validator/permission";
 
+export let Mute = new Command({
+  name: "mute",
+  about: "Mute members",
+  permissions: ["MUTE_MEMBERS"]
+})
+  .arg(
+    new Arg({
+      name: "TARGET",
+      positional: true,
+      required: true,
+      help: "Member you want to mute",
+      can_mention: true
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const target = matches.value_of("TARGET") as Discord.GuildMember;
+
+    // if (!can_modify(bot, msg.member, target)) {
+    //   return CommandResult.PermissionDenied;
+    // }
+    target.setMute(true);
+
+    setTimeout(() => {
+      target.setMute(false);
+    }, 10 * 1000);
+  });
+
 export let Silence = new Command({
   name: "silence",
   about: "Control the mute status in you channel",
