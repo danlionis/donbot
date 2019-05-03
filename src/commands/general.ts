@@ -48,14 +48,18 @@ export let Delay = new Command({
       help: "Command to execute after the time"
     })
   )
-  .handler(async (bot, msg, matches) => {
-    const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
+  .handler((bot, msg, matches) => {
+    return new Promise((resolve, reject) => {
+      const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
 
-    const delay_time: number = parseInt(matches.value_of("TIME"), 10);
+      let delay_time: number = parseInt(matches.value_of("TIME"), 10);
 
-    setTimeout(() => {
-      handle_cmd(bot, delay_cmd.join(" "), msg);
-    }, delay_time * 1000);
+      delay_time = Math.min(120, delay_time);
+
+      setTimeout(() => {
+        resolve(handle_cmd(bot, delay_cmd.join(" "), msg));
+      }, delay_time * 1000);
+    });
   });
 
 export let Echo = new Command({
