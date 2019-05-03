@@ -2,6 +2,37 @@ import * as Discord from "discord.js";
 import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
 
+export const Logs = new Command({
+  name: "logs",
+  about: "view the latest executed commands",
+  owner_only: true
+})
+  .arg(
+    new Arg({
+      name: "COUNT",
+      short: "c",
+      long: "count",
+      help: "Output the last N lines",
+      takes_value: true,
+      default: 10
+    })
+  )
+  .handler((bot, msg, matches) => {
+    const count = parseInt(matches.value_of("COUNT"), 10) || 10;
+
+    let cmd_logs = bot.get_logs();
+
+    if (count < cmd_logs.length) {
+      console.log(cmd_logs.length);
+      console.log(count);
+      cmd_logs = cmd_logs.slice(cmd_logs.length - count);
+      // console.log(cmd_logs);
+    }
+
+    const res = cmd_logs.join("\n") || "no logs";
+    msg.channel.send(res, { code: true });
+  });
+
 const PermsCommand = new Command({
   name: "command",
   about: "Enable/Disable a command"

@@ -3,9 +3,8 @@ import * as fs from "fs";
 import { handle_cmd } from "./command_handler";
 import { Config, load_config } from "./config";
 import { Command, CommandResult } from "./parser/command";
-import { Perms, PermissionHandler } from "./permissions_hanlder";
+import { PermissionHandler, Perms } from "./permissions_hanlder";
 import { command_valid } from "./validator/validator";
-import { log_cmd_exec } from "./logging";
 
 interface BotConfig {
   prefix: string;
@@ -18,6 +17,8 @@ export class Bot extends Discord.Client {
   public readonly _aliases: Map<string, string> = new Map();
   public readonly _perms: { [user_id: string]: Perms } = {};
   public readonly perms: PermissionHandler = new PermissionHandler();
+
+  private readonly cmd_logs: string[] = [];
 
   constructor() {
     super();
@@ -63,11 +64,10 @@ export class Bot extends Discord.Client {
     const content = msg.content.substr(this.config.prefix.length);
     const cmds = content.split(";").map((c) => c.trim());
 
-    cmds.forEach(async (c) => {
+    for (let i = 0; i < cmds.length; i++) {
+      const c = cmds[i];
       const res = await handle_cmd(this, c, msg);
-
-      // log_cmd_exec(this, msg, c
-    });
+    }
   }
 
   public async login(token?: string): Promise<string> {
@@ -104,14 +104,28 @@ export class Bot extends Discord.Client {
     }
   }
 
-  // public reply_cmd_help(msg: Discord.Message, cmd: Command) {}
-
-  public reply_permission_denied(msg: Discord.Message) {
-    msg.reply("Insufficient permission");
+  public get_logs() {
+    return this.cmd_logs;
   }
 
-  public reply_command_not_found(msg: Discord.Message) {
-    msg.reply("404: Command not found");
+  public add_log(cmd: string) {
+    this.cmd_logs.push(cmd);
+
+    if (this.cmd_logs.length > 200) {
+      this.cmd_logs.shift();
+    }
+  }
+
+  // public reply_cmd_help(msg: Discord.Message, cmd: Command) {}
+
+  public reply_permission_denied(cmd: string, msg: Discord.Message) {
+    // msg.reply("Insufficient permission");
+    msg.reply(`${cmd.split(" ")[0]}: permission denied`, { code: true });
+  }
+
+  public reply_command_not_found(cmd: string, msg: Discord.Message) {
+    // msg.reply("404: Command not found");
+    msg.reply(`${cmd.split(" ")[0]}: command not found`, { code: true });
   }
 
   public reply_error(msg: Discord.Message) {
