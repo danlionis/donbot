@@ -26,7 +26,6 @@ export const Logs = new Command({
       console.log(cmd_logs.length);
       console.log(count);
       cmd_logs = cmd_logs.slice(cmd_logs.length - count);
-      // console.log(cmd_logs);
     }
 
     const res = cmd_logs.join("\n") || "no logs";
@@ -73,7 +72,10 @@ const PermsCommand = new Command({
     msg.channel.send(res, { code: true });
   });
 
-const PermsUser = new Command({ name: "user" })
+const PermsUser = new Command({
+  name: "user",
+  about: "Manage explicit user permissions"
+})
   .arg(
     new Arg({
       name: "MEMBER",

@@ -18,7 +18,7 @@ const Votemute = new Command({
 
     if (!ctx.data) {
       msg.channel.send("No vote in progress!");
-      return CommandResult.SendHelp;
+      return CommandResult.Failed;
     }
 
     // if member has already voted

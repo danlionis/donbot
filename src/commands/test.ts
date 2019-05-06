@@ -42,8 +42,8 @@ export let Test = new Command({
       long: "result",
       short: "r",
       takes_value: true,
-      help: "Return with specific result",
-      possible_values: ["0", "1", "2", "3", "4"]
+      help: "Return with specific result"
+      // possible_values: ["0", "1", "2", "3", "4"]
     })
   )
   .arg(
@@ -91,25 +91,14 @@ export let Test = new Command({
       msg.delete();
     }
 
-    switch (matches.value_of("RESULT")) {
-      case "0":
-        return CommandResult.Success;
-      case "1":
-        return CommandResult.Error;
-      case "2":
-        return CommandResult.SendHelp;
-      case "3":
-        return CommandResult.PermissionDenied;
-      case "4":
-        return CommandResult.Failed;
-    }
+    const result = matches.value_of("RESULT") || 0;
 
-    return CommandResult.Success;
+    return parseInt(result, 10) || 0;
   })
   .subcommand(
     new Command({
-      name: "first"
-      // permission: ["MUTE_MEMBERS"]
+      name: "first",
+      about: "this is a subcommand"
     })
   )
   .subcommand(

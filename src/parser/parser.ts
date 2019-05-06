@@ -31,7 +31,7 @@ export async function parse_message(
   let cmd = bot.find_command(content.shift());
 
   if (!cmd) {
-    console.log("parse_message: [ERROR] command not found");
+    // console.log("parse_message: [ERROR] command not found");
     return undefined;
   }
   // console.log("parse_message: command found", cmd.config.name);
