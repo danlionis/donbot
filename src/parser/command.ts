@@ -44,7 +44,7 @@ export class Command {
       return CommandResult.Unimplemented;
     };
     const default_config: Partial<CommandConfig> = {
-      about: "No information",
+      about: "",
       permissions: [],
       owner_only: false
     };

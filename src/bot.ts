@@ -34,12 +34,11 @@ export class Bot extends Discord.Client {
 
   public register_commands(...commands: Command[]) {
     commands.forEach((c) => {
-      const valid = command_valid(c);
+      const valid = command_valid(this, c);
       if (valid) {
-        console.log(JSON.stringify(valid, null, 2));
+        this.registry.push(...commands);
       }
     });
-    this.registry.push(...commands);
   }
 
   public find_command(name: string): Command {
