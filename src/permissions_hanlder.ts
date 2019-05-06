@@ -39,8 +39,13 @@ export class PermissionHandler {
     const ia = this._explicit[member.id].allowed.indexOf(cmd.full_cmd_name);
     const id = this._explicit[member.id].denied.indexOf(cmd.full_cmd_name);
 
-    this._explicit[member.id].allowed.splice(ia);
-    this._explicit[member.id].denied.splice(id);
+    if (ia >= 0) {
+      this._explicit[member.id].allowed.splice(ia);
+    }
+
+    if (id >= 0) {
+      this._explicit[member.id].denied.splice(id);
+    }
   }
 
   public user_is_allowed(member: Discord.GuildMember, full_cmd_name: string) {
