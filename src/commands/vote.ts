@@ -86,9 +86,10 @@ const Votemute = new Command({
           return CommandResult.Failed;
         }
 
-        if (!can_modify(bot, msg.member, target)) {
-          return CommandResult.PermissionDenied;
-        }
+        // if (!can_modify(bot, msg.member, target)) {
+        //   return CommandResult.PermissionDenied;
+        // }
+
         let required_votes = parseInt(matches.value_of("REQUIRED"), 10);
 
         if (msg.member.voiceChannel) {
