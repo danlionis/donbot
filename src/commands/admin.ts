@@ -104,17 +104,30 @@ const PermsUser = new Command({
   .handler(async (bot, msg, matches) => {
     const member = matches.value_of("MEMBER") as Discord.GuildMember;
     const status = matches.value_of("STATUS");
+    const cmd_str = matches.value_of("COMMAND");
+
+    if (!(member instanceof Discord.GuildMember)) {
+      msg.reply("MEMBER has to be a Mention");
+      return CommandResult.Failed;
+    }
 
     if (status) {
-      const cmd = bot.find_command(
-        (matches.value_of("COMMAND") as string[]).join(" ")
-      );
-      if (status === "allow") {
-        bot.perms.allow_user_cmd(member, cmd);
-      } else if (status === "deny") {
-        bot.perms.deny_user_cmd(member, cmd);
+      if (cmd_str) {
+        const cmd = bot.find_command(cmd_str.join(" "));
+
+        if (status === "allow") {
+          bot.perms.allow_user_cmd(member, cmd);
+        } else if (status === "deny") {
+          bot.perms.deny_user_cmd(member, cmd);
+        } else {
+          bot.perms.reset_user_cmd(member, cmd);
+        }
       } else {
-        bot.perms.reset_user_cmd(member, cmd);
+        if (status === "deny") {
+          bot.perms.deny_user(member);
+        } else {
+          bot.perms.allow_user(member);
+        }
       }
     }
 
@@ -126,6 +139,9 @@ const PermsUser = new Command({
       .join("\n");
 
     res += "\nDENIED:\n";
+    if (bot.perms.user_is_disabled(member)) {
+      res += "\t*\n";
+    }
     res += bot.perms
       .get_user_denied(member)
       .map((p) => "\t" + p)
@@ -199,7 +215,9 @@ export let Alias = new Command({
         const cmd = (matches.value_of("COMMAND") as string[]).join(" ");
 
         if (bot.registry.map((c) => c.config.name).indexOf(alias) >= 0) {
-          msg.channel.send(`Cannot set alias. Command ${alias} already exists`);
+          msg.channel.send(
+            `Cannot set alias. Command with name ${alias} already exists`
+          );
           return CommandResult.Failed;
         }
 
@@ -225,7 +243,11 @@ export let Alias = new Command({
           help: "Alias to remove"
         })
       )
-      .handler(async (bot, msg, matches) => {})
+      .handler(async (bot, msg, matches) => {
+        const alias = matches.value_of("ALIAS");
+
+        bot.remove_alias(alias);
+      })
   );
 
 export let Eval = new Command({

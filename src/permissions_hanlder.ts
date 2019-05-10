@@ -8,6 +8,20 @@ export interface Perms {
 export class PermissionHandler {
   private readonly _explicit: { [user_id: string]: Perms } = {};
   private readonly _disabled_commands: string[] = [];
+  private readonly _disabled_users: string[] = [];
+
+  public deny_user(member: Discord.GuildMember) {
+    if (this._disabled_users.indexOf(member.id) >= 0) {
+      return;
+    }
+
+    this._disabled_users.push(member.id);
+  }
+
+  public allow_user(member: Discord.GuildMember) {
+    const i = this._disabled_users.indexOf(member.id);
+    this._disabled_users.splice(i);
+  }
 
   public allow_user_cmd(member: Discord.GuildMember, cmd: Command) {
     if (!this._explicit[member.id]) {
@@ -48,6 +62,10 @@ export class PermissionHandler {
     }
   }
 
+  public user_is_disabled(member: Discord.GuildMember): boolean {
+    return this._disabled_users.indexOf(member.id) >= 0;
+  }
+
   public user_is_allowed(member: Discord.GuildMember, full_cmd_name: string) {
     if (!this._explicit[member.id]) return false;
 
@@ -82,6 +100,10 @@ export class PermissionHandler {
   }
 
   public deny_cmd(cmd: Command) {
+    if (this._disabled_commands.indexOf(cmd.full_cmd_name) >= 0) {
+      return;
+    }
+
     this._disabled_commands.push(cmd.full_cmd_name);
   }
 

@@ -33,22 +33,32 @@ export function has_permission(
   let allowed: boolean;
   let reason: string;
 
+  // directly allow if user is the owner
   if (bot.is_owner(msg.author.id)) {
     return [true, "owner"];
   }
 
+  // deny if user is disabled
+  if (bot.perms.user_is_disabled(msg.member)) {
+    return [false, "user_disabled"];
+  }
+
+  // deny if command is disabled
   if (bot.perms.cmd_is_disabled(cmd)) {
     return [false, "cmd_disabled"];
   }
 
+  // deny if command was explicitly denied for user
   if (bot.perms.user_is_denied(msg.member, cmd.full_cmd_name)) {
     return [false, "explicit_denied"];
   }
 
+  // allow if command was explicitly allowed for user
   if (bot.perms.user_is_allowed(msg.member, cmd.full_cmd_name)) {
     return [true, "explicit_allowed"];
   }
 
+  // deny if owner only (allowed if explicitly allowed)
   if (cmd.config.owner_only) {
     return [false, "no_owner"];
   }
