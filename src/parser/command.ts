@@ -26,6 +26,12 @@ interface CommandConfig {
   about?: string;
   permissions?: Discord.PermissionResolvable[];
   owner_only?: boolean;
+  /**
+   * True if this command is dangerous and should not be executed in conjunction with other commands
+   * You should set this to true if your command executes other user defined commands
+   * e.g. repeat - the repeat command should not be allowed to repeat itself
+   */
+  danger?: boolean;
 }
 
 export class Command {
@@ -46,7 +52,8 @@ export class Command {
     const default_config: Partial<CommandConfig> = {
       about: "",
       permissions: [],
-      owner_only: false
+      owner_only: false,
+      danger: false
     };
     this.config = { ...default_config, ...config };
     if (this.config.permissions === undefined) {
@@ -96,6 +103,11 @@ export class Command {
 
   public owner_only(owner_only: boolean = true): Command {
     this.config.owner_only = owner_only;
+    return this;
+  }
+
+  public danger(danger: boolean = true): Command {
+    this.config.danger = danger;
     return this;
   }
 

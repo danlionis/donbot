@@ -122,9 +122,17 @@ export class Bot extends Discord.Client {
     msg.reply(`${cmd.split(" ")[0]}: permission denied`, { code: true });
   }
 
-  public reply_command_not_found(cmd: string, msg: Discord.Message) {
+  public reply_command_not_found(
+    cmd: string,
+    msg: Discord.Message,
+    alternative?: Command
+  ) {
     // msg.reply("404: Command not found");
-    msg.reply(`${cmd.split(" ")[0]}: command not found`, { code: true });
+    let res = `${cmd.split(" ")[0]}: command not found`;
+    if (alternative) {
+      res += `\n\nDid you mean: ${alternative.full_cmd_name}`;
+    }
+    msg.reply(res, { code: true });
   }
 
   public reply_error(msg: Discord.Message) {

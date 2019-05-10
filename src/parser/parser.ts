@@ -73,7 +73,7 @@ export async function parse_message(
           const first_match = reg_match[0];
           const start_index = v.indexOf("!") >= 0 ? 3 : 2;
           v = v.substr(start_index, v.length - (start_index + 1));
-          const member = await msg.guild.fetchMember(v);
+          const member = (await msg.guild.fetchMember(v)) || null;
           matches.set_arg_match(a.config.name, member);
         }
       });

@@ -1,8 +1,10 @@
 import * as Discord from "discord.js";
 import { Arg, Command, CommandResult } from "../parser";
 import { CommandContext } from "../parser/context";
+import { Duration } from "../utils/duration";
 import { find_voice_channel } from "../utils/fuzzy_finder";
 import { can_modify } from "../validator/permission";
+import { handle_cmd } from "../command_handler";
 
 export let Mute = new Command({
   name: "mute",
@@ -18,17 +20,22 @@ export let Mute = new Command({
       can_mention: true
     })
   )
+  .arg(new Arg({ name: "TIME", positional: true }))
   .handler(async (bot, msg, matches) => {
     const target = matches.value_of("TARGET") as Discord.GuildMember;
 
-    // if (!can_modify(bot, msg.member, target)) {
-    //   return CommandResult.PermissionDenied;
-    // }
+    if (!target.voiceChannel) {
+      return CommandResult.Failed;
+    }
+
+    const millis =
+      new Duration(matches.value_of("TIME")).millis || 10 * Duration.SECOND;
+
     target.setMute(true);
 
     setTimeout(() => {
       target.setMute(false);
-    }, 10 * 1000);
+    }, millis);
   });
 
 export let Silence = new Command({
@@ -197,4 +204,31 @@ export let Move = new Command({
   )
   .handler(async (bot, msg, matches) => {
     return CommandResult.SendHelp;
+  });
+
+export let Delete = new Command({
+  name: "delete",
+  permissions: ["MANAGE_MESSAGES"],
+  about: "Delete your message and still execute a command",
+  danger: true
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      take_multiple: true,
+      required: true,
+      help: "Command to execute",
+      positional: true
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    if (msg.deletable) {
+      msg.delete().catch(() => {});
+    }
+    const exec_cmd: string = (matches.value_of("COMMAND") as string[]).join(
+      " "
+    );
+
+    const res = await handle_cmd(bot, exec_cmd, msg);
+    return res;
   });

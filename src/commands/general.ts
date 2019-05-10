@@ -29,7 +29,8 @@ import { Arg, Command, CommandResult } from "../parser";
 
 export let Delay = new Command({
   name: "delay",
-  about: "Delays a command vor a given amount of seconds"
+  about: "Delays a command vor a given amount of seconds",
+  danger: true
 })
   .arg(
     new Arg({
@@ -107,7 +108,8 @@ export let Choice = new Command({
 
 export let Repeat = new Command({
   name: "repeat",
-  about: "Repeats a command for a given amout of times"
+  about: "Repeats a command for a given amout of times",
+  danger: true
 })
   .arg(
     new Arg({
@@ -129,7 +131,16 @@ export let Repeat = new Command({
   .handler(async (bot, msg, matches) => {
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
 
-    if (repeat_cmd[0] === Repeat.config.name) {
+    const cmd = bot.registry.find((c) => c.config.name === repeat_cmd[0]);
+
+    // if (repeat_cmd[0] === Repeat.config.name) {
+    if (cmd.config.danger && !bot.is_owner(msg.author.id)) {
+      msg.reply(
+        `Cannot execute dangerous command ${
+          cmd.full_cmd_name
+        } in conjunction with 'repeat'`,
+        { code: true }
+      );
       return CommandResult.Error;
     }
 

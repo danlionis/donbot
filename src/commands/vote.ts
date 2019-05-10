@@ -78,7 +78,18 @@ const Votemute = new Command({
         })
       )
       .handler(async (bot, msg, matches, ctx: CommandContext<VotemuteData>) => {
-        const target = matches.value_of("TARGET");
+        const target = matches.value_of("TARGET") as Discord.GuildMember;
+
+        if (!target) {
+          msg.reply("Target not found", { code: true });
+          return CommandResult.Failed;
+        }
+
+        if (!target.voiceChannel) {
+          msg.reply("Target not connected to a voice channel", { code: true });
+          return CommandResult.Failed;
+        }
+
         const time = parseInt(matches.value_of("TIME"), 10);
 
         if (Votemute.context.data) {
@@ -86,11 +97,7 @@ const Votemute = new Command({
           return CommandResult.Failed;
         }
 
-        // if (!can_modify(bot, msg.member, target)) {
-        //   return CommandResult.PermissionDenied;
-        // }
-
-        let required_votes = parseInt(matches.value_of("REQUIRED"), 10);
+        let required_votes = parseInt(matches.value_of("REQUIRED"), 10) || 5;
 
         if (msg.member.voiceChannel) {
           required_votes =

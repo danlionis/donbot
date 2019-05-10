@@ -228,35 +228,6 @@ export let Alias = new Command({
       .handler(async (bot, msg, matches) => {})
   );
 
-export let Delete = new Command({
-  name: "delete",
-  permissions: ["MANAGE_MESSAGES"],
-  about: "Delete your message and still execute a command"
-})
-  .arg(
-    new Arg({
-      name: "COMMAND",
-      take_multiple: true,
-      required: true,
-      help: "Command to execute",
-      positional: true
-    })
-  )
-  .handler(async (bot, msg, matches) => {
-    console.log("del");
-    msg
-      .delete()
-      .then(() => console.log("deleted"))
-      .catch((e) => console.log(e));
-
-    const exec_cmd: string = (matches.value_of("COMMAND") as string[]).join(
-      " "
-    );
-
-    const res = await handle_cmd(bot, exec_cmd, msg);
-    return res;
-  });
-
 export let Eval = new Command({
   name: "eval",
   about: "Execute javascript",

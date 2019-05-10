@@ -3,6 +3,7 @@ import { Bot } from "./bot";
 import { log_cmd_exec } from "./logging";
 import { Command, CommandResult } from "./parser";
 import { parse_message } from "./parser/parser";
+import { find_command } from "./utils/fuzzy_finder";
 import { has_permission } from "./validator/permission";
 
 export async function handle_cmd(
@@ -14,7 +15,12 @@ export async function handle_cmd(
   const author = msg.author.tag;
 
   if (parsed === undefined) {
-    bot.reply_command_not_found(content, msg);
+    const alternative = find_command(
+      bot.registry.filter((c) => has_permission(bot, msg, c)[0]),
+      content[0]
+    );
+
+    bot.reply_command_not_found(content, msg, alternative);
     return CommandResult.NotFound;
   }
 
