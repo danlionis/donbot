@@ -50,17 +50,15 @@ export let Delay = new Command({
     })
   )
   .handler((bot, msg, matches) => {
-    return new Promise((resolve, reject) => {
-      const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
+    const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
 
-      let delay_time: number = parseInt(matches.value_of("TIME"), 10);
+    let delay_time: number = parseInt(matches.value_of("TIME"), 10);
 
-      delay_time = Math.min(120, delay_time);
+    delay_time = Math.min(120, delay_time);
 
-      setTimeout(() => {
-        resolve(handle_cmd(bot, delay_cmd.join(" "), msg));
-      }, delay_time * 1000);
-    });
+    setTimeout(() => {
+      handle_cmd(bot, delay_cmd.join(" "), msg);
+    }, delay_time * 1000);
   });
 
 export let Echo = new Command({
@@ -75,8 +73,8 @@ export let Echo = new Command({
       help: "Message to echo"
     })
   )
-  .handler((bot, msg, matches) => {
-    msg.channel.send(
+  .handler(async (bot, msg, matches) => {
+    await msg.channel.send(
       (matches.value_of("MESSAGE") as string[]).join(" ").substr(0, 1000)
     );
   });
@@ -131,7 +129,12 @@ export let Repeat = new Command({
   .handler(async (bot, msg, matches) => {
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
 
-    const cmd = bot.registry.find((c) => c.config.name === repeat_cmd[0]);
+    const cmd = bot.find_command(repeat_cmd[0]);
+
+    if (!cmd) {
+      bot.reply_command_not_found(repeat_cmd[0], msg);
+      return CommandResult.Failed;
+    }
 
     // if (repeat_cmd[0] === Repeat.config.name) {
     if (cmd.config.danger && !bot.is_owner(msg.author.id)) {

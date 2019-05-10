@@ -41,8 +41,31 @@ export class Bot extends Discord.Client {
     });
   }
 
-  public find_command(name: string): Command {
-    return this.registry.find((c) => c.config.name === name);
+  public find_command(query: string): Command {
+    const stack = query.split(" ");
+    let current = stack.shift();
+
+    let base_cmd = this.registry.find((c) => {
+      return c.config.name === current;
+    });
+
+    if (!base_cmd) {
+      return undefined;
+    }
+
+    while (base_cmd.subcommands.length && stack.length) {
+      current = stack.shift();
+      const tmp = base_cmd.subcommands.find((c) => c.config.name === current);
+      if (tmp) {
+        base_cmd = tmp;
+      }
+    }
+
+    return base_cmd;
+
+    // parse_command;
+
+    // return this.registry.find((c) => c.config.name === cmd);
   }
 
   public async on_ready() {
@@ -91,7 +114,9 @@ export class Bot extends Discord.Client {
     return res;
   }
 
-  public remove_alias(key: string) {}
+  public remove_alias(key: string) {
+    this._aliases.delete(key);
+  }
 
   public reply_send_help(msg: Discord.Message, cmd: Command) {
     if (cmd) {
