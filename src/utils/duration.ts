@@ -1,8 +1,8 @@
 export class Duration {
   public static readonly SECOND = 1000;
-  public static readonly MINUTE = 1000;
-  public static readonly HOUR = 1000;
-  public static readonly DAY = 1000;
+  public static readonly MINUTE = 60 * 1000;
+  public static readonly HOUR = 60 * 60 * 1000;
+  public static readonly DAY = 24 * 60 * 60 * 1000;
 
   private _millis = 0;
 
@@ -21,7 +21,7 @@ export class Duration {
         continue;
       }
 
-      let mult = 1;
+      let mult = 0;
 
       switch (c) {
         case "m":
@@ -39,6 +39,7 @@ export class Duration {
       }
 
       res += parseInt(number_str, 10) * mult;
+      number_str = "";
     }
 
     this._millis = res;
