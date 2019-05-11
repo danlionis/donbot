@@ -88,7 +88,12 @@ export class Bot extends Discord.Client {
       return;
     }
 
-    const content = msg.content.substr(this.config.prefix.length);
+    let content = msg.content.substr(this.config.prefix.length);
+    content = content
+      .split(" ")
+      .filter(Boolean)
+      .join(" ");
+
     const cmds = content.split(";").map((c) => c.trim());
 
     for (let i = 0; i < cmds.length; i++) {
