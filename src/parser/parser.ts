@@ -11,8 +11,6 @@ interface MatchError {
   wrong_type: string[];
 }
 
-const mention_regex = /<@!?\d+>/;
-
 /**
  * Convert the arg values to their specified type
  * @param cmd
@@ -20,31 +18,46 @@ const mention_regex = /<@!?\d+>/;
  * @param guild
  */
 async function convert_arg_values(
-  cmd: Command,
+  arg: Arg,
   matches: Matches,
   guild: Discord.Guild
 ) {
-  for (let i = 0; i < cmd.args.length; i++) {
-    const arg = cmd.args[i];
+  if (!matches.value_of(arg.config.name)) return matches;
 
-    if (!matches.value_of(arg.config.name)) continue;
+  const m = matches.value_of(arg.config.name);
+  let values: string[];
 
-    const v: string = matches.value_of(arg.config.name);
+  if (arg.config.take_multiple) {
+    values = m;
+    // reset matches to set again later with appropriate type
+    matches.set_arg_match(arg.config.name, []);
+  } else {
+    values = [m];
+  }
 
+  const merge = arg.config.take_multiple;
+
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i];
     if (arg.config.type === "boolean") {
-      const is_true = v === "true";
-      matches.set_arg_match(arg.config.name, v === "true");
+      matches.set_arg_match(arg.config.name, v === "true", merge);
     } else if (arg.config.type === "number") {
-      matches.set_arg_match(arg.config.name, parseInt(v, 10));
+      matches.set_arg_match(arg.config.name, parseFloat(v), merge);
     } else if (arg.config.type === "member") {
+      // convert  <@!364727850923982849>
+      // to       364727850923982849
+      // remove <> @ !
       let id = v.substring(2, v.length - 1);
       if (id[0] === "!") {
         id = id.substr(1);
       }
-      const member = await guild.fetchMember(id).catch((e) => {});
-      matches.set_arg_match(arg.config.name, member);
+
+      const member = (await guild.fetchMember(id).catch((e) => {})) || v;
+      matches.set_arg_match(arg.config.name, member, merge);
     } else if (arg.config.type === "duration") {
-      matches.set_arg_match(arg.config.name, new Duration(v));
+      matches.set_arg_match(arg.config.name, new Duration(v).millis, merge);
+    } else {
+      matches.set_arg_match(arg.config.name, v, merge);
     }
   }
 
@@ -89,49 +102,25 @@ export async function parse_message(
     // console.log("parse_message: sub match", matches, cmd);
   }
 
-  matches = await convert_arg_values(cmd, matches, msg.guild);
-  // convert mentions in to GuildMembers
-  // const mention_regex = /<@!?\d+>/;
-  // cmd.args
-  //   .filter((a) => a.config.can_mention)
-  //   .forEach((a) => {
-  //     if (!matches.value_of(a.config.name)) {
-  //       return;
-  //     }
-
-  //     const m = matches.value_of(a.config.name);
-  //     let values: string[];
-
-  //     if (!a.config.take_multiple) {
-  //       values = [m];
-  //     } else {
-  //       values = m;
-  //     }
-
-  //     values.forEach(async (v) => {
-  //       const reg_match = v.match(mention_regex);
-  //       if (reg_match) {
-  //         const first_match = reg_match[0];
-  //         const start_index = v.indexOf("!") >= 0 ? 3 : 2;
-  //         v = v.substr(start_index, v.length - (start_index + 1));
-  //         const member = (await msg.guild.fetchMember(v)) || null;
-  //         matches.set_arg_match(a.config.name, member);
-  //       }
-  //     });
-  //   });
+  const convert_args = cmd.args.filter(
+    (c) => c.config.positional || c.config.takes_value
+  );
+  // dont use cmd.args.forEach() -> async breaks everything
+  for (let i = 0; i < convert_args.length; i++) {
+    const arg = convert_args[i];
+    matches = await convert_arg_values(arg, matches, msg.guild);
+  }
 
   const missing_args: string[] = [];
-
   const required_args = cmd.args.filter((a) => a.config.required);
   for (const a of required_args) {
-    if (!matches.value_of(a.config.name)) {
+    if (matches.value_of(a.config.name) === undefined) {
       // console.log("missing required arg");
       missing_args.push(a.config.name);
     }
   }
 
   const wrong_args: string[] = [];
-
   const possible_args = cmd.args.filter((a) => a.config.possible_values);
   for (const a of possible_args) {
     const value = matches.value_of(a.config.name);
@@ -142,23 +131,34 @@ export async function parse_message(
     }
   }
 
+  // Check if some arguments are of the wrong type
+  // if so set the errors appropriately
   const wrong_type: string[] = [];
-
   for (const a of cmd.args) {
-    const value = matches.value_of(a.config.name);
+    const m = matches.value_of(a.config.name);
 
-    if (!value) continue;
+    if (m === undefined) continue;
 
-    if (a.config.type === "number") {
-      if (isNaN(value)) {
-        wrong_type.push(a.config.name);
-      }
-    } else if (a.config.type === "member") {
-      if (!(value instanceof Discord.GuildMember)) {
-        wrong_type.push(a.config.name);
-      }
-    } else if (a.config.type === "boolean") {
+    let values: any[];
+
+    if (a.config.take_multiple) {
+      values = m;
+    } else {
+      values = [m];
     }
+
+    values.forEach((v) => {
+      if (a.config.type === "number") {
+        if (isNaN(v)) {
+          wrong_type.push(a.config.name);
+        }
+      } else if (a.config.type === "member") {
+        if (!(v instanceof Discord.GuildMember)) {
+          wrong_type.push(a.config.name);
+        }
+      } else if (a.config.type === "boolean") {
+      }
+    });
   }
 
   const default_args = cmd.args.filter((a) => a.config.default);
@@ -180,12 +180,9 @@ export async function parse_message(
   }
 
   return [cmd, matches, match_error];
-
-  // console.log(matches);
 }
 
 export function parse_command(cmd: Command, content: string[]): Matches {
-  // console.log(cmd);
   const matches: Matches = new Matches();
 
   let flag_take_value = false;
@@ -194,8 +191,6 @@ export function parse_command(cmd: Command, content: string[]): Matches {
 
   for (let i = 0; i < content.length; i++) {
     const word = content[i];
-    // if word
-    // console.log("parse_command: word", word);
 
     if (cmd.subcommands.length) {
       // parse subcommands
@@ -233,9 +228,8 @@ export function parse_command(cmd: Command, content: string[]): Matches {
         } else {
           matches.set_arg_match(flag_arg.config.name, true);
         }
+        continue;
       }
-
-      continue;
     }
 
     // parse positional arguments

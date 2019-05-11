@@ -3,6 +3,22 @@ import { Command } from "./command";
 
 export type ArgMatches = Map<string, any>;
 
+function debug_representation(value: any) {
+  if (value instanceof Discord.GuildMember) {
+    return value.user.tag;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((v) => debug_representation(v));
+  }
+
+  if (typeof value === "object") {
+    return value.toString();
+  }
+
+  return value !== undefined ? value : null;
+}
+
 export class Matches {
   private _arg_matches: ArgMatches = new Map();
   private _subcommand: Command;
@@ -16,13 +32,7 @@ export class Matches {
     for (const a of cmd.args) {
       const k = a.config.name;
       const v = this._arg_matches.get(k);
-      if (v instanceof Discord.GuildMember) {
-        res[k] = v.user.tag;
-      } else if (typeof v === "object") {
-        res[k] = v.toString();
-      } else {
-        res[k] = v !== undefined ? v : null;
-      }
+      res[k] = debug_representation(v);
     }
     return res;
   }

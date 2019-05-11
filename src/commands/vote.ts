@@ -53,8 +53,8 @@ const Votemute = new Command({
         new Arg({
           name: "TARGET",
           positional: true,
-          can_mention: true,
           help: "Mention user you want to mute",
+          type: "member",
           required: true
         })
       )

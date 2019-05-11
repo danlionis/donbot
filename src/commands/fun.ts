@@ -10,7 +10,7 @@ export let Yeet = new Command({
   .arg(
     new Arg({
       name: "TARGET",
-      can_mention: true,
+      type: "member",
       positional: true,
       required: true
     })

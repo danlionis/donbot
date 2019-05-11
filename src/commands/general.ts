@@ -1,32 +1,6 @@
 import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
 
-// export let Chain = new Command({
-//   name: "chain",
-//   about: "Chain multiple commands "
-// })
-//   .arg(
-//     new Arg({
-//       name: "COMMANDS",
-//       take_multiple: true,
-//       positional: true,
-//       required: true,
-//       help: "Commands you want to chain (sperareted by ';')"
-//     })
-//   )
-//   .handler(async (bot, msg, matches) => {
-//     const commands: string[] = (matches.value_of("COMMANDS") as string[])
-//       .join(" ")
-//       .split(";")
-//       .map((c) => c.trim());
-
-//     console.log(commands);
-
-//     commands.forEach(async (c) => {
-//       await handle_cmd(bot, c, msg);
-//     });
-//   });
-
 export let Delay = new Command({
   name: "delay",
   about: "Delays a command vor a given amount of seconds",
@@ -114,6 +88,7 @@ export let Repeat = new Command({
       name: "AMOUNT",
       positional: true,
       required: true,
+      type: "number",
       help: "Amount of times the command should be repeated"
     })
   )
@@ -147,7 +122,7 @@ export let Repeat = new Command({
       return CommandResult.Error;
     }
 
-    let repeat_amout: number = parseInt(matches.value_of("AMOUNT") || "1", 10);
+    let repeat_amout: number = matches.value_of("AMOUNT");
 
     repeat_amout = Math.min(repeat_amout, 20);
 

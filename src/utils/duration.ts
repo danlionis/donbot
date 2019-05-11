@@ -13,10 +13,10 @@ export class Duration {
     for (let i = 0; i < duration.length; i++) {
       const c = duration.charAt(i);
 
-      const num = parseInt(c, 10);
+      const num = parseFloat(c);
 
       // check if c is a number
-      if (num.toString() === c) {
+      if (num.toString() === c || c === ".") {
         number_str += c;
         continue;
       }
@@ -38,7 +38,7 @@ export class Duration {
           break;
       }
 
-      res += parseInt(number_str, 10) * mult;
+      res += parseFloat(number_str) * mult;
       number_str = "";
     }
 

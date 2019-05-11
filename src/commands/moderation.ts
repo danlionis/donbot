@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
+import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
 import { CommandContext } from "../parser/context";
 import { Duration } from "../utils/duration";
 import { find_voice_channel } from "../utils/fuzzy_finder";
 import { can_modify } from "../validator/permission";
-import { handle_cmd } from "../command_handler";
 
 export let Mute = new Command({
   name: "mute",
@@ -16,11 +16,18 @@ export let Mute = new Command({
       name: "TARGET",
       positional: true,
       required: true,
-      help: "Member you want to mute",
-      can_mention: true
+      type: "member",
+      help: "Member you want to mute"
     })
   )
-  .arg(new Arg({ name: "TIME", positional: true }))
+  .arg(
+    new Arg({
+      name: "TIME",
+      positional: true,
+      type: "duration",
+      help: "Mute duration"
+    })
+  )
   .handler(async (bot, msg, matches) => {
     const target = matches.value_of("TARGET") as Discord.GuildMember;
 
@@ -28,8 +35,11 @@ export let Mute = new Command({
       return CommandResult.Failed;
     }
 
-    const millis =
-      new Duration(matches.value_of("TIME")).millis || 10 * Duration.SECOND;
+    if (!can_modify(bot, msg.member, target, { same_role: true })) {
+      return CommandResult.PermissionDenied;
+    }
+
+    const millis: number = matches.value_of("TIME") || 10 * Duration.MINUTE;
 
     target.setMute(true);
 
@@ -115,7 +125,7 @@ export let Move = new Command({
           name: "TARGET",
           help: "Target user where your whole channel will move to",
           positional: true,
-          can_mention: true,
+          type: "member",
           required: true
         })
       )
@@ -163,8 +173,8 @@ export let Move = new Command({
         new Arg({
           name: "TARGET",
           help: "Target user where your whole channel will move to",
+          type: "member",
           positional: true,
-          can_mention: true,
           required: true
         })
       )

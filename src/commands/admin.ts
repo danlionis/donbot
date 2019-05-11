@@ -14,11 +14,12 @@ export const Logs = new Command({
       long: "count",
       help: "Output the last N lines",
       takes_value: true,
+      type: "number",
       default: 10
     })
   )
   .handler((bot, msg, matches) => {
-    const count = parseInt(matches.value_of("COUNT"), 10) || 10;
+    const count = matches.value_of("COUNT");
 
     let cmd_logs = bot.get_logs();
 
@@ -81,7 +82,7 @@ const PermsUser = new Command({
       name: "MEMBER",
       positional: true,
       required: true,
-      can_mention: true,
+      type: "member",
       help: "User that should be managed"
     })
   )
@@ -168,8 +169,8 @@ export let Exec = new Command({
     new Arg({
       name: "MEMBER",
       positional: true,
-      required: true,
-      can_mention: true
+      type: "member",
+      required: true
     })
   )
   .arg(

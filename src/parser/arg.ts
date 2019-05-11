@@ -8,7 +8,6 @@ interface ArgConfig {
   take_multiple?: boolean;
   hidden?: boolean;
   required?: boolean;
-  can_mention?: boolean;
   possible_values?: any[];
   default?: any;
   type?: "string" | "number" | "boolean" | "member" | "duration";
@@ -20,9 +19,9 @@ export class Arg {
   constructor(config: ArgConfig) {
     const default_config: Partial<ArgConfig> = {
       required: false,
-      can_mention: false,
       hidden: false,
-      takes_value: false
+      takes_value: false,
+      type: "string"
     };
     this.config = { ...default_config, ...config };
   }
@@ -39,11 +38,6 @@ export class Arg {
 
   public possible_values(possible_values: string[]): Arg {
     this.config.possible_values = possible_values;
-    return this;
-  }
-
-  public mention(mention: boolean = true): Arg {
-    this.config.can_mention = mention;
     return this;
   }
 
