@@ -1,6 +1,17 @@
 import * as Discord from "discord.js";
+import fetch from "node-fetch";
 import { Arg, Command, CommandResult } from "../parser";
 import { can_modify } from "../validator/permission";
+
+export let InspiroBot = new Command({
+  name: "inspire",
+  about: "get some inspiration",
+  danger: true
+}).handler(async (bot, msg, matches) => {
+  fetch("https://inspirobot.me/api?generate=true")
+    .then((res) => res.text())
+    .then((body) => msg.channel.send(body));
+});
 
 export let Yeet = new Command({
   name: "yeet",
