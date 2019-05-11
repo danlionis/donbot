@@ -7,7 +7,7 @@ import { PermissionHandler, Perms } from "./permissions_hanlder";
 import { command_valid } from "./validator/validator";
 
 export class Bot extends Discord.Client {
-  public readonly registry: Command[] = [];
+  public registry: Command[] = [];
   public readonly config: Config;
 
   public readonly _aliases: Map<string, string> = new Map();
@@ -30,6 +30,11 @@ export class Bot extends Discord.Client {
     this.on("ready", this.on_ready);
 
     load_config();
+  }
+
+  public reload_commands() {
+    this.registry = [];
+    this.load_default_commands();
   }
 
   public register_commands(...commands: Command[]) {

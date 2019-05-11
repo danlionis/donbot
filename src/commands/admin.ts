@@ -2,6 +2,14 @@ import * as Discord from "discord.js";
 import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
 
+export const Reload = new Command({
+  name: "reload",
+  about: "Reload the registered commands",
+  owner_only: true
+}).handler((bot) => {
+  bot.reload_commands();
+});
+
 export const Logs = new Command({
   name: "logs",
   about: "view the latest executed commands",
