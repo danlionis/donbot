@@ -123,26 +123,19 @@ export let Move = new Command({
       .arg(
         new Arg({
           name: "TARGET",
-          help: "Target user where your whole channel will move to",
+          help: "Target voice channel",
           positional: true,
-          type: "member",
           required: true
         })
       )
       .handler(async (bot, msg, matches) => {
         const target = matches.value_of("TARGET");
-        let channel: Discord.VoiceChannel;
-
-        if (target instanceof Discord.GuildMember) {
-          channel = target.voiceChannel;
-        } else {
-          channel = find_voice_channel(
-            msg.guild.channels
-              .filter((c) => c.type === "voice")
-              .array() as Discord.VoiceChannel[],
-            target
-          );
-        }
+        const channel = find_voice_channel(
+          msg.guild.channels
+            .filter((c) => c.type === "voice")
+            .array() as Discord.VoiceChannel[],
+          target
+        );
 
         if (!channel) {
           msg.reply("Target not found");
@@ -172,25 +165,19 @@ export let Move = new Command({
       .arg(
         new Arg({
           name: "TARGET",
-          help: "Target user where your whole channel will move to",
-          type: "member",
+          help: "Target channel",
           positional: true,
           required: true
         })
       )
       .handler(async (bot, msg, matches) => {
         const target = matches.value_of("TARGET");
-        let channel: Discord.VoiceChannel;
-        if (target instanceof Discord.GuildMember) {
-          channel = target.voiceChannel;
-        } else {
-          channel = find_voice_channel(
-            msg.guild.channels
-              .filter((c) => c.type === "voice")
-              .array() as Discord.VoiceChannel[],
-            target
-          );
-        }
+        const channel = find_voice_channel(
+          msg.guild.channels
+            .filter((c) => c.type === "voice")
+            .array() as Discord.VoiceChannel[],
+          target
+        );
 
         if (!channel) {
           msg.reply("Target not found");
