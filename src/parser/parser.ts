@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { Bot } from "../bot";
+import { Duration } from "../utils/duration";
 import { Arg } from "./arg";
 import { Command } from "./command";
 import { Matches } from "./matches";
@@ -7,6 +8,47 @@ import { Matches } from "./matches";
 interface MatchError {
   missing_args: string[];
   wrong_args: string[];
+  wrong_type: string[];
+}
+
+const mention_regex = /<@!?\d+>/;
+
+/**
+ * Convert the arg values to their specified type
+ * @param cmd
+ * @param matches
+ * @param guild
+ */
+async function convert_arg_values(
+  cmd: Command,
+  matches: Matches,
+  guild: Discord.Guild
+) {
+  for (let i = 0; i < cmd.args.length; i++) {
+    const arg = cmd.args[i];
+
+    if (!matches.value_of(arg.config.name)) continue;
+
+    const v: string = matches.value_of(arg.config.name);
+
+    if (arg.config.type === "boolean") {
+      const is_true = v === "true";
+      matches.set_arg_match(arg.config.name, v === "true");
+    } else if (arg.config.type === "number") {
+      matches.set_arg_match(arg.config.name, parseInt(v, 10));
+    } else if (arg.config.type === "member") {
+      let id = v.substring(2, v.length - 1);
+      if (id[0] === "!") {
+        id = id.substr(1);
+      }
+      const member = await guild.fetchMember(id).catch((e) => {});
+      matches.set_arg_match(arg.config.name, member);
+    } else if (arg.config.type === "duration") {
+      matches.set_arg_match(arg.config.name, new Duration(v));
+    }
+  }
+
+  return matches;
 }
 
 /**
@@ -31,10 +73,8 @@ export async function parse_message(
   let cmd = bot.find_command(content.shift());
 
   if (!cmd) {
-    // console.log("parse_message: [ERROR] command not found");
     return undefined;
   }
-  // console.log("parse_message: command found", cmd.config.name);
 
   let matches = parse_command(cmd, content);
 
@@ -49,35 +89,36 @@ export async function parse_message(
     // console.log("parse_message: sub match", matches, cmd);
   }
 
+  matches = await convert_arg_values(cmd, matches, msg.guild);
   // convert mentions in to GuildMembers
-  const mention_regex = /<@!?\d+>/;
-  cmd.args
-    .filter((a) => a.config.can_mention)
-    .forEach((a) => {
-      if (!matches.value_of(a.config.name)) {
-        return;
-      }
+  // const mention_regex = /<@!?\d+>/;
+  // cmd.args
+  //   .filter((a) => a.config.can_mention)
+  //   .forEach((a) => {
+  //     if (!matches.value_of(a.config.name)) {
+  //       return;
+  //     }
 
-      const m = matches.value_of(a.config.name);
-      let values: string[];
+  //     const m = matches.value_of(a.config.name);
+  //     let values: string[];
 
-      if (!a.config.take_multiple) {
-        values = [m];
-      } else {
-        values = m;
-      }
+  //     if (!a.config.take_multiple) {
+  //       values = [m];
+  //     } else {
+  //       values = m;
+  //     }
 
-      values.forEach(async (v) => {
-        const reg_match = v.match(mention_regex);
-        if (reg_match) {
-          const first_match = reg_match[0];
-          const start_index = v.indexOf("!") >= 0 ? 3 : 2;
-          v = v.substr(start_index, v.length - (start_index + 1));
-          const member = (await msg.guild.fetchMember(v)) || null;
-          matches.set_arg_match(a.config.name, member);
-        }
-      });
-    });
+  //     values.forEach(async (v) => {
+  //       const reg_match = v.match(mention_regex);
+  //       if (reg_match) {
+  //         const first_match = reg_match[0];
+  //         const start_index = v.indexOf("!") >= 0 ? 3 : 2;
+  //         v = v.substr(start_index, v.length - (start_index + 1));
+  //         const member = (await msg.guild.fetchMember(v)) || null;
+  //         matches.set_arg_match(a.config.name, member);
+  //       }
+  //     });
+  //   });
 
   const missing_args: string[] = [];
 
@@ -94,11 +135,29 @@ export async function parse_message(
   const possible_args = cmd.args.filter((a) => a.config.possible_values);
   for (const a of possible_args) {
     const value = matches.value_of(a.config.name);
-    // console.log("parser: value", value);
     if (value) {
       if (a.config.possible_values.indexOf(value) < 0) {
         wrong_args.push(a.config.name);
       }
+    }
+  }
+
+  const wrong_type: string[] = [];
+
+  for (const a of cmd.args) {
+    const value = matches.value_of(a.config.name);
+
+    if (!value) continue;
+
+    if (a.config.type === "number") {
+      if (isNaN(value)) {
+        wrong_type.push(a.config.name);
+      }
+    } else if (a.config.type === "member") {
+      if (!(value instanceof Discord.GuildMember)) {
+        wrong_type.push(a.config.name);
+      }
+    } else if (a.config.type === "boolean") {
     }
   }
 
@@ -112,10 +171,11 @@ export async function parse_message(
 
   let match_error: MatchError = null;
 
-  if (missing_args.length || wrong_args.length) {
+  if (missing_args.length || wrong_args.length || wrong_type.length) {
     match_error = {
-      missing_args: missing_args,
-      wrong_args: wrong_args
+      missing_args,
+      wrong_args,
+      wrong_type
     };
   }
 

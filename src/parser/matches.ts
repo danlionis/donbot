@@ -16,18 +16,19 @@ export class Matches {
     for (const a of cmd.args) {
       const k = a.config.name;
       const v = this._arg_matches.get(k);
-      console.log(k, v);
       if (v instanceof Discord.GuildMember) {
+        res[k] = v.user.tag;
+      } else if (typeof v === "object") {
         res[k] = v.toString();
       } else {
-        res[k] = v || null;
+        res[k] = v !== undefined ? v : null;
       }
     }
     return res;
   }
 
   public set_arg_match(key: string, value: any, merge: boolean = false) {
-    if (!value) return;
+    if (value === undefined) return;
 
     // used for multiple input
     if (merge) {

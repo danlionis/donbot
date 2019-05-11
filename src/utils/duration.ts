@@ -45,6 +45,10 @@ export class Duration {
     this._millis = res;
   }
 
+  public toString() {
+    return this.millis.toString();
+  }
+
   public get millis() {
     return this._millis;
   }

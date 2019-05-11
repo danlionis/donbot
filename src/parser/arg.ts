@@ -11,6 +11,7 @@ interface ArgConfig {
   can_mention?: boolean;
   possible_values?: any[];
   default?: any;
+  type?: "string" | "number" | "boolean" | "member" | "duration";
 }
 
 export class Arg {

@@ -67,6 +67,11 @@ export async function handle_cmd(
         .find((a) => a.config.name === wrong_arg)
         .config.possible_values.join(", ")})\n`;
     }
+    for (const wrong_type of error.wrong_type) {
+      error_text += `Wrong type for: ${wrong_type} (${
+        cmd.args.find((a) => a.config.name === wrong_type).config.type
+      })\n`;
+    }
     error_text += `See '${cmd.full_cmd_name} --help'`;
     msg.channel.send(error_text, { code: true });
     return CommandResult.Error;

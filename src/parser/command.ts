@@ -155,6 +155,7 @@ export class Command {
       const required = a.config.required;
       const multiple = Boolean(a.config.take_multiple);
       p += required ? "<" : "[";
+      p += a.config.type === "member" ? "@" : "";
       p += a.config.name;
       p += required ? ">" : "]";
       if (multiple) {
@@ -275,6 +276,8 @@ function format_pos_args(a: Arg, offset: number) {
     " ".repeat(offset - a.arg_format_length()) +
     "\t" +
     (a.config.help || "no description") +
+    " " +
+    (a.config.type ? `[type: ${a.config.type}] ` : "") +
     " " +
     (a.config.default ? `[default: ${a.config.default}] ` : "") +
     (a.config.possible_values
