@@ -21,7 +21,7 @@ export enum CommandResult {
   Unimplemented
 }
 
-interface CommandConfig {
+export interface CommandConfig {
   name: string;
   about?: string;
   permissions?: Discord.PermissionResolvable[];

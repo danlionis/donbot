@@ -2,13 +2,9 @@ import * as Discord from "discord.js";
 import * as fs from "fs";
 import { handle_cmd } from "./command_handler";
 import { Config, load_config } from "./config";
-import { Command, CommandResult } from "./parser/command";
+import { Command } from "./parser/command";
 import { PermissionHandler, Perms } from "./permissions_hanlder";
 import { command_valid } from "./validator/validator";
-
-interface BotConfig {
-  prefix: string;
-}
 
 export class Bot extends Discord.Client {
   public readonly registry: Command[] = [];
@@ -20,10 +16,14 @@ export class Bot extends Discord.Client {
 
   private readonly cmd_logs: string[] = [];
 
-  constructor() {
-    super();
-    // this.config = config;
+  constructor(config?: Config, clientOptions?: Discord.ClientOptions) {
+    super(clientOptions);
+    // read from the config files
     this.config = load_config();
+
+    // overwrite with parameter config
+    this.config = { ...this.config, ...config };
+
     this.on("message", this.onMessage);
     this.load_default_commands();
 
@@ -139,8 +139,6 @@ export class Bot extends Discord.Client {
       this.cmd_logs.shift();
     }
   }
-
-  // public reply_cmd_help(msg: Discord.Message, cmd: Command) {}
 
   public reply_permission_denied(cmd: string, msg: Discord.Message) {
     // msg.reply("Insufficient permission");

@@ -5,7 +5,7 @@ import { Arg, Command, CommandResult } from "../parser";
 export const Logs = new Command({
   name: "logs",
   about: "view the latest executed commands",
-  owner_only: true
+  permissions: ["VIEW_AUDIT_LOG"]
 })
   .arg(
     new Arg({

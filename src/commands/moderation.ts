@@ -239,6 +239,5 @@ export let Delete = new Command({
       " "
     );
 
-    const res = await handle_cmd(bot, exec_cmd, msg);
-    return res;
+    await handle_cmd(bot, exec_cmd, msg);
   });

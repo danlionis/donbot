@@ -10,7 +10,7 @@ export async function handle_cmd(
   bot: Bot,
   content: string,
   msg: Discord.Message
-) {
+): Promise<CommandResult> {
   const parsed = await parse_message(bot, content, msg);
   const author = msg.author.tag;
 
@@ -78,7 +78,7 @@ export async function handle_cmd(
   }
 
   const res =
-    (await cmd.handler_fn(bot, msg, matches, cmd.context)) ||
+    (await cmd.handler_fn.bind(cmd)(bot, msg, matches, cmd.context)) ||
     CommandResult.Success;
 
   if (res) {
