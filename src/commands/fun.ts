@@ -4,18 +4,22 @@ import { Arg, Command, CommandResult } from "../parser";
 import { can_modify } from "../validator/permission";
 
 export let YesNo = new Command({ name: "yesno", about: "Yes or no?" })
-  .arg(new Arg({ name: "GIF", long: "gif", short: "g", help: "include gif" }))
+  .arg(new Arg({ name: "NOGIF", long: "gif", short: "g", help: "exclude gif" }))
   .handler((bot, msg, matches) => {
     const url = "https://yesno.wtf/api/";
-    fetch(url)
-      .then((res) => res.json())
-      .then((body) => {
-        if (matches.value_of("GIF")) {
+    if (matches.value_of("GIF")) {
+      if (Math.random() > 0.5) {
+        msg.reply("yes");
+      } else {
+        msg.reply("no");
+      }
+    } else {
+      fetch(url)
+        .then((res) => res.json())
+        .then((body) => {
           msg.channel.send(body.answer, { file: body.image });
-        } else {
-          msg.reply(body.answer);
-        }
-      });
+        });
+    }
   });
 
 export let InspiroBot = new Command({
