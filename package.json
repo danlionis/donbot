@@ -14,8 +14,7 @@
     "build:live": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./index.js",
-    "lint": "tslint --project tsconfig.json",
-    "postinstall": "node ./scripts/postinstall.js && npm run build"
+    "lint": "tslint --project tsconfig.json"
   },
   "author": "Dan Lionis",
   "license": "ISC",
