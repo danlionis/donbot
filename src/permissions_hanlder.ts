@@ -44,7 +44,7 @@ export class PermissionHandler {
     }
 
     this.reset_user_cmd(member, cmd);
-    this._explicit[member.id].denied.push(cmd.config.name);
+    this._explicit[member.id].denied.push(cmd.full_cmd_name);
   }
 
   public reset_user_cmd(member: Discord.GuildMember, cmd: Command) {
