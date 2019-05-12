@@ -110,6 +110,30 @@ export class Bot extends Discord.Client {
     this._aliases.set(key, value);
   }
 
+  public resolve_alias(query: string): string {
+    const keys = query.split(" ");
+    const key = keys.shift();
+    const a = this._aliases.get(key);
+
+    if (!a) {
+      return query;
+    }
+
+    const alias_parts = a.split(" ");
+
+    for (let i = 0; i < alias_parts.length; i++) {
+      const k = alias_parts[i];
+
+      if (k === "{}") {
+        alias_parts[i] = keys.shift();
+      }
+    }
+
+    alias_parts.push(...keys);
+
+    return alias_parts.join(" ");
+  }
+
   public get_alias(key: string): string {
     return this._aliases.get(key) || key;
   }

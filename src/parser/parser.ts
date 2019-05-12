@@ -77,11 +77,7 @@ export async function parse_message(
   msg_content: string,
   msg: Discord.Message
 ): Promise<[Command, Matches, MatchError] | undefined> {
-  const content = msg_content.split(" ");
-
-  // split alias for multiple commands and insert them at the start
-  const alias = bot.get_alias(content.shift()).split(" ");
-  content.unshift(...alias);
+  const content = bot.resolve_alias(msg_content).split(" ");
 
   let cmd = bot.find_command(content.shift());
 

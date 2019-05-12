@@ -96,7 +96,13 @@ export async function handle_cmd(
     }
   }
 
-  log_cmd_exec(bot, msg.guild.nameAcronym, author, content, res);
+  log_cmd_exec(
+    bot,
+    msg.guild.nameAcronym,
+    author,
+    bot.resolve_alias(content),
+    res
+  );
 
   return res;
 }
