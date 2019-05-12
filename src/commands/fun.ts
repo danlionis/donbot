@@ -1,7 +1,42 @@
+import * as cfonts from "cfonts";
 import * as Discord from "discord.js";
 import fetch from "node-fetch";
 import { Arg, Command, CommandResult } from "../parser";
 import { can_modify } from "../validator/permission";
+
+export let Font = new Command({
+  name: "font",
+  about: "Print BIG",
+  permissions: ["MANAGE_MESSAGES"]
+})
+  .arg(
+    new Arg({
+      name: "STYLE",
+      long: "style",
+      short: "s",
+      takes_value: true,
+      default: "block",
+      possible_values: ["block", "shade", "chrome", "simple", "3d", "huge"]
+    })
+  )
+  .arg(
+    new Arg({
+      name: "INPUT",
+      positional: true,
+      required: true,
+      take_multiple: true,
+      help: "Input to transform"
+    })
+  )
+  .handler((bot, msg, matches) => {
+    const input = (matches.value_of("INPUT") as string[]).join(" ");
+
+    const pretty = cfonts.render(input, {
+      font: matches.value_of("STYLE")
+    });
+
+    msg.channel.send(pretty.string, { code: true });
+  });
 
 export let YesNo = new Command({ name: "yesno", about: "Yes or no?" })
   .arg(new Arg({ name: "NOGIF", long: "gif", short: "g", help: "exclude gif" }))
