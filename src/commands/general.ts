@@ -11,6 +11,7 @@ export let Delay = new Command({
       name: "TIME",
       positional: true,
       required: true,
+      type: "number",
       help: "Time to delay (in seconds)"
     })
   )
