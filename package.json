@@ -19,6 +19,7 @@
   "author": "Dan Lionis",
   "license": "ISC",
   "dependencies": {
+    "cfonts": "^2.4.3",
     "discord.js": "^11.4.2",
     "fuse.js": "^3.4.4",
     "js-yaml": "^3.13.1",
