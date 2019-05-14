@@ -4,10 +4,22 @@ import fetch from "node-fetch";
 import { Arg, Command, CommandResult } from "../parser";
 import { can_modify } from "../validator/permission";
 
+export let Random = new Command({
+  name: "random",
+  about: "Super random command"
+}).subcommand(
+  new Command({
+    name: "user",
+    about: "get a random user from the server"
+  }).handler((bot, msg, matches) => {
+    const rand = msg.guild.members.random();
+    msg.reply(rand.toString());
+  })
+);
 export let Font = new Command({
   name: "font",
-  about: "Print BIG",
-  permissions: ["MANAGE_MESSAGES"]
+  about: "Print BIG"
+  // permissions: ["MANAGE_MESSAGES"]
 })
   .arg(
     new Arg({
@@ -28,14 +40,19 @@ export let Font = new Command({
       help: "Input to transform"
     })
   )
-  .handler((bot, msg, matches) => {
+  .handler(async (bot, msg, matches) => {
     const input = (matches.value_of("INPUT") as string[]).join(" ");
 
     const pretty = cfonts.render(input, {
       font: matches.value_of("STYLE")
     });
 
-    msg.channel.send(pretty.string, { code: true });
+    if (pretty.string.length >= 2000) {
+      msg.reply("Message to long, cannot send");
+      return CommandResult.Failed;
+    }
+
+    await msg.channel.send(pretty.string, { code: true });
   });
 
 export let YesNo = new Command({ name: "yesno", about: "Yes or no?" })
@@ -100,5 +117,5 @@ export let Yeet = new Command({
 
     const c = channels[Math.floor(Math.random() * channels.length)];
 
-    m.setVoiceChannel(c);
+    await m.setVoiceChannel(c);
   });

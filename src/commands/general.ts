@@ -1,6 +1,78 @@
 import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
 
+export let Async = new Command({
+  name: "async",
+  about:
+    "Execute commands asyncronously. Useful for chaining where you dont want to wait for a command to finish ",
+  danger: true,
+  hidden: true
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      required: true,
+      positional: true,
+      take_multiple: true,
+      help: "command to execute asyncronously"
+    })
+  )
+  .handler((bot, msg, matches, _, recursion_depth) => {
+    const cmd = (matches.value_of("COMMAND") as string[]).join(" ");
+    handle_cmd(bot, cmd, msg, recursion_depth + 1);
+  });
+
+export let Chain = new Command({
+  name: "chain",
+  hidden: true,
+  danger: true,
+  about:
+    "Splits and evaluates commands at execution time (for usage in aliases, use ';' in other cases)"
+})
+  .arg(
+    new Arg({
+      name: "RESUME",
+      short: "r",
+      long: "resume",
+      help: "Resume execution after a failed command"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "SEPARATOR",
+      help: "separate the following commands by this symbol",
+      default: "+",
+      long: "separator",
+      short: "s",
+      takes_value: true
+    })
+  )
+  .arg(
+    new Arg({
+      name: "COMMANDS",
+      help: "command to execute",
+      positional: true,
+      required: true,
+      take_multiple: true
+    })
+  )
+  .handler(async (bot, msg, matches, _, recursion_depth) => {
+    const input: string[] = matches.value_of("COMMANDS");
+
+    const commands: string[] = input
+      .join(" ")
+      .split(matches.value_of("SEPARATOR"));
+
+    for (let i = 0; i < commands.length; i++) {
+      const content = commands[i].trim();
+
+      const res = await handle_cmd(bot, content, msg, recursion_depth + 1);
+      if (!matches.value_of("RESUME") && res !== CommandResult.Success) {
+        break;
+      }
+    }
+  });
+
 export let Delay = new Command({
   name: "delay",
   about: "Delays a command vor a given amount of seconds",
@@ -18,22 +90,30 @@ export let Delay = new Command({
   .arg(
     new Arg({
       name: "COMMAND",
-      required: true,
+      // required: true,
       take_multiple: true,
       positional: true,
       help: "Command to execute after the time"
     })
   )
-  .handler((bot, msg, matches) => {
-    const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
+  .handler((bot, msg, matches, _, recursion_depth) => {
+    return new Promise((resolve, reject) => {
+      const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
 
-    let delay_time: number = parseInt(matches.value_of("TIME"), 10);
+      let delay_time: number = parseInt(matches.value_of("TIME"), 10);
 
-    delay_time = Math.min(120, delay_time);
+      delay_time = Math.min(120, delay_time);
 
-    setTimeout(() => {
-      handle_cmd(bot, delay_cmd.join(" "), msg);
-    }, delay_time * 1000);
+      setTimeout(() => {
+        if (delay_cmd) {
+          handle_cmd(bot, delay_cmd.join(" "), msg, recursion_depth + 1).then(
+            () => {
+              resolve();
+            }
+          );
+        }
+      }, delay_time * 1000);
+    });
   });
 
 export let Echo = new Command({
@@ -42,16 +122,31 @@ export let Echo = new Command({
 })
   .arg(
     new Arg({
+      name: "REPLY",
+      long: "reply",
+      short: "r",
+      help: "Echo as a reply"
+    })
+  )
+  .arg(
+    new Arg({
       name: "MESSAGE",
       take_multiple: true,
       positional: true,
-      help: "Message to echo"
+      help: "Message to echo",
+      required: true
     })
   )
   .handler(async (bot, msg, matches) => {
-    await msg.channel.send(
-      (matches.value_of("MESSAGE") as string[]).join(" ").substr(0, 1000)
-    );
+    const res = (matches.value_of("MESSAGE") as string[])
+      .join(" ")
+      .substr(0, 1990);
+
+    if (matches.value_of("REPLY")) {
+      await msg.reply(res);
+    } else {
+      await msg.channel.send(res);
+    }
   });
 
 export let Choice = new Command({
@@ -75,7 +170,7 @@ export let Choice = new Command({
     }
 
     const random = Math.floor(Math.random() * options.length);
-    msg.reply("You choice is: " + options[random]);
+    msg.reply(options[random]);
     return CommandResult.Success;
   });
 
@@ -102,10 +197,11 @@ export let Repeat = new Command({
       help: "This command gets repeated"
     })
   )
-  .handler(async (bot, msg, matches) => {
+  .handler(async (bot, msg, matches, _, recursion_depth) => {
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
+    const alias = bot.resolve_alias(repeat_cmd[0]);
 
-    const cmd = bot.find_command(repeat_cmd[0]);
+    const cmd = bot.find_command(alias);
 
     if (!cmd) {
       bot.reply_command_not_found(repeat_cmd[0], msg);
@@ -115,9 +211,9 @@ export let Repeat = new Command({
     // if (repeat_cmd[0] === Repeat.config.name) {
     if (cmd.config.danger && !bot.is_owner(msg.author.id)) {
       msg.reply(
-        `Cannot execute dangerous command ${
+        `Cannot execute dangerous command '${
           cmd.full_cmd_name
-        } in conjunction with 'repeat'`,
+        }' in conjunction with 'repeat'`,
         { code: true }
       );
       return CommandResult.Error;
@@ -131,8 +227,9 @@ export let Repeat = new Command({
       let content = repeat_cmd.join(" ");
       content = content.replace("{i}", i.toString());
       content = content.replace("{i+1}", (i + 1).toString());
-      const res = await handle_cmd(bot, content, msg);
-      if (res > 0) {
+      content = content.replace("{i-1}", (repeat_amout - i).toString());
+      const res = await handle_cmd(bot, content, msg, recursion_depth + 1);
+      if (res !== CommandResult.Success) {
         break;
       }
     }

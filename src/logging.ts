@@ -7,9 +7,12 @@ export function log_cmd_exec(
   guild: string,
   author: string,
   content: string,
-  cmd_res: CommandResult
+  cmd_res: CommandResult,
+  recursion_depth: number = 0
 ) {
-  let res = `cmd: ${new Date().toISOString()} ${guild} - ${author}: ${content} - `;
+  let res = `cmd: ${new Date().toISOString()} ${guild} - ${"- ".repeat(
+    recursion_depth
+  )}${author}: ${content} - `;
 
   switch (cmd_res) {
     case CommandResult.Unimplemented:

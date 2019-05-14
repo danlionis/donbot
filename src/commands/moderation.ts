@@ -25,7 +25,8 @@ export let Mute = new Command({
       name: "TIME",
       positional: true,
       type: "duration",
-      help: "Mute duration"
+      help: "Mute duration",
+      default: new Duration("5m")
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -96,7 +97,8 @@ export let Clear = new Command({
       name: "COUNT",
       help: "The amount of messages to delete",
       positional: true,
-      default: 10
+      default: 10,
+      type: "number"
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -141,8 +143,6 @@ export let Move = new Command({
           msg.reply("Target not found");
           return CommandResult.Failed;
         }
-
-        console.log(channel.name);
 
         if (!msg.member.voiceChannel) {
           msg.reply("you have to be in a voice channel");

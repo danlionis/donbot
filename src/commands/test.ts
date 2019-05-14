@@ -1,6 +1,8 @@
 import * as Discord from "discord.js";
 import { Arg, Command, CommandResult } from "../parser";
 
+import { promisify } from "util";
+
 export let Test = new Command({
   name: "test",
   about: "This is just a test command"
@@ -52,9 +54,33 @@ export let Test = new Command({
     })
   )
   .handler(async (bot, msg, matches) => {
-    console.log(matches);
+    // const res = bot.resolve_alias("timer 20 timer hat bendet");
+
+    const asyncTimeout = promisify(setTimeout);
+
     const result = matches.value_of("RESULT");
-    return parseInt(result, 10) || 0;
+    if (result) {
+      return parseInt(result, 10) || 0;
+    }
+
+    const sent = await msg.channel.send("Loading |", { code: true });
+
+    const symbols = "|/-\\".split("");
+    let symbol_i = 1;
+
+    if (sent instanceof Discord.Message) {
+      for (let i = 0; i < 20; i++) {
+        await sent.edit(`Loading ${symbols[symbol_i]}`, { code: true });
+        symbol_i += 1;
+
+        await asyncTimeout(500);
+
+        if (symbol_i === symbols.length) {
+          symbol_i = 0;
+        }
+      }
+      sent.delete();
+    }
   })
   .subcommand(
     new Command({

@@ -9,8 +9,13 @@ import { has_permission } from "./validator/permission";
 export async function handle_cmd(
   bot: Bot,
   content: string,
-  msg: Discord.Message
+  msg: Discord.Message,
+  recursion_depth: number = 0
 ): Promise<CommandResult> {
+  if (recursion_depth > 10) {
+    return CommandResult.Error;
+  }
+
   const parsed = await parse_message(bot, content, msg);
   const author = msg.author.tag;
 
@@ -78,8 +83,13 @@ export async function handle_cmd(
   }
 
   const res =
-    (await cmd.handler_fn.bind(cmd)(bot, msg, matches, cmd.context)) ||
-    CommandResult.Success;
+    (await cmd.handler_fn.bind(cmd)(
+      bot,
+      msg,
+      matches,
+      cmd.context,
+      recursion_depth
+    )) || CommandResult.Success;
 
   if (res) {
     switch (res) {
@@ -101,7 +111,8 @@ export async function handle_cmd(
     msg.guild.nameAcronym,
     author,
     bot.resolve_alias(content),
-    res
+    res,
+    recursion_depth
   );
 
   return res;

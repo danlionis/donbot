@@ -8,7 +8,8 @@ export type HanlderFn<T> = (
   bot: Bot,
   message: Discord.Message,
   matches: Matches,
-  ctx: CommandContext<T>
+  ctx: CommandContext<T>,
+  recursion_depth: number
 ) => Promise<CommandResult | void> | void;
 
 export enum CommandResult {
@@ -26,6 +27,7 @@ export interface CommandConfig {
   about?: string;
   permissions?: Discord.PermissionResolvable[];
   owner_only?: boolean;
+  hidden?: boolean;
   /**
    * True if this command is dangerous and should not be executed in conjunction with other commands
    * You should set this to true if your command executes other user defined commands
@@ -53,6 +55,7 @@ export class Command {
       about: "",
       permissions: [],
       owner_only: false,
+      hidden: false,
       danger: false
     };
     this.config = { ...default_config, ...config };
@@ -119,6 +122,7 @@ export class Command {
   public subcommand(cmd: Command): Command {
     cmd.permissions(...this.config.permissions);
     cmd.owner_only(this.config.owner_only || false);
+    cmd.danger(this.config.danger);
     this.subcommands.push(cmd);
     cmd.parent_command = this._parent_command + this.config.name + " ";
     return this;
@@ -277,9 +281,9 @@ function format_pos_args(a: Arg, offset: number) {
     "\t" +
     (a.config.help || "no description") +
     " " +
-    (a.config.type ? `[type: ${a.config.type}] ` : "") +
+    (a.config.type !== "string" ? `[type: ${a.config.type}] ` : "") +
     " " +
-    (a.config.default ? `[default: ${a.config.default}] ` : "") +
+    (a.config.default ? `[default: ${a.config.default.toString()}] ` : "") +
     (a.config.possible_values
       ? `[possible values: ${a.config.possible_values.toString()}]`
       : "") +

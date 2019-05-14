@@ -32,8 +32,6 @@ export const Logs = new Command({
     let cmd_logs = bot.get_logs();
 
     if (count < cmd_logs.length) {
-      console.log(cmd_logs.length);
-      console.log(count);
       cmd_logs = cmd_logs.slice(cmd_logs.length - count);
     }
 
@@ -107,7 +105,7 @@ const PermsUser = new Command({
       name: "COMMAND",
       positional: true,
       take_multiple: true,
-      help: "Command / Subcommands"
+      help: "Command / Subcommands (if not set deny all commands)"
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -275,7 +273,6 @@ export let Eval = new Command({
   .handler(async (bot, msg, matches) => {
     const input = (matches.value_of("INPUT") as string[]).join(" ");
     const res = isolate_eval(input);
-    console.log("eval: ", res);
 
     msg.channel.send(JSON.stringify(res), { code: "json" });
   });

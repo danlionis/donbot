@@ -4,6 +4,7 @@ import { handle_cmd } from "./command_handler";
 import { Config, load_config } from "./config";
 import { Command } from "./parser/command";
 import { PermissionHandler, Perms } from "./permissions_hanlder";
+import { format_string } from "./utils/formatter";
 import { command_valid } from "./validator/validator";
 
 export class Bot extends Discord.Client {
@@ -119,23 +120,25 @@ export class Bot extends Discord.Client {
       return query;
     }
 
-    const alias_parts = a.split(" ");
+    return format_string(a, ...keys);
 
-    for (let i = 0; i < alias_parts.length; i++) {
-      const k = alias_parts[i];
+    // const alias_parts = a.split(" ");
 
-      if (k === "{}") {
-        alias_parts[i] = keys.shift();
-      }
-    }
+    // for (let i = 0; i < alias_parts.length; i++) {
+    //   const k = alias_parts[i];
 
-    alias_parts.push(...keys);
+    //   if (k === "{}") {
+    //     alias_parts[i] = keys.shift();
+    //   }
+    // }
 
-    return alias_parts.join(" ");
+    // alias_parts.push(...keys);
+
+    // return alias_parts.join(" ");
   }
 
-  public get_alias(key: string): string {
-    return this._aliases.get(key) || key;
+  public is_alias(key: string): boolean {
+    return this._aliases.has(key);
   }
 
   public get aliases(): Array<{ key: string; value: string }> {
@@ -175,7 +178,6 @@ export class Bot extends Discord.Client {
   }
 
   public reply_permission_denied(cmd: string, msg: Discord.Message) {
-    // msg.reply("Insufficient permission");
     msg.reply(`${cmd.split(" ")[0]}: permission denied`, { code: true });
   }
 
@@ -184,8 +186,7 @@ export class Bot extends Discord.Client {
     msg: Discord.Message,
     alternative?: Command
   ) {
-    // msg.reply("404: Command not found");
-    let res = `${cmd.split(" ")[0]}: command not found`;
+    let res = `${cmd.split(" ")[0]}: command not not found`;
     if (alternative) {
       res += `\n\nDid you mean: ${alternative.full_cmd_name}`;
     }

@@ -39,6 +39,10 @@ async function convert_arg_values(
 
   for (let i = 0; i < values.length; i++) {
     const v = values[i];
+
+    // remove empty values
+    if (!v) continue;
+
     if (arg.config.type === "boolean") {
       matches.set_arg_match(arg.config.name, v === "true", merge);
     } else if (arg.config.type === "number") {

@@ -1,0 +1,28 @@
+export function format_string(input: string, ...args: string[]): string {
+  const literals_set = new Set<string>();
+
+  const regexp = new RegExp(/\{\d\}/g);
+
+  const matches = input.match(regexp) || [];
+
+  for (const match of matches) {
+    literals_set.add(match);
+  }
+
+  const literals = Array.from(literals_set).sort();
+
+  for (const l of literals) {
+    // remove curly braces
+    const index = l.substring(1, l.length - 1);
+    const literal_regexp = new RegExp(`\\{${index}\\}`, "g");
+    input = input.replace(literal_regexp, args.shift() || "");
+  }
+
+  if (input.includes("{}")) {
+    input = input.replace("{}", args.join(" "));
+  } else {
+    input += " " + args.join(" ");
+  }
+
+  return input;
+}

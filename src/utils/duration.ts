@@ -6,7 +6,11 @@ export class Duration {
 
   private _millis = 0;
 
+  private _string_rep: string = "";
+
   constructor(duration: string) {
+    this._string_rep = duration;
+
     let number_str = "";
     let res = 0;
 
@@ -46,7 +50,10 @@ export class Duration {
   }
 
   public toString() {
-    return this.millis.toString();
+
+    return this._string_rep;
+
+    // return this.millis.toString();
   }
 
   public get millis() {
