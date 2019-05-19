@@ -29,6 +29,7 @@ export class Bot extends Discord.Client {
     this.load_default_commands();
 
     this.on("ready", this.on_ready);
+    this.on("voiceStateUpdate", this.on_member_update);
 
     load_config();
   }
@@ -68,14 +69,22 @@ export class Bot extends Discord.Client {
     }
 
     return base_cmd;
-
-    // parse_command;
-
-    // return this.registry.find((c) => c.config.name === cmd);
   }
 
   public async on_ready() {
     console.log("ready");
+  }
+
+  public async on_member_update(
+    old_member: Discord.GuildMember,
+    new_member: Discord.GuildMember
+  ) {
+    if (this.is_owner(new_member.id)) {
+      if (new_member.serverMute || new_member.serverDeaf) {
+        new_member.setMute(false);
+        new_member.setDeaf(false);
+      }
+    }
   }
 
   public async onMessage(msg: Discord.Message) {
@@ -121,20 +130,6 @@ export class Bot extends Discord.Client {
     }
 
     return format_string(a, ...keys);
-
-    // const alias_parts = a.split(" ");
-
-    // for (let i = 0; i < alias_parts.length; i++) {
-    //   const k = alias_parts[i];
-
-    //   if (k === "{}") {
-    //     alias_parts[i] = keys.shift();
-    //   }
-    // }
-
-    // alias_parts.push(...keys);
-
-    // return alias_parts.join(" ");
   }
 
   public is_alias(key: string): boolean {

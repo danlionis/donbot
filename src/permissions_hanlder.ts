@@ -108,7 +108,19 @@ export class PermissionHandler {
   }
 
   public cmd_is_disabled(cmd: Command) {
-    return this._disabled_commands.indexOf(cmd.full_cmd_name) >= 0;
+
+    const subcommands = cmd.full_cmd_name.split(" ");
+
+    let current = "";
+    for (const subcmd of subcommands) {
+      current += subcmd;
+
+      if (this._disabled_commands.indexOf(current) >= 0) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public get_disabled_commands() {
