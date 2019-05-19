@@ -1,5 +1,6 @@
 import { handle_cmd } from "../command_handler";
 import { Arg, Command, CommandResult } from "../parser";
+import { GuildMember } from "discord.js";
 
 export let Async = new Command({
   name: "async",
@@ -130,6 +131,16 @@ export let Echo = new Command({
   )
   .arg(
     new Arg({
+      name: "DIRECT",
+      short: "dm",
+      long: "direct",
+      takes_value: true,
+      help: "Send as a direct message",
+      type: "member"
+    })
+  )
+  .arg(
+    new Arg({
       name: "MESSAGE",
       take_multiple: true,
       positional: true,
@@ -142,7 +153,10 @@ export let Echo = new Command({
       .join(" ")
       .substr(0, 1990);
 
-    if (matches.value_of("REPLY")) {
+    if (matches.value_of("DIRECT")) {
+      const direct: GuildMember = matches.value_of("DIRECT");
+      direct.send(`Message from ${msg.member.toString()}: ${res}`);
+    } else if (matches.value_of("REPLY")) {
       await msg.reply(res);
     } else {
       await msg.channel.send(res);
