@@ -1,10 +1,17 @@
 import * as Discord from "discord.js";
 import { handle_cmd } from "../../core/command_handler";
+import { Module } from "../../core/module";
 import { Arg, Command, CommandResult } from "../../parser";
 
-export let Exec = new Command({
+const Exec = new Command({
   name: "exec",
-  about: "Execute a command for another user",
+  about: "Execute a command on the host machine",
+  owner_only: true
+});
+
+const Runas = new Command({
+  name: "runas",
+  about: "Run a command as another user",
   owner_only: true
 })
   .arg(
@@ -29,7 +36,7 @@ export let Exec = new Command({
     handle_cmd(bot, (matches.value_of("COMMAND") as string[]).join(" "), msg);
   });
 
-export let Eval = new Command({
+const Eval = new Command({
   name: "eval",
   about: "Execute javascript",
   owner_only: true
@@ -58,7 +65,7 @@ const isolate_eval = (input: string) => {
   }
 };
 
-export let Game = new Command({
+const Game = new Command({
   name: "game",
   about: "Set the current game",
   owner_only: true
@@ -119,3 +126,10 @@ export let Game = new Command({
 
     return CommandResult.SendHelp;
   });
+
+export const AdminModule: Module = {
+  name: "admin",
+  commands: [Game, Eval, Exec, Runas]
+};
+
+export default AdminModule;
