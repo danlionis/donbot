@@ -168,7 +168,7 @@ export class Command {
 
   public subcommand(cmd: Command): Command {
     cmd.permissions(...this.config.permissions);
-    cmd.owner_only(this.config.owner_only || false);
+    cmd.owner_only(cmd.config.owner_only || this.config.owner_only);
     cmd.danger(this.config.danger);
     this.subcommands.push(cmd);
     cmd.parent_command = this._parent_command + this.config.name + " ";

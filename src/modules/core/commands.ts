@@ -242,7 +242,7 @@ export const Help = new Command({
     }
     commands.sort((a, b) => a.config.name.localeCompare(b.config.name));
 
-    commands.filter((c) => has_permission(bot, msg, c));
+    commands = commands.filter((c) => has_permission(bot, msg, c));
 
     if (matches.value_of("SHORT")) {
       texts.push(commands.map((c) => c.config.name).join(", "));
