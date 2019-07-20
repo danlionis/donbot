@@ -1,3 +1,4 @@
+import { exec } from "child_process";
 import * as Discord from "discord.js";
 import { handle_cmd } from "../../core/command_handler";
 import { Module } from "../../core/module";
@@ -7,7 +8,49 @@ const Exec = new Command({
   name: "exec",
   about: "Execute a command on the host machine",
   owner_only: true
-});
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      help: "Command to execute",
+      positional: true,
+      required: true,
+      type: "string",
+      take_multiple: true
+    })
+  )
+  .handler((bot, msg, matches) => {
+    const cmd: string[] = matches.value_of("COMMAND");
+    // const args: string[] = matches.value_of("ARGS");
+
+    let res = "";
+
+    return new Promise((resolve) => {
+      const handle = exec(cmd.join(" "));
+      handle.stdout.on("data", (data) => {
+        res += data;
+      });
+
+      handle.stderr.on("data", (data) => {
+        res += data;
+      });
+
+      handle.on("error", (err) => {
+        msg.reply(err, { code: true });
+        resolve(CommandResult.Error);
+      });
+
+      handle.on("close", (code) => {
+        if (res) {
+          msg.reply(res.substr(0, 1950), { code: true });
+        }
+        msg.reply(`process '${cmd.join(" ")}' exited with code ${code}`, {
+          code: true
+        });
+        resolve(CommandResult.Success);
+      });
+    });
+  });
 
 const Runas = new Command({
   name: "runas",
