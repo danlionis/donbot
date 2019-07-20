@@ -2,6 +2,80 @@ import * as http from "http";
 import { handle_cmd } from "../../core/command_handler";
 import { Arg, Command, CommandResult } from "../../parser";
 
+export const Unpause = new Command({
+  name: "unpause",
+  about: "Pauses currently playing song",
+  aliases: ["continue", "resume"]
+})
+  .arg(
+    new Arg({
+      name: "FORCE",
+      long: "force",
+      short: "f",
+      help: "Force the unpause, even if the bot is not in your voice channel"
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const connection = msg.guild.voiceConnection;
+
+    if (!connection) {
+      return CommandResult.Failed;
+    }
+
+    const force: boolean = matches.value_of("FORCE");
+    const bot_channel = connection.channel;
+    const member_channel = msg.member.voiceChannel;
+
+    if (force) {
+      connection.dispatcher.resume();
+      return CommandResult.Success;
+    }
+
+    if (!member_channel || bot_channel.id !== member_channel.id) {
+      msg.reply("You have to be in the same voice channel as the bot");
+      return CommandResult.Failed;
+    }
+
+    connection.dispatcher.resume();
+  });
+
+export const Pause = new Command({
+  name: "pause",
+  about: "Pauses currently playing song",
+  aliases: ["stop"]
+})
+  .arg(
+    new Arg({
+      name: "FORCE",
+      long: "force",
+      short: "f",
+      help: "Force the pause, even if the bot is not in your voice channel"
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const connection = msg.guild.voiceConnection;
+
+    if (!connection) {
+      return CommandResult.Failed;
+    }
+
+    const force: boolean = matches.value_of("FORCE");
+    const bot_channel = connection.channel;
+    const member_channel = msg.member.voiceChannel;
+
+    if (force) {
+      connection.dispatcher.pause();
+      return CommandResult.Success;
+    }
+
+    if (!member_channel || bot_channel.id !== member_channel.id) {
+      msg.reply("You have to be in the same voice channel as the bot");
+      return CommandResult.Failed;
+    }
+
+    connection.dispatcher.pause();
+  });
+
 export const Disconnect = new Command({
   name: "disconnect",
   about: "Disconnect the bot",
@@ -172,20 +246,35 @@ export const ILoveRadio = new Command({
     const number = matches.value_of("STREAMNR");
     const url = `http://stream01.ilovemusic.de/iloveradio${number}.mp3`;
 
-    const req = http.request(url, { method: "HEAD" }, (response) => {
-      // console.log(response.headers["icy-name"]);
-      bot.user.setActivity(response.headers["icy-name"].toString(), {
-        type: "LISTENING"
+    return new Promise<CommandResult>((resolve) => {
+      const req = http.request(url, { method: "HEAD" }, (response) => {
+        // console.log(response.headers["icy-name"]);
+        if (response.statusCode !== 200) {
+          msg.reply(
+            "Stream id not found, see https://www.ilovemusic.de/streams for available streams"
+          );
+          resolve(CommandResult.Failed);
+        } else {
+          bot.user.setActivity(response.headers["icy-name"].toString(), {
+            type: "LISTENING"
+          });
+          const dispatcher = msg.guild.voiceConnection.playArbitraryInput(url, {
+            volume: 0.1
+          });
+
+          dispatcher.on("start", (info) => {
+            resolve(CommandResult.Success);
+          });
+
+          dispatcher.on("end ", () => {
+            bot.user.setActivity("");
+          });
+        }
       });
-    });
 
-    req.end();
+      req.on("error", () => {});
 
-    const dispatcher = msg.guild.voiceConnection.playArbitraryInput(url, {
-      volume: 0.1
-    });
-
-    dispatcher.on("end ", () => {
-      bot.user.setActivity("");
+      req.end();
+      resolve(CommandResult.Success);
     });
   });
