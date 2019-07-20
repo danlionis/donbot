@@ -1,5 +1,5 @@
 import { Guild } from "discord.js";
-import { Bot } from "../bot";
+import { Bot } from "../core/bot";
 
 export interface ArgType {
   name: string;

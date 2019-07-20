@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Bot } from "../bot";
+import { Bot } from "../core/bot";
 import { Arg } from "./arg";
 import { CommandContext } from "./context";
 import { Matches } from "./matches";
@@ -12,6 +12,13 @@ export type HanlderFn<T> = (
   recursion_depth: number
 ) => Promise<CommandResult | void> | void;
 
+export interface CmdLog {
+  user: string;
+  content: string;
+  timestamp: number;
+  result: CommandResult;
+}
+
 export enum CommandResult {
   Success,
   Error,
@@ -23,10 +30,25 @@ export enum CommandResult {
 }
 
 export interface CommandConfig {
+  /**
+   * name under which the command triggers
+   */
   name: string;
+  /**
+   * short command description
+   */
   about?: string;
+  /**
+   *
+   */
   permissions?: Discord.PermissionResolvable[];
+  /**
+   * if set to true this command can only be accessed by the bot owner
+   */
   owner_only?: boolean;
+  /**
+   * if set to true command wont show in help
+   */
   hidden?: boolean;
   /**
    * True if this command is dangerous and should not be executed in conjunction with other commands
@@ -34,6 +56,15 @@ export interface CommandConfig {
    * e.g. repeat - the repeat command should not be allowed to repeat itself
    */
   danger?: boolean;
+  /**
+   * Other names that can call this command
+   * Not to be confused with the alias command
+   */
+  aliases?: string[];
+  /**
+   * If set to true the command wont be logged
+   */
+  no_log?: boolean;
 }
 
 export class Command {
@@ -56,12 +87,18 @@ export class Command {
       permissions: [],
       owner_only: false,
       hidden: false,
-      danger: false
+      danger: false,
+      aliases: [],
+      no_log: false
     };
     this.config = { ...default_config, ...config };
     if (this.config.permissions === undefined) {
       this.config.permissions = [];
     }
+
+    /**
+     * Set the help and debug flag as default for every command
+     */
     this.arg(
       new Arg({
         name: "help",
@@ -76,10 +113,20 @@ export class Command {
         name: "debug",
         long: "debug",
         short: "dbg",
-        help: "Print debug information",
+        help: "Prints debug information",
         hidden: true
       })
     );
+  }
+
+  public alias(...alias: string[]): Command {
+    // only add to alias if it is not already registered
+    alias.forEach((a) => {
+      if (!this.config.aliases.includes(a)) {
+        this.config.aliases.push(a);
+      }
+    });
+    return this;
   }
 
   public arg(arg: Arg): Command {
@@ -229,6 +276,13 @@ export class Command {
           (sub.config.about || "no description") +
           "\n";
       }
+    }
+
+    if (this.config.aliases.length > 0) {
+      res += "\n";
+      res += "ALIASES:\n";
+
+      res += this.config.aliases.join(", ");
     }
 
     return res;

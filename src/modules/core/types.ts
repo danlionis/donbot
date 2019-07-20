@@ -1,5 +1,5 @@
-import { ArgType } from "../structs/type";
-import { Duration } from "../utils/duration";
+import { ArgType } from "../../parser/argtype";
+import { Duration } from "../../utils/duration";
 
 export let Number: ArgType = {
   name: "number",

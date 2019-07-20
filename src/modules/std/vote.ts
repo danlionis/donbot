@@ -1,7 +1,35 @@
 import * as Discord from "discord.js";
-import { Arg, Command, CommandResult } from "../parser";
-import { CommandContext } from "../parser/context";
-import { can_modify } from "../validator/permission";
+import { Module } from "../../core/module";
+import { Arg, Command, CommandResult } from "../../parser";
+import { CommandContext } from "../../parser/context";
+import { can_modify } from "../../validator/permission";
+
+const Votedeaf = new Command({
+  name: "deaf",
+  about: "Vote to deaf a member"
+})
+  .arg(
+    new Arg({
+      name: "TARGET",
+      type: "member",
+      positional: true,
+      required: true,
+      help: "Member you want to mute"
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    const target: Discord.GuildMember = matches.value_of("TARGET");
+    if (!can_modify(bot, msg.member, target)) {
+      return CommandResult.PermissionDenied;
+    }
+
+    const sent = await msg.channel.send(`Mute member ${target.toString()}?`);
+
+    if (!(sent instanceof Discord.Message)) return;
+
+    sent.react("👍");
+    sent.react("👎");
+  });
 
 interface VotemuteData {
   votes: string[];
@@ -127,7 +155,16 @@ const Votemute = new Command({
       })
   );
 
-export let Vote = new Command({
+const Vote = new Command({
   name: "vote",
   about: "Start a vote"
-}).subcommand(Votemute);
+})
+  .subcommand(Votemute)
+  .subcommand(Votedeaf);
+
+export const VoteModule: Module = {
+  name: "vote",
+  commands: [Vote],
+};
+
+export default VoteModule;

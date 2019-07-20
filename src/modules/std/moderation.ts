@@ -1,12 +1,12 @@
 import * as Discord from "discord.js";
-import { handle_cmd } from "../command_handler";
-import { Arg, Command, CommandResult } from "../parser";
-import { CommandContext } from "../parser/context";
-import { Duration } from "../utils/duration";
-import { find_voice_channel } from "../utils/fuzzy_finder";
-import { can_modify } from "../validator/permission";
+import { Bot } from "../../core/bot";
+import { Module } from "../../core/module";
+import { Arg, Command, CommandResult } from "../../parser";
+import { Duration } from "../../utils/duration";
+import { find_voice_channel } from "../../utils/fuzzy_finder";
+import { can_modify } from "../../validator/permission";
 
-export let Mute = new Command({
+const Mute = new Command({
   name: "mute",
   about: "Mute members",
   permissions: ["MUTE_MEMBERS"]
@@ -49,7 +49,7 @@ export let Mute = new Command({
     }, millis);
   });
 
-export let Silence = new Command({
+const Silence = new Command({
   name: "silence",
   about: "Control the mute status in you channel",
   permissions: ["MUTE_MEMBERS"]
@@ -87,10 +87,11 @@ export let Silence = new Command({
     }
   });
 
-export let Clear = new Command({
+const Clear = new Command({
   name: "clear",
   about: "Clears the chat",
-  permissions: ["MANAGE_MESSAGES"]
+  permissions: ["MANAGE_MESSAGES"],
+  aliases: ["cls"]
 })
   .arg(
     new Arg({
@@ -115,7 +116,7 @@ export let Clear = new Command({
     }
   });
 
-export let Move = new Command({
+const Move = new Command({
   name: "move",
   about: "Mass Mover",
   permissions: ["MOVE_MEMBERS"]
@@ -203,28 +204,42 @@ export let Move = new Command({
     return CommandResult.SendHelp;
   });
 
-export let Delete = new Command({
-  name: "delete",
-  permissions: ["MANAGE_MESSAGES"],
-  about: "Delete your message and still execute a command",
-  danger: true
+export const Logs = new Command({
+  name: "logs",
+  about: "view the latest executed commands",
+  permissions: ["VIEW_AUDIT_LOG"]
 })
   .arg(
     new Arg({
-      name: "COMMAND",
-      take_multiple: true,
-      required: true,
-      help: "Command to execute",
-      positional: true
+      name: "COUNT",
+      short: "c",
+      long: "count",
+      help: "Output the last N lines",
+      takes_value: true,
+      type: "number",
+      default: 10
     })
   )
-  .handler(async (bot, msg, matches) => {
-    if (msg.deletable) {
-      msg.delete().catch(() => {});
-    }
-    const exec_cmd: string = (matches.value_of("COMMAND") as string[]).join(
-      " "
-    );
+  .handler((bot, msg, matches) => {
+    const count = matches.value_of("COUNT");
 
-    await handle_cmd(bot, exec_cmd, msg);
+    let cmd_logs = bot.getLogs();
+
+    if (count < cmd_logs.length) {
+      cmd_logs = cmd_logs.slice(cmd_logs.length - count);
+    }
+
+    const res =
+      cmd_logs.map((log) => JSON.stringify(log)).join("\n") || "no logs";
+    msg.channel.send(res, { code: "json" });
   });
+
+export const ModerationModule: Module = {
+  name: "moderation",
+  commands: [Mute, Move, Clear, Silence, Logs],
+  onRegister: (bot) => {
+    bot.addAlias("mv", "move to");
+  }
+};
+
+export default ModerationModule;

@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Command } from "./parser";
+import { Command } from "../parser";
 
 export interface Perms {
   allowed: string[];
@@ -108,8 +108,8 @@ export class PermissionHandler {
   }
 
   public cmd_is_disabled(cmd: Command) {
-
-    const subcommands = cmd.full_cmd_name.split(" ");
+    const subcommands = cmd.full_cmd_name.trim().split(" ");
+    // console.log("cmd_is_disabled: cmd", subcommands);
 
     let current = "";
     for (const subcmd of subcommands) {
@@ -118,6 +118,8 @@ export class PermissionHandler {
       if (this._disabled_commands.indexOf(current) >= 0) {
         return true;
       }
+
+      current += " ";
     }
 
     return false;

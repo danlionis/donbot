@@ -1,3 +1,11 @@
+/**
+ * A function similar to pythons string.format() where curly braces are replaced by the arguments
+ * Similar to the Python function you can index the values
+ * to change the order or replace a value multiple times
+ *
+ * @param {string} input
+ * @param {string} args
+ */
 export function format_string(input: string, ...args: string[]): string {
   const literals_set = new Set<string>();
 
@@ -18,6 +26,7 @@ export function format_string(input: string, ...args: string[]): string {
     input = input.replace(literal_regexp, args.shift() || "");
   }
 
+  // replace all placeholders that didn't match indexed placeholders with the remaining args
   if (input.includes("{}")) {
     input = input.replace("{}", args.join(" "));
   } else {

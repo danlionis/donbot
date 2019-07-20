@@ -1,8 +1,75 @@
-import { handle_cmd } from "../command_handler";
-import { Arg, Command, CommandResult } from "../parser";
-import { GuildMember } from "discord.js";
+import { handle_cmd } from "../../core/command_handler";
+import { Module } from "../../core/module";
+import { Arg, Command, CommandResult } from "../../parser";
 
-export let Async = new Command({
+/**
+ * Usage:
+ * [prefix]try [command to execute] catch [command to execute instead]
+ */
+export const TryCatch = new Command({
+  name: "try",
+  about:
+    "try to execute a command, execute some other on failure (view source for explanation)",
+  danger: true,
+  hidden: true
+})
+  .arg(
+    new Arg({
+      name: "QUERY",
+      positional: true,
+      required: true,
+      type: "string",
+      take_multiple: true
+    })
+  )
+  .handler(async (bot, msg, matches, _, recursion_depth) => {
+    const query: string[] = matches.value_of("QUERY");
+    const catch_pos = query.indexOf("catch");
+
+    let try_statement: string;
+    if (catch_pos !== -1) {
+      try_statement = query.slice(0, catch_pos).join(" ");
+    } else {
+      try_statement = query.join(" ");
+    }
+
+    let res: CommandResult;
+    res = await handle_cmd(bot, try_statement, msg, recursion_depth);
+
+    if (res === CommandResult.Success) {
+      return CommandResult.Success;
+    } else if (catch_pos !== -1) {
+      const catch_statement = query.slice(catch_pos + 1).join(" ");
+      res = await handle_cmd(bot, catch_statement, msg, recursion_depth);
+      return res;
+    } else {
+      return CommandResult.Failed;
+    }
+  });
+
+export const RerunLast = new Command({
+  name: "rerun",
+  about: "rerun last successfull command",
+  danger: true,
+  hidden: true,
+  no_log: true,
+  aliases: ["!"]
+}).handler(async (bot, msg, matches, _, recursion_depth) => {
+  const member_cmds = bot.cmd_logs.filter(
+    (l) => l.user === msg.author.tag && l.result === CommandResult.Success
+  );
+
+  if (member_cmds.length === 0) {
+    msg.reply("No recent commands");
+    return CommandResult.Failed;
+  }
+
+  const last_cmd = member_cmds[member_cmds.length - 1].content;
+
+  return handle_cmd(bot, last_cmd, msg);
+});
+
+export const Async = new Command({
   name: "async",
   about:
     "Execute commands asyncronously. Useful for chaining where you dont want to wait for a command to finish ",
@@ -42,7 +109,7 @@ export let Chain = new Command({
     new Arg({
       name: "SEPARATOR",
       help: "separate the following commands by this symbol",
-      default: "+",
+      default: " + ",
       long: "separator",
       short: "s",
       takes_value: true
@@ -68,7 +135,10 @@ export let Chain = new Command({
       const content = commands[i].trim();
 
       const res = await handle_cmd(bot, content, msg, recursion_depth + 1);
+
+      // break if there was an error and the resume flag was not set
       if (!matches.value_of("RESUME") && res !== CommandResult.Success) {
+        return res;
         break;
       }
     }
@@ -108,84 +178,13 @@ export let Delay = new Command({
       setTimeout(() => {
         if (delay_cmd) {
           handle_cmd(bot, delay_cmd.join(" "), msg, recursion_depth + 1).then(
-            () => {
-              resolve();
+            (res) => {
+              resolve(res);
             }
           );
         }
       }, delay_time * 1000);
     });
-  });
-
-export let Echo = new Command({
-  name: "echo",
-  about: "echos what you said"
-})
-  .arg(
-    new Arg({
-      name: "REPLY",
-      long: "reply",
-      short: "r",
-      help: "Echo as a reply"
-    })
-  )
-  .arg(
-    new Arg({
-      name: "DIRECT",
-      short: "dm",
-      long: "direct",
-      takes_value: true,
-      help: "Send as a direct message",
-      type: "member"
-    })
-  )
-  .arg(
-    new Arg({
-      name: "MESSAGE",
-      take_multiple: true,
-      positional: true,
-      help: "Message to echo",
-      required: true
-    })
-  )
-  .handler(async (bot, msg, matches) => {
-    const res = (matches.value_of("MESSAGE") as string[])
-      .join(" ")
-      .substr(0, 1990);
-
-    if (matches.value_of("DIRECT")) {
-      const direct: GuildMember = matches.value_of("DIRECT");
-      direct.send(`Message from ${msg.member.toString()}: ${res}`);
-    } else if (matches.value_of("REPLY")) {
-      await msg.reply(res);
-    } else {
-      await msg.channel.send(res);
-    }
-  });
-
-export let Choice = new Command({
-  name: "choice",
-  about: "Let the bot choose between some options"
-})
-  .arg(
-    new Arg({
-      name: "CHOICES",
-      positional: true,
-      take_multiple: true,
-      required: true
-    })
-  )
-  .handler(async (bot, msg, matches) => {
-    const options: string[] = matches.value_of("CHOICES");
-
-    if (!options || options.length <= 1) {
-      msg.reply("Not enough options");
-      return CommandResult.Failed;
-    }
-
-    const random = Math.floor(Math.random() * options.length);
-    msg.reply(options[random]);
-    return CommandResult.Success;
   });
 
 export let Repeat = new Command({
@@ -211,11 +210,22 @@ export let Repeat = new Command({
       help: "This command gets repeated"
     })
   )
+  .arg(
+    new Arg({
+      name: "FORCE",
+      long: "force",
+      short: "f",
+      hidden: true,
+      help:
+        "bypass command limit and dangerous commands (requires owner permission)"
+    })
+  )
   .handler(async (bot, msg, matches, _, recursion_depth) => {
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
-    const alias = bot.resolve_alias(repeat_cmd[0]);
+    const alias = bot.resolveAlias(repeat_cmd[0]);
+    const force: boolean = matches.value_of("FORCE");
 
-    const cmd = bot.find_command(alias);
+    const cmd = bot.findCommand(alias);
 
     if (!cmd) {
       bot.reply_command_not_found(repeat_cmd[0], msg);
@@ -223,18 +233,22 @@ export let Repeat = new Command({
     }
 
     // if (repeat_cmd[0] === Repeat.config.name) {
-    if (cmd.config.danger && !bot.is_owner(msg.author.id)) {
-      msg.reply(
-        `Cannot execute dangerous command '${
-          cmd.full_cmd_name
-        }' in conjunction with 'repeat'`,
-        { code: true }
-      );
-      return CommandResult.Error;
+    if (cmd.config.danger) {
+      // if (!bot.is_owner(msg.author.id) && !force) {
+      if (!(force && bot.isOwner(msg.author.id))) {
+        msg.reply(
+          `Cannot execute dangerous command '${
+            cmd.full_cmd_name
+          }' in conjunction with 'repeat'`,
+          { code: true }
+        );
+        return CommandResult.Error;
+      }
     }
 
     let repeat_amout: number = matches.value_of("AMOUNT");
 
+    // limit the repeat amount to 20 repetitions to avoid spamming
     repeat_amout = Math.min(repeat_amout, 20);
 
     for (let i = 0; i < repeat_amout; i++) {
@@ -248,3 +262,37 @@ export let Repeat = new Command({
       }
     }
   });
+
+export let Delete = new Command({
+  name: "delete",
+  permissions: ["MANAGE_MESSAGES"],
+  about: "Delete your message and still execute a command",
+  danger: true,
+  aliases: ["del"]
+})
+  .arg(
+    new Arg({
+      name: "COMMAND",
+      take_multiple: true,
+      required: true,
+      help: "Command to execute",
+      positional: true
+    })
+  )
+  .handler(async (bot, msg, matches) => {
+    if (msg.deletable) {
+      msg.delete().catch(() => {});
+    }
+    const exec_cmd: string = (matches.value_of("COMMAND") as string[]).join(
+      " "
+    );
+
+    await handle_cmd(bot, exec_cmd, msg);
+  });
+
+export const UtilityModule: Module = {
+  name: "utility",
+  commands: [Async, Chain, Delay, Delete, Repeat, RerunLast, TryCatch]
+};
+
+export default UtilityModule;

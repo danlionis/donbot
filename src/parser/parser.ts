@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Bot } from "../bot";
+import { Bot } from "../core/bot";
 import { Duration } from "../utils/duration";
 import { Arg } from "./arg";
 import { Command } from "./command";
@@ -81,9 +81,11 @@ export async function parse_message(
   msg_content: string,
   msg: Discord.Message
 ): Promise<[Command, Matches, MatchError] | undefined> {
-  const content = bot.resolve_alias(msg_content).split(" ");
+  const query = bot.resolveAlias(msg_content);
 
-  let cmd = bot.find_command(content.shift());
+  const content = bot.replaceVariables(query, { msg: msg }).split(" ");
+
+  let cmd = bot.findCommand(content.shift());
 
   if (!cmd) {
     return undefined;
@@ -99,7 +101,6 @@ export async function parse_message(
     const [c, m] = matches.subcommand_matches;
     matches = m;
     cmd = c;
-    // console.log("parse_message: sub match", matches, cmd);
   }
 
   const convert_args = cmd.args.filter(
@@ -218,6 +219,9 @@ export function parse_command(cmd: Command, content: string[]): Matches {
       continue;
     }
 
+    // TODO: parse double dash flags
+
+    // parse single dash flags
     if (word.startsWith("-") && word.length > 1) {
       // parse all flag arguments
       const flag_arg = find_flag_argument(cmd, word);
@@ -251,7 +255,7 @@ export function parse_command(cmd: Command, content: string[]): Matches {
 
 function find_sub_cmd(cmd: Command, subcmd: string) {
   return cmd.subcommands.find((s) => {
-    return s.config.name === subcmd;
+    return s.config.name === subcmd || s.config.aliases.includes(subcmd);
   });
 }
 

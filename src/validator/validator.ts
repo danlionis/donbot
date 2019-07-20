@@ -1,4 +1,4 @@
-import { Bot } from "../bot";
+import { Bot } from "../core/bot";
 import { Arg, Command } from "../parser";
 
 export interface CommandValidator {
@@ -31,6 +31,18 @@ export function command_valid(bot: Bot, cmd: Command): boolean {
     console.log(`[ERROR] ${cmd.full_cmd_name}: Command already registered`);
     valid = false;
   }
+
+  bot.registry.forEach((c) => {
+    const aliases = c.config.aliases;
+    if (aliases.indexOf(cmd.full_cmd_name) >= 0) {
+      console.log(
+        `[ERROR] ${cmd.full_cmd_name}: Already registered as alias for '${
+          c.full_cmd_name
+        }'`
+      );
+      valid = false;
+    }
+  });
 
   if (!cmd.config.about) {
     console.log(`[WARNING] ${cmd.full_cmd_name}: no command description`);

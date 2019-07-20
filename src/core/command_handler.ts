@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
+import { Command, CommandResult } from "../parser";
+import { parse_message } from "../parser/parser";
+import { find_command } from "../utils/fuzzy_finder";
+import { has_permission } from "../validator/permission";
 import { Bot } from "./bot";
 import { log_cmd_exec } from "./logging";
-import { Command, CommandResult } from "./parser";
-import { parse_message } from "./parser/parser";
-import { find_command } from "./utils/fuzzy_finder";
-import { has_permission } from "./validator/permission";
 
 export async function handle_cmd(
   bot: Bot,
@@ -12,7 +12,8 @@ export async function handle_cmd(
   msg: Discord.Message,
   recursion_depth: number = 0
 ): Promise<CommandResult> {
-  if (recursion_depth > 10) {
+  if (recursion_depth > bot.config.command_depth) {
+    msg.reply("Maximum command depth reached");
     return CommandResult.Error;
   }
 
@@ -33,7 +34,10 @@ export async function handle_cmd(
 
   const [allowed, reason] = has_permission(bot, msg, cmd);
 
+  let res: CommandResult;
+
   if (matches.value_of("debug")) {
+    // if debug flag is set
     const args = allowed ? matches.toObject(cmd) : {};
     msg.channel.send(
       JSON.stringify(
@@ -48,25 +52,36 @@ export async function handle_cmd(
       ),
       { code: "json" }
     );
-    return CommandResult.Success;
-  }
 
-  if (!allowed) {
+    res = CommandResult.Success;
+  } else if (!allowed) {
+    // if user has no permission for the command
     bot.reply_permission_denied(content, msg);
-    return CommandResult.PermissionDenied;
-  }
 
-  if (matches.value_of("help")) {
+    res = CommandResult.PermissionDenied;
+
+    // return CommandResult.PermissionDenied;
+  } else if (matches.value_of("help")) {
+    // if help flag is set
     // msg.channel.send(cmd.help(), { code: true });
     bot.reply_send_help(msg, cmd);
-    return CommandResult.SendHelp;
-  }
 
-  if (error) {
+    res = CommandResult.SendHelp;
+    // return CommandResult.SendHelp;
+  } else if (error) {
+    // if there was an error parsing
     let error_text = "";
+
+    const required_missing = [];
     for (const req_arg of error.missing_args) {
-      error_text += `Missing required argument: ${req_arg}\n`;
+      required_missing.push(req_arg);
     }
+    if (required_missing.length > 0) {
+      error_text += `Missing required argument${
+        required_missing.length > 1 ? "s" : "" // plural "s"
+      }: ${required_missing.join(", ")}\n`;
+    }
+
     for (const wrong_arg of error.wrong_args) {
       error_text += `Wrong value for: ${wrong_arg} (${cmd.args
         .find((a) => a.config.name === wrong_arg)
@@ -79,19 +94,20 @@ export async function handle_cmd(
     }
     error_text += `See '${cmd.full_cmd_name} --help'`;
     msg.channel.send(error_text, { code: true });
-    return CommandResult.Error;
-  }
 
-  const res =
-    (await cmd.handler_fn.bind(cmd)(
-      bot,
-      msg,
-      matches,
-      cmd.context,
-      recursion_depth
-    )) || CommandResult.Success;
+    res = CommandResult.Error;
+    // return CommandResult.Error;
+  } else {
+    // parsing successful, execute command
+    res =
+      (await cmd.handler_fn.bind(cmd)(
+        bot,
+        msg,
+        matches,
+        cmd.context,
+        recursion_depth
+      )) || CommandResult.Success;
 
-  if (res) {
     switch (res) {
       case CommandResult.PermissionDenied:
         bot.reply_permission_denied(content, msg);
@@ -106,14 +122,16 @@ export async function handle_cmd(
     }
   }
 
-  log_cmd_exec(
-    bot,
-    msg.guild.nameAcronym,
-    author,
-    bot.resolve_alias(content),
-    res,
-    recursion_depth
-  );
+  if (!cmd.config.no_log) {
+    log_cmd_exec(
+      bot,
+      msg.guild.nameAcronym,
+      author,
+      bot.resolveAlias(content),
+      res,
+      recursion_depth
+    );
+  }
 
   return res;
 }

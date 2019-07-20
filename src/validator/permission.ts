@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Bot } from "../bot";
+import { Bot } from "../core/bot";
 import { Command } from "../parser";
 
 export function can_modify(
@@ -10,11 +10,11 @@ export function can_modify(
 ) {
   const { ignore_owner = false, same_role = true } = opts;
 
-  if (bot.is_owner(self.id)) {
+  if (bot.isOwner(self.id)) {
     return true;
   }
 
-  if (!ignore_owner && bot.is_owner(other.id)) {
+  if (!ignore_owner && bot.isOwner(other.id)) {
     return false;
   }
 
@@ -34,7 +34,7 @@ export function has_permission(
   let reason: string;
 
   // directly allow if user is the owner
-  if (bot.is_owner(msg.author.id)) {
+  if (bot.isOwner(msg.author.id)) {
     return [true, "owner"];
   }
 
@@ -61,6 +61,10 @@ export function has_permission(
   // deny if owner only (allowed if explicitly allowed)
   if (cmd.config.owner_only) {
     return [false, "no_owner"];
+  }
+
+  if (!bot.hasBotRole(msg.member)) {
+    return [false, "missing_role"];
   }
 
   allowed = msg.member.hasPermission(cmd.config

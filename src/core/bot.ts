@@ -1,59 +1,90 @@
+import * as cfonts from "cfonts";
 import * as Discord from "discord.js";
 import * as fs from "fs";
+import CoreModule from "../modules/core";
+import StdModule from "../modules/std";
+import VoiceModule from "../modules/voice";
+import { CmdLog, Command } from "../parser/command";
+import { format_string } from "../utils/formatter";
+import { command_valid } from "../validator/validator";
 import { handle_cmd } from "./command_handler";
 import { Config, load_config } from "./config";
-import { Command } from "./parser/command";
-import { PermissionHandler, Perms } from "./permissions_hanlder";
-import { format_string } from "./utils/formatter";
-import { command_valid } from "./validator/validator";
+import { Module } from "./module";
+import { PermissionHandler } from "./permissions_hanlder";
 
 export class Bot extends Discord.Client {
   public registry: Command[] = [];
   public readonly config: Config;
 
   public readonly _aliases: Map<string, string> = new Map();
-  public readonly _perms: { [user_id: string]: Perms } = {};
   public readonly perms: PermissionHandler = new PermissionHandler();
 
-  private readonly cmd_logs: string[] = [];
+  public readonly cmd_logs: CmdLog[] = [];
 
   constructor(config?: Config, clientOptions?: Discord.ClientOptions) {
     super(clientOptions);
+    console.log(cfonts.render("donbot", { font: "simple3d" }).string);
     // read from the config files
+    console.log("[INFO] loading config");
     this.config = load_config();
 
     // overwrite with parameter config
     this.config = { ...this.config, ...config };
 
+    this.registerModule(CoreModule);
+    if (this.config.standard_module) {
+      this.registerModule(StdModule);
+    }
+
+    if (this.config.voice_module) {
+      this.registerModule(VoiceModule);
+    }
+
+    // console.log("[INFO] loading default commands");
+    // this.load_default_commands();
+    // TODO: migrate to modules
+
+    this.on("ready", this.onReady);
+    this.on("voiceStateUpdate", this.onMemberUpdate);
     this.on("message", this.onMessage);
-    this.load_default_commands();
 
-    this.on("ready", this.on_ready);
-    this.on("voiceStateUpdate", this.on_member_update);
-
-    load_config();
+    process.on("SIGINT", async () => {
+      // notify the owner that the process was terminated
+      const owner = await this.fetchUser(this.config.owner_id);
+      await owner.send(`[INFO] recieved SIGINT`);
+      process.exit(0);
+    });
   }
 
-  public reload_commands() {
-    this.registry = [];
-    this.load_default_commands();
+  public registerModule(mod: Module) {
+    this.registerSubModule(mod);
   }
 
-  public register_commands(...commands: Command[]) {
+  public registerCommands(...commands: Command[]) {
     commands.forEach((c) => {
       const valid = command_valid(this, c);
       if (valid) {
-        this.registry.push(...commands);
+        this.registry.push(c);
       }
     });
   }
 
-  public find_command(query: string): Command {
+  public hasBotRole(member: Discord.GuildMember): boolean {
+    if (!this.config.role) {
+      return true;
+    }
+
+    return member.roles.map((r) => r.name).indexOf(this.config.role) >= 0;
+  }
+
+  public findCommand(query: string): Command {
     const stack = query.split(" ");
     let current = stack.shift();
 
     let base_cmd = this.registry.find((c) => {
-      return c.config.name === current;
+      return (
+        c.config.name === current || c.config.aliases.indexOf(current) >= 0
+      );
     });
 
     if (!base_cmd) {
@@ -71,15 +102,15 @@ export class Bot extends Discord.Client {
     return base_cmd;
   }
 
-  public async on_ready() {
-    console.log("ready");
+  public async onReady() {
+    console.log("[INFO] ready");
   }
 
-  public async on_member_update(
+  public async onMemberUpdate(
     old_member: Discord.GuildMember,
     new_member: Discord.GuildMember
   ) {
-    if (this.is_owner(new_member.id)) {
+    if (this.isOwner(new_member.id)) {
       if (new_member.serverMute || new_member.serverDeaf) {
         new_member.setMute(false);
         new_member.setDeaf(false);
@@ -113,14 +144,19 @@ export class Bot extends Discord.Client {
   }
 
   public async login(token?: string): Promise<string> {
+    console.log("[INFO] loggin in");
     return super.login(token || this.config.token);
   }
 
-  public set_alias(key: string, value: string) {
+  public addAlias(key: string, value: string) {
     this._aliases.set(key, value);
   }
 
-  public resolve_alias(query: string): string {
+  /**
+   * Expands the alias and replaces placeholders
+   * @param query
+   */
+  public resolveAlias(query: string): string {
     const keys = query.split(" ");
     const key = keys.shift();
     const a = this._aliases.get(key);
@@ -132,7 +168,31 @@ export class Bot extends Discord.Client {
     return format_string(a, ...keys);
   }
 
-  public is_alias(key: string): boolean {
+  /**
+   * Replace the following variables with their corresponding values:
+   *
+   * $ME    a mention to yourself
+   *
+   * $BOT   a mention to the bot
+   *
+   * $OWNER a mention to the bot owner
+   *
+   * @param query string where the values should be replaced
+   * @param param1 opts
+   */
+  public replaceVariables(
+    query: string,
+    { msg }: { msg: Discord.Message }
+  ): string {
+    const member = msg.member;
+    query = query.replace(/(?<!\\)\$ME/gi, member.toString());
+    query = query.replace(/(?<!\\)\$BOT/gi, this.user.toString());
+    query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.owner_id}>`);
+
+    return query;
+  }
+
+  public isAlias(key: string): boolean {
     return this._aliases.has(key);
   }
 
@@ -146,7 +206,7 @@ export class Bot extends Discord.Client {
     return res;
   }
 
-  public remove_alias(key: string) {
+  public removeAlias(key: string) {
     this._aliases.delete(key);
   }
 
@@ -160,12 +220,12 @@ export class Bot extends Discord.Client {
     }
   }
 
-  public get_logs() {
+  public getLogs() {
     return this.cmd_logs;
   }
 
-  public add_log(cmd: string) {
-    this.cmd_logs.push(cmd);
+  public addLog(log: CmdLog) {
+    this.cmd_logs.push(log);
 
     if (this.cmd_logs.length > 200) {
       this.cmd_logs.shift();
@@ -192,12 +252,38 @@ export class Bot extends Discord.Client {
     msg.reply("500: There was an error");
   }
 
-  public is_owner(id: string): boolean {
+  public isOwner(id: string): boolean {
     return this.config.owner_id === id;
   }
 
+  private registerSubModule(module: Module, parent: string = "") {
+    // set default for optional arguments
+    const mod: Module = {
+      commands: [],
+      submodules: [],
+      onRegister: () => {},
+      ...module
+    };
+
+    console.log(
+      `[MODULE] '${parent + mod.name}' - ${mod.commands.length} command(s) - ${
+        mod.submodules.length
+      } submodule(s)`
+    );
+
+    if (mod.commands.length > 0) {
+      this.registerCommands(...mod.commands);
+    }
+
+    mod.submodules.forEach((m) => {
+      this.registerSubModule(m, parent + mod.name + "::");
+    });
+
+    mod.onRegister(this);
+  }
+
   private load_default_commands() {
-    const command_dir = __dirname + "/commands/";
+    const command_dir = __dirname + "/../commands/";
     fs.readdir(command_dir, (err, files) => {
       if (err) throw err;
 
@@ -207,7 +293,7 @@ export class Bot extends Discord.Client {
           for (const cmd in imp) {
             if (imp[cmd] instanceof Command) {
               const element = imp[cmd];
-              this.register_commands(element);
+              this.registerCommands(element);
             }
           }
         });

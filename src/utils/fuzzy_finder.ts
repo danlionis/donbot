@@ -8,8 +8,8 @@ export function find_voice_channel(
 ): Discord.VoiceChannel | undefined {
   const options: Fuse.FuseOptions<Discord.VoiceChannel> = {
     keys: ["name"],
-    tokenize: true,
-    matchAllTokens: true
+    // tokenize: true,
+    // matchAllTokens: true,
   };
   const fuse = new Fuse(channels, options);
 

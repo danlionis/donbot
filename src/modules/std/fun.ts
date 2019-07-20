@@ -1,10 +1,11 @@
 import * as cfonts from "cfonts";
 import * as Discord from "discord.js";
 import fetch from "node-fetch";
-import { Arg, Command, CommandResult } from "../parser";
-import { can_modify } from "../validator/permission";
+import { Module } from "../../core/module";
+import { Arg, Command, CommandResult } from "../../parser";
+import { can_modify } from "../../validator/permission";
 
-export let Random = new Command({
+const Random = new Command({
   name: "random",
   about: "Super random command"
 }).subcommand(
@@ -16,7 +17,7 @@ export let Random = new Command({
     msg.reply(rand.toString());
   })
 );
-export let Font = new Command({
+const Font = new Command({
   name: "font",
   about: "Print BIG"
   // permissions: ["MANAGE_MESSAGES"]
@@ -55,7 +56,7 @@ export let Font = new Command({
     await msg.channel.send(pretty.string, { code: true });
   });
 
-export let YesNo = new Command({ name: "yesno", about: "Yes or no?" })
+const YesNo = new Command({ name: "yesno", about: "Yes or no?" })
   .arg(new Arg({ name: "NOGIF", long: "gif", short: "g", help: "exclude gif" }))
   .handler((bot, msg, matches) => {
     const url = "https://yesno.wtf/api/";
@@ -74,7 +75,7 @@ export let YesNo = new Command({ name: "yesno", about: "Yes or no?" })
     }
   });
 
-export let InspiroBot = new Command({
+const InspiroBot = new Command({
   name: "inspire",
   about: "get some inspiration",
   danger: true
@@ -84,7 +85,7 @@ export let InspiroBot = new Command({
     .then((body) => msg.channel.send(body));
 });
 
-export let Yeet = new Command({
+const Yeet = new Command({
   name: "yeet",
   about: "YEET",
   permissions: ["MOVE_MEMBERS"]
@@ -104,6 +105,10 @@ export let Yeet = new Command({
       return CommandResult.PermissionDenied;
     }
 
+    if (!m.voiceChannel) {
+      return CommandResult.Failed;
+    }
+
     let channels = bot.channels
       .filter((_c) => _c.type === "voice")
       .array() as Discord.VoiceChannel[];
@@ -119,3 +124,10 @@ export let Yeet = new Command({
 
     await m.setVoiceChannel(c);
   });
+
+export const FunModule: Module = {
+  name: "fun",
+  commands: [Yeet, InspiroBot, Random, Font, YesNo]
+};
+
+export default FunModule;
