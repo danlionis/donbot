@@ -36,6 +36,7 @@ export const Disconnect = new Command({
       return CommandResult.Failed;
     }
     connection.disconnect();
+    bot.user.setActivity("");
   });
 
 export const Join = new Command({
@@ -124,6 +125,14 @@ export const ILoveRadio = new Command({
       help: "List available streams"
     })
   )
+  .arg(
+    new Arg({
+      name: "FORCE",
+      short: "f",
+      long: "force",
+      help: "Start playing even if bot is already playing"
+    })
+  )
   .handler(async (bot, msg, matches) => {
     const streams = {
       ILOVERADIO: 1,
@@ -154,14 +163,14 @@ export const ILoveRadio = new Command({
       return CommandResult.Success;
     }
 
-    const res = await handle_cmd(bot, "join -f", msg, 0);
+    const force: boolean = matches.value_of("FORCE");
+    const res = await handle_cmd(bot, `join ${force ? "-f" : ""}`, msg, 0);
     if (res !== CommandResult.Success) {
       return res;
     }
 
     const number = matches.value_of("STREAMNR");
     const url = `http://stream01.ilovemusic.de/iloveradio${number}.mp3`;
-    // msg.guild.voiceConnection.dispatcher.end();
 
     const req = http.request(url, { method: "HEAD" }, (response) => {
       // console.log(response.headers["icy-name"]);
@@ -169,7 +178,14 @@ export const ILoveRadio = new Command({
         type: "LISTENING"
       });
     });
+
     req.end();
 
-    msg.guild.voiceConnection.playArbitraryInput(url, { volume: 0.1 });
+    const dispatcher = msg.guild.voiceConnection.playArbitraryInput(url, {
+      volume: 0.1
+    });
+
+    dispatcher.on("end ", () => {
+      bot.user.setActivity("");
+    });
   });
