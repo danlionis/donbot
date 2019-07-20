@@ -1,3 +1,4 @@
+import * as http from "http";
 import { handle_cmd } from "../../core/command_handler";
 import { Arg, Command, CommandResult } from "../../parser";
 
@@ -161,6 +162,14 @@ export const ILoveRadio = new Command({
     const number = matches.value_of("STREAMNR");
     const url = `http://stream01.ilovemusic.de/iloveradio${number}.mp3`;
     // msg.guild.voiceConnection.dispatcher.end();
+
+    const req = http.request(url, { method: "HEAD" }, (response) => {
+      // console.log(response.headers["icy-name"]);
+      bot.user.setActivity(response.headers["icy-name"].toString(), {
+        type: "LISTENING"
+      });
+    });
+    req.end();
 
     msg.guild.voiceConnection.playArbitraryInput(url, { volume: 0.1 });
   });
