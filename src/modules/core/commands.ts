@@ -240,9 +240,14 @@ export const Help = new Command({
     if (!matches.value_of("ALL")) {
       commands = commands.filter((c) => !c.config.hidden);
     }
-    commands.sort((a, b) => a.config.name.localeCompare(b.config.name));
 
-    commands = commands.filter((c) => has_permission(bot, msg, c));
+    // dont show command the user doesn't have access to
+    commands = commands.filter((c) => {
+      const [allowed] = has_permission(bot, msg, c);
+      return allowed;
+    });
+
+    commands.sort((a, b) => a.config.name.localeCompare(b.config.name));
 
     if (matches.value_of("SHORT")) {
       texts.push(commands.map((c) => c.config.name).join(", "));
