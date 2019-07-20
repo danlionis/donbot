@@ -269,7 +269,7 @@ export class Bot extends Discord.Client {
     };
 
     console.log(
-      `[MODULE] '${parent + mod.name}' - ${mod.commands.length} command(s) - ${
+      `[MODULE] ${parent + mod.name} - ${mod.commands.length} command(s) - ${
         mod.submodules.length
       } submodule(s)`
     );
