@@ -185,9 +185,12 @@ export class Bot extends Discord.Client {
     { msg }: { msg: Discord.Message }
   ): string {
     const member = msg.member;
-    query = query.replace(/(?<!\\)\$ME/gi, member.toString());
-    query = query.replace(/(?<!\\)\$BOT/gi, this.user.toString());
-    query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.owner_id}>`);
+    // query = query.replace(/(?<!\\)\$ME/gi, member.toString());
+    // query = query.replace(/(?<!\\)\$BOT/gi, this.user.toString());
+    // query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.owner_id}>`);
+    query = query.replace(/\$ME/gi, member.toString());
+    query = query.replace(/\$BOT/gi, this.user.toString());
+    query = query.replace(/\$OWNER/gi, `<@${this.config.owner_id}>`);
 
     return query;
   }
