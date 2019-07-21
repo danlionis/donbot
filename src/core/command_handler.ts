@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Command, CommandResult } from "../parser";
+import { CommandContext, CommandResult } from "../parser";
 import { parse_message } from "../parser/parser";
 import { find_command } from "../utils/fuzzy_finder";
 import { has_permission } from "../validator/permission";
@@ -10,9 +10,10 @@ export async function handle_cmd(
   bot: Bot,
   content: string,
   msg: Discord.Message,
-  recursion_depth: number = 0
+  context: CommandContext
 ): Promise<CommandResult> {
-  if (recursion_depth > bot.config.command_depth) {
+  if (context.callstack.length > bot.config.command_depth) {
+    // if (recursion_depth > bot.config.command_depth) {
     msg.reply("Maximum command depth reached");
     return CommandResult.Error;
   }
@@ -34,6 +35,8 @@ export async function handle_cmd(
 
   const [allowed, reason] = has_permission(bot, msg, cmd);
 
+  context.callstack.push(cmd.full_cmd_name);
+
   let res: CommandResult;
 
   if (matches.value_of("debug")) {
@@ -45,7 +48,8 @@ export async function handle_cmd(
           author,
           cmd: cmd.full_cmd_name,
           args: args,
-          allowed: reason || allowed
+          allowed: reason || allowed,
+          context: context
         },
         null,
         2
@@ -100,13 +104,8 @@ export async function handle_cmd(
   } else {
     // parsing successful, execute command
     res =
-      (await cmd.handler_fn.bind(cmd)(
-        bot,
-        msg,
-        matches,
-        cmd.context,
-        recursion_depth
-      )) || CommandResult.Success;
+      (await cmd.handler_fn.bind(cmd)(bot, msg, matches, context.clone())) ||
+      CommandResult.Success;
 
     switch (res) {
       case CommandResult.PermissionDenied:
@@ -129,7 +128,7 @@ export async function handle_cmd(
       author,
       bot.resolveAlias(content),
       res,
-      recursion_depth
+      context
     );
   }
 

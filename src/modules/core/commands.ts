@@ -1,6 +1,39 @@
 import * as Discord from "discord.js";
-import { Arg, Command, CommandResult } from "../../parser";
+import { handle_cmd } from "../../core/command_handler";
+import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { has_permission } from "../../validator/permission";
+
+export const RerunLast = new Command({
+  name: "rerun",
+  about: "rerun last successfull command",
+  danger: true,
+  hidden: true,
+  no_log: true,
+  aliases: ["!"]
+}).handler(async (bot, msg, matches, context) => {
+  // this is necessary to prevent deadlocks
+  if (context.callstack.length > 1) {
+    msg.reply(
+      "rerun: you can only execute this command by itself, not nested inside other commands",
+      { code: true }
+    );
+    return CommandResult.Error;
+  }
+
+  // only use own succcessful commands
+  const member_cmds = bot.cmd_logs.filter(
+    (l) => l.user === msg.author.tag && l.result === CommandResult.Success
+  );
+
+  if (member_cmds.length === 0) {
+    msg.reply("No recent commands");
+    return CommandResult.Failed;
+  }
+
+  const last_cmd = member_cmds[member_cmds.length - 1].content;
+
+  return handle_cmd(bot, last_cmd, msg, new CommandContext());
+});
 
 const PermsCommand = new Command({
   name: "command",

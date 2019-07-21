@@ -1,6 +1,6 @@
 import { handle_cmd } from "../../core/command_handler";
 import { Module } from "../../core/module";
-import { Arg, Command, CommandResult } from "../../parser";
+import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 
 /**
  * Usage:
@@ -22,7 +22,7 @@ export const TryCatch = new Command({
       take_multiple: true
     })
   )
-  .handler(async (bot, msg, matches, _, recursion_depth) => {
+  .handler(async (bot, msg, matches, context) => {
     const query: string[] = matches.value_of("QUERY");
     const catch_pos = query.indexOf("catch");
 
@@ -34,45 +34,22 @@ export const TryCatch = new Command({
     }
 
     let res: CommandResult;
-    res = await handle_cmd(bot, try_statement, msg, recursion_depth);
+    res = await handle_cmd(bot, try_statement, msg, context);
 
     if (res === CommandResult.Success) {
       return CommandResult.Success;
     } else if (catch_pos !== -1) {
       const catch_statement = query.slice(catch_pos + 1).join(" ");
-      res = await handle_cmd(bot, catch_statement, msg, recursion_depth);
+      res = await handle_cmd(bot, catch_statement, msg, context);
       return res;
     } else {
       return CommandResult.Failed;
     }
   });
 
-export const RerunLast = new Command({
-  name: "rerun",
-  about: "rerun last successfull command",
-  danger: true,
-  hidden: true,
-  no_log: true,
-  aliases: ["!"]
-}).handler(async (bot, msg, matches, _, recursion_depth) => {
-  const member_cmds = bot.cmd_logs.filter(
-    (l) => l.user === msg.author.tag && l.result === CommandResult.Success
-  );
-
-  if (member_cmds.length === 0) {
-    msg.reply("No recent commands");
-    return CommandResult.Failed;
-  }
-
-  const last_cmd = member_cmds[member_cmds.length - 1].content;
-
-  return handle_cmd(bot, last_cmd, msg);
-});
-
 export const Async = new Command({
   name: "async",
-  about:
-    "Execute commands asyncronously. Useful for chaining where you dont want to wait for a command to finish ",
+  about: "Immediately return a Success result",
   danger: true,
   hidden: true
 })
@@ -85,9 +62,9 @@ export const Async = new Command({
       help: "command to execute asyncronously"
     })
   )
-  .handler((bot, msg, matches, _, recursion_depth) => {
+  .handler((bot, msg, matches, context) => {
     const cmd = (matches.value_of("COMMAND") as string[]).join(" ");
-    handle_cmd(bot, cmd, msg, recursion_depth + 1);
+    handle_cmd(bot, cmd, msg, context);
   });
 
 export let Chain = new Command({
@@ -124,7 +101,7 @@ export let Chain = new Command({
       take_multiple: true
     })
   )
-  .handler(async (bot, msg, matches, _, recursion_depth) => {
+  .handler(async (bot, msg, matches, context) => {
     const input: string[] = matches.value_of("COMMANDS");
 
     const commands: string[] = input
@@ -134,7 +111,7 @@ export let Chain = new Command({
     for (let i = 0; i < commands.length; i++) {
       const content = commands[i].trim();
 
-      const res = await handle_cmd(bot, content, msg, recursion_depth + 1);
+      const res = await handle_cmd(bot, content, msg, context.clone());
 
       // break if there was an error and the resume flag was not set
       if (!matches.value_of("RESUME") && res !== CommandResult.Success) {
@@ -167,7 +144,7 @@ export let Delay = new Command({
       help: "Command to execute after the time"
     })
   )
-  .handler((bot, msg, matches, _, recursion_depth) => {
+  .handler((bot, msg, matches, context) => {
     return new Promise((resolve, reject) => {
       const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
 
@@ -177,11 +154,9 @@ export let Delay = new Command({
 
       setTimeout(() => {
         if (delay_cmd) {
-          handle_cmd(bot, delay_cmd.join(" "), msg, recursion_depth + 1).then(
-            (res) => {
-              resolve(res);
-            }
-          );
+          handle_cmd(bot, delay_cmd.join(" "), msg, context).then((res) => {
+            resolve(res);
+          });
         }
       }, delay_time * 1000);
     });
@@ -220,7 +195,7 @@ export let Repeat = new Command({
         "bypass command limit and dangerous commands (requires owner permission)"
     })
   )
-  .handler(async (bot, msg, matches, _, recursion_depth) => {
+  .handler(async (bot, msg, matches, context) => {
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
     const alias = bot.resolveAlias(repeat_cmd[0]);
     const force: boolean = matches.value_of("FORCE");
@@ -256,7 +231,7 @@ export let Repeat = new Command({
       content = content.replace("{i}", i.toString());
       content = content.replace("{i+1}", (i + 1).toString());
       content = content.replace("{i-1}", (repeat_amout - i).toString());
-      const res = await handle_cmd(bot, content, msg, recursion_depth + 1);
+      const res = await handle_cmd(bot, content, msg, context.clone());
       if (res !== CommandResult.Success) {
         break;
       }
@@ -279,7 +254,7 @@ export let Delete = new Command({
       positional: true
     })
   )
-  .handler(async (bot, msg, matches) => {
+  .handler(async (bot, msg, matches, context) => {
     if (msg.deletable) {
       msg.delete().catch(() => {});
     }
@@ -287,12 +262,12 @@ export let Delete = new Command({
       " "
     );
 
-    await handle_cmd(bot, exec_cmd, msg);
+    await handle_cmd(bot, exec_cmd, msg, context);
   });
 
 export const UtilityModule: Module = {
   name: "utility",
-  commands: [Async, Chain, Delay, Delete, Repeat, RerunLast, TryCatch]
+  commands: [Async, Chain, Delay, Delete, Repeat, TryCatch]
 };
 
 export default UtilityModule;

@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { Command, CommandResult } from "../parser";
+import { Command, CommandContext, CommandResult } from "../parser";
 import { Bot } from "./bot";
 
 export function log_cmd_exec(
@@ -8,14 +8,12 @@ export function log_cmd_exec(
   author: string,
   content: string,
   cmd_res: CommandResult,
-  recursion_depth: number = 0
+  context: CommandContext
 ) {
-  if (recursion_depth <= 0 || cmd_res !== CommandResult.Success) {
+  if (context.callstack.length === 1 || cmd_res !== CommandResult.Success) {
     const time = new Date();
 
-    let res = `[CMD] ${time.toISOString()} ${guild} - ${"- ".repeat(
-      recursion_depth
-    )}${author}: ${content} - `;
+    let res = `[CMD] ${time.toISOString()} ${guild} - ${author}: ${content} - `;
 
     res += CommandResult[cmd_res];
 

@@ -4,7 +4,7 @@ import * as fs from "fs";
 import CoreModule from "../modules/core";
 import StdModule from "../modules/std";
 import VoiceModule from "../modules/voice";
-import { CmdLog, Command } from "../parser/command";
+import { CmdLog, Command, CommandContext } from "../parser";
 import { format_string } from "../utils/formatter";
 import { command_valid } from "../validator/validator";
 import { handle_cmd } from "./command_handler";
@@ -139,7 +139,7 @@ export class Bot extends Discord.Client {
 
     for (let i = 0; i < cmds.length; i++) {
       const c = cmds[i];
-      const res = await handle_cmd(this, c, msg);
+      const res = await handle_cmd(this, c, msg, new CommandContext());
     }
   }
 

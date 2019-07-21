@@ -8,8 +8,7 @@ export type HanlderFn<T> = (
   bot: Bot,
   message: Discord.Message,
   matches: Matches,
-  ctx: CommandContext<T>,
-  recursion_depth: number
+  ctx: CommandContext
 ) => Promise<CommandResult | void> | void;
 
 export interface CmdLog {
@@ -72,13 +71,10 @@ export class Command {
   public readonly args: Arg[] = [];
   public readonly subcommands: Command[] = [];
   private _handler_fn: HanlderFn<any>;
-  private _context: CommandContext<any>;
 
   private _parent_command: string = "";
 
   constructor(config: CommandConfig) {
-    this._context = new CommandContext();
-
     this._handler_fn = async () => {
       return CommandResult.Unimplemented;
     };
@@ -143,13 +139,13 @@ export class Command {
     return this._handler_fn;
   }
 
-  public set context(ctx: CommandContext<any>) {
-    this._context = ctx;
-  }
+  // public set context(ctx: CommandContext<any>) {
+  //   this._context = ctx;
+  // }
 
-  public get context(): CommandContext<any> {
-    return this._context;
-  }
+  // public get context(): CommandContext<any> {
+  //   return this._context;
+  // }
 
   public owner_only(owner_only: boolean = true): Command {
     this.config.owner_only = owner_only;

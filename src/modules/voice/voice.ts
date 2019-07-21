@@ -207,7 +207,7 @@ export const ILoveRadio = new Command({
       help: "Start playing even if bot is already playing"
     })
   )
-  .handler(async (bot, msg, matches) => {
+  .handler(async (bot, msg, matches, context) => {
     const streams = {
       ILOVERADIO: 1,
       DANCE: 2,
@@ -238,7 +238,12 @@ export const ILoveRadio = new Command({
     }
 
     const force: boolean = matches.value_of("FORCE");
-    const res = await handle_cmd(bot, `join ${force ? "-f" : ""}`, msg, 0);
+    const res = await handle_cmd(
+      bot,
+      `join ${force ? "-f" : ""}`,
+      msg,
+      context
+    );
     if (res !== CommandResult.Success) {
       return res;
     }
@@ -262,7 +267,7 @@ export const ILoveRadio = new Command({
             volume: 0.1
           });
 
-          dispatcher.on("start", (info) => {
+          dispatcher.on("start", () => {
             resolve(CommandResult.Success);
           });
 

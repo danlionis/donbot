@@ -73,10 +73,15 @@ const Runas = new Command({
       required: true
     })
   )
-  .handler(async (bot, msg, matches) => {
+  .handler(async (bot, msg, matches, context) => {
     msg.member = matches.value_of("MEMBER") as Discord.GuildMember;
     msg.author = msg.member.user;
-    handle_cmd(bot, (matches.value_of("COMMAND") as string[]).join(" "), msg);
+    handle_cmd(
+      bot,
+      (matches.value_of("COMMAND") as string[]).join(" "),
+      msg,
+      context
+    );
   });
 
 const Eval = new Command({

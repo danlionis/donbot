@@ -1,3 +1,3 @@
 export { Arg } from "./arg";
-export { Command, CommandResult } from "./command";
+export { Command, CommandResult, CmdLog } from "./command";
 export { CommandContext } from "./context";
