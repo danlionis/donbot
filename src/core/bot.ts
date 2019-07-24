@@ -1,6 +1,7 @@
 import * as cfonts from "cfonts";
 import * as Discord from "discord.js";
 import * as fs from "fs";
+import { Datastore, FileStore, StorageAdapter } from "kvbox";
 import CoreModule from "../modules/core";
 import StdModule from "../modules/std";
 import VoiceModule from "../modules/voice";
@@ -16,17 +17,33 @@ export class Bot extends Discord.Client {
   public registry: Command[] = [];
   public readonly config: Config;
 
-  public readonly _aliases: Map<string, string> = new Map();
-  public readonly perms: PermissionHandler = new PermissionHandler();
+  public readonly perms: PermissionHandler;
 
   public readonly cmd_logs: CmdLog[] = [];
 
+  public readonly store: StorageAdapter;
+  public readonly aliases: Datastore;
+
   constructor(config?: Config, clientOptions?: Discord.ClientOptions) {
     super(clientOptions);
+    this.on("warn", (info) => {
+      console.log(`[-] warning: ${info}`);
+    });
+
     console.log(cfonts.render("donbot", { font: "simple3d" }).string);
     // read from the config files
-    console.log("[INFO] loading config");
+    console.log("[*] loading: config");
     this.config = load_config();
+
+    console.log("[*] init: datastore");
+    this.store = new FileStore({ path: "data/db.json" });
+    this.aliases = new Datastore({
+      store: this.store,
+      namespace: "alias"
+    });
+
+    console.log("[*] init: permission handler");
+    this.perms = new PermissionHandler(this);
 
     // overwrite with parameter config
     this.config = { ...this.config, ...config };
@@ -39,10 +56,6 @@ export class Bot extends Discord.Client {
     if (this.config.voice_module) {
       this.registerModule(VoiceModule);
     }
-
-    // console.log("[INFO] loading default commands");
-    // this.load_default_commands();
-    // TODO: migrate to modules
 
     this.on("ready", this.onReady);
     this.on("voiceStateUpdate", this.onMemberUpdate);
@@ -103,7 +116,7 @@ export class Bot extends Discord.Client {
   }
 
   public async onReady() {
-    console.log("[INFO] ready");
+    console.log("[+] ready");
   }
 
   public async onMemberUpdate(
@@ -144,22 +157,22 @@ export class Bot extends Discord.Client {
   }
 
   public async login(token?: string): Promise<string> {
-    console.log("[INFO] loggin in");
+    console.log("[*] loggin in");
     return super.login(token || this.config.token);
   }
 
   public addAlias(key: string, value: string) {
-    this._aliases.set(key, value);
+    this.aliases.set(key, value);
   }
 
   /**
    * Expands the alias and replaces placeholders
    * @param query
    */
-  public resolveAlias(query: string): string {
+  public async resolveAlias(query: string): Promise<string> {
     const keys = query.split(" ");
     const key = keys.shift();
-    const a = this._aliases.get(key);
+    const a = await this.aliases.get(key);
 
     if (!a) {
       return query;
@@ -195,22 +208,22 @@ export class Bot extends Discord.Client {
     return query;
   }
 
-  public isAlias(key: string): boolean {
-    return this._aliases.has(key);
+  public async isAlias(key: string): Promise<boolean> {
+    return this.aliases.has(key);
   }
 
-  public get aliases(): Array<{ key: string; value: string }> {
-    const res = [];
+  // public get aliases(): Array<{ key: string; value: string }> {
+  //   const res = [];
 
-    this._aliases.forEach((value, key) => {
-      res.push({ key, value });
-    });
+  //   this._aliases.forEach((value, key) => {
+  //     res.push({ key, value });
+  //   });
 
-    return res;
-  }
+  //   return res;
+  // }
 
   public removeAlias(key: string) {
-    this._aliases.delete(key);
+    this.aliases.delete(key);
   }
 
   public reply_send_help(msg: Discord.Message, cmd: Command) {
@@ -269,7 +282,7 @@ export class Bot extends Discord.Client {
     };
 
     console.log(
-      `[MODULE] ${parent + mod.name} - ${mod.commands.length} command(s) - ${
+      `[+] module: ${parent + mod.name} - ${mod.commands.length} command(s) - ${
         mod.submodules.length
       } submodule(s)`
     );

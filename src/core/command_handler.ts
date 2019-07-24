@@ -23,7 +23,7 @@ export async function handle_cmd(
 
   if (parsed === undefined) {
     const alternative = find_command(
-      bot.registry.filter((c) => has_permission(bot, msg, c)[0]),
+      bot.registry.filter(async (c) => await has_permission(bot, msg, c)[0]),
       content[0]
     );
 
@@ -33,7 +33,7 @@ export async function handle_cmd(
 
   const [cmd, matches, error] = parsed;
 
-  const [allowed, reason] = has_permission(bot, msg, cmd);
+  const [allowed, reason] = await has_permission(bot, msg, cmd);
 
   context.callstack.push(cmd.full_cmd_name);
 
@@ -126,7 +126,7 @@ export async function handle_cmd(
       bot,
       msg.guild.nameAcronym,
       author,
-      bot.resolveAlias(content),
+      await bot.resolveAlias(content),
       res,
       context
     );

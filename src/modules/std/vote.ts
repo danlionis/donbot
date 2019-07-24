@@ -11,6 +11,17 @@ const VoteElect = new Command({
 })
   .arg(
     new Arg({
+      name: "TTL",
+      short: "t",
+      long: "time",
+      default: 5,
+      takes_value: true,
+      help: "How long the vote should last (in minutes)s",
+      type: "number"
+    })
+  )
+  .arg(
+    new Arg({
       name: "CHOICES",
       positional: true,
       required: true,
@@ -19,6 +30,7 @@ const VoteElect = new Command({
   )
   .handler(async (bot, msg, matches, context) => {
     const choices: string[] = matches.value_of("CHOICES");
+    const ttl: number = matches.value_of("TTL");
     const votes: Map<string, number> = new Map();
 
     let res = "Election started: \n\n";
@@ -40,12 +52,13 @@ const VoteElect = new Command({
         // allow only members that havent voted yet
         return m.member.id === msg.member.id || !voted.has(m.member.id);
       },
-      { time: Duration.MINUTE * 5 }
+      { time: Duration.MINUTE * ttl }
     );
 
     collector.on("collect", (m) => {
       if (m.member.id === msg.member.id && m.content === "stop") {
         collector.stop();
+        return;
       }
 
       if (!votes.has(m.content)) {
@@ -58,7 +71,6 @@ const VoteElect = new Command({
 
       votes.set(m.content, votes.get(m.content) + 1);
       voted.add(m.member.id);
-      console.log(votes);
     });
 
     collector.on("end", () => {

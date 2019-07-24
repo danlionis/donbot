@@ -89,10 +89,7 @@ const Choice = new Command({
 
 export const GeneralModule: Module = {
   name: "general",
-  commands: [Choice, Echo, Ping],
-  onRegister: (bot) => {
-    bot.addAlias("coin", "choice :sun_with_face: :full_moon_with_face:");
-  }
+  commands: [Choice, Echo, Ping]
 };
 
 export default GeneralModule;

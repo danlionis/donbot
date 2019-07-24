@@ -236,10 +236,7 @@ export const Logs = new Command({
 
 export const ModerationModule: Module = {
   name: "moderation",
-  commands: [Mute, Move, Clear, Silence, Logs],
-  onRegister: (bot) => {
-    bot.addAlias("mv", "move to");
-  }
+  commands: [Mute, Move, Clear, Silence, Logs]
 };
 
 export default ModerationModule;

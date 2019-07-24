@@ -10,9 +10,10 @@
   },
   "scripts": {
     "prebuild": "node ./scripts/prebuild.js",
-    "build": "tsc || echo done",
+    "build": "tsc",
     "build:live": "tsc --watch",
     "start": "node ./index.js",
+    "start:live": "nodemon -i ./data",
     "lint": "tslint --project tsconfig.json"
   },
   "author": "Dan Lionis",
@@ -22,8 +23,8 @@
     "discord.js": "^11.5.1",
     "fuse.js": "^3.4.5",
     "js-yaml": "^3.13.1",
+    "kvbox": "0.0.0",
     "node-fetch": "^2.6.0",
-    "node-gyp": "^5.0.3",
     "opusscript": "0.0.6",
     "rimraf": "^2.6.2",
     "systeminformation": "^4.14.4",

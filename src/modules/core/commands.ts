@@ -124,11 +124,11 @@ const PermsUser = new Command({
         const cmd = bot.findCommand(cmd_str.join(" "));
 
         if (status === "allow") {
-          bot.perms.allow_user_cmd(member, cmd);
+          await bot.perms.allow_user_cmd(member, cmd);
         } else if (status === "deny") {
-          bot.perms.deny_user_cmd(member, cmd);
+          await bot.perms.deny_user_cmd(member, cmd);
         } else {
-          bot.perms.reset_user_cmd(member, cmd);
+          await bot.perms.reset_user_cmd(member, cmd);
         }
       } else {
         if (status === "deny") {
@@ -138,22 +138,18 @@ const PermsUser = new Command({
         }
       }
     }
+    const denied = await bot.perms.get_user_denied(member);
+    const allowed = await bot.perms.get_user_allowed(member);
 
     let res = `Explicit user permissions: ${member.displayName}\n`;
     res += "\nALLOWED:\n";
-    res += bot.perms
-      .get_user_allowed(member)
-      .map((p) => "\t" + p)
-      .join("\n");
+    res += allowed.map((p) => "\t" + p).join("\n");
 
     res += "\nDENIED:\n";
     if (bot.perms.user_is_disabled(member)) {
       res += "\t*\n";
     }
-    res += bot.perms
-      .get_user_denied(member)
-      .map((p) => "\t" + p)
-      .join("\n");
+    res += denied.map((p) => "\t" + p).join("\n");
 
     msg.channel.send(res, { code: true });
     return CommandResult.Success;
@@ -171,6 +167,15 @@ export const Alias = new Command({
   name: "alias",
   about: "Manage alias expansions"
 })
+  .subcommand(
+    new Command({
+      name: "clear",
+      owner_only: true,
+      about: "clear all aliases"
+    }).handler(async (bot, msg, matches, context) => {
+      await bot.aliases.clear();
+    })
+  )
   .subcommand(
     new Command({
       name: "set",
@@ -210,19 +215,23 @@ export const Alias = new Command({
       })
   )
   .subcommand(
-    new Command({ name: "list", about: "List all aliases" }).handler(
-      async (bot, msg) => {
-        let res = "ALIASES:\n";
-        res += bot.aliases.map((a) => `${a.key} -> ${a.value}`).join("\n");
-        msg.channel.send(res, { code: true });
-      }
-    )
+    new Command({
+      name: "list",
+      about: "List all aliases",
+      aliases: ["ls"]
+    }).handler(async (bot, msg) => {
+      let res = "ALIASES:\n";
+      const aliases = await bot.aliases.entries();
+      res += aliases.map(([k, v]) => `${k} -> ${v}`).join("\n");
+      // res += bot.aliases.entries().map((a) => `${a.key} -> ${a.value}`).join("\n");
+      msg.channel.send(res, { code: true });
+    })
   )
   .subcommand(
     new Command({
       name: "remove",
       about: "Remove an alias",
-      aliases: ["delete"],
+      aliases: ["delete", "rm"],
       owner_only: true
     })
       .arg(
@@ -275,8 +284,8 @@ export const Help = new Command({
     }
 
     // dont show command the user doesn't have access to
-    commands = commands.filter((c) => {
-      const [allowed] = has_permission(bot, msg, c);
+    commands = commands.filter(async (c) => {
+      const [allowed] = await has_permission(bot, msg, c);
       return allowed;
     });
 

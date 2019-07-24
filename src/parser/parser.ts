@@ -81,7 +81,7 @@ export async function parse_message(
   msg_content: string,
   msg: Discord.Message
 ): Promise<[Command, Matches, MatchError] | undefined> {
-  const query = bot.resolveAlias(msg_content);
+  const query = await bot.resolveAlias(msg_content);
 
   const content = bot.replaceVariables(query, { msg: msg }).split(" ");
 

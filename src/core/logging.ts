@@ -13,7 +13,7 @@ export function log_cmd_exec(
   if (context.callstack.length === 1 || cmd_res !== CommandResult.Success) {
     const time = new Date();
 
-    let res = `[CMD] ${time.toISOString()} ${guild} - ${author}: ${content} - `;
+    let res = `[+] cmd: ${time.toISOString()} ${guild} - ${author}: ${content} - `;
 
     res += CommandResult[cmd_res];
 

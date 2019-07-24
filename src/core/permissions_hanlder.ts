@@ -1,14 +1,25 @@
 import * as Discord from "discord.js";
+import Datastore from "kvbox";
 import { Command } from "../parser";
+import { Bot } from "./bot";
 
 export interface Perms {
   allowed: string[];
   denied: string[];
 }
+
 export class PermissionHandler {
-  private readonly _explicit: { [user_id: string]: Perms } = {};
+  // private readonly _explicit: { [user_id: string]: Perms } = {};
+  private readonly explicit: Datastore;
   private readonly _disabled_commands: string[] = [];
   private readonly _disabled_users: string[] = [];
+
+  constructor(private bot: Bot) {
+    this.explicit = new Datastore({
+      store: this.bot.store,
+      namespace: "explicit"
+    });
+  }
 
   public deny_user(member: Discord.GuildMember) {
     if (this._disabled_users.indexOf(member.id) >= 0) {
@@ -23,75 +34,109 @@ export class PermissionHandler {
     this._disabled_users.splice(i);
   }
 
-  public allow_user_cmd(member: Discord.GuildMember, cmd: Command) {
-    if (!this._explicit[member.id]) {
-      this._explicit[member.id] = {
+  /**
+   * Explicitly allow a single command to a member
+   *
+   * @param member
+   * @param cmd
+   */
+  public async allow_user_cmd(member: Discord.GuildMember, cmd: Command) {
+    if (!(await this.explicit.has(member.id))) {
+      await this.explicit.set(member.id, {
         allowed: [],
         denied: []
-      };
+      });
     }
 
-    this.reset_user_cmd(member, cmd);
-    this._explicit[member.id].allowed.push(cmd.config.name);
+    await this.reset_user_cmd(member, cmd);
+
+    const tmp: Perms = await this.explicit.get(member.id);
+    tmp.allowed.push(cmd.config.name);
+    return this.explicit.set(member.id, tmp);
   }
 
-  public deny_user_cmd(member: Discord.GuildMember, cmd: Command) {
-    if (!this._explicit[member.id]) {
-      this._explicit[member.id] = {
+  /**
+   * Explicitly deny a single command to a member
+   *
+   * @param member
+   * @param cmd
+   */
+  public async deny_user_cmd(member: Discord.GuildMember, cmd: Command) {
+    if (!(await this.explicit.has(member.id))) {
+      await this.explicit.set(member.id, {
         allowed: [],
         denied: []
-      };
+      });
     }
 
-    this.reset_user_cmd(member, cmd);
-    this._explicit[member.id].denied.push(cmd.full_cmd_name);
+    await this.reset_user_cmd(member, cmd);
+
+    const tmp: Perms = await this.explicit.get(member.id);
+    tmp.denied.push(cmd.config.name);
+    return this.explicit.set(member.id, tmp);
   }
 
-  public reset_user_cmd(member: Discord.GuildMember, cmd: Command) {
-    if (!this._explicit[member.id]) return;
+  public async reset_user_cmd(member: Discord.GuildMember, cmd: Command) {
+    if (!(await this.explicit.has(member.id))) return;
 
-    const ia = this._explicit[member.id].allowed.indexOf(cmd.full_cmd_name);
-    const id = this._explicit[member.id].denied.indexOf(cmd.full_cmd_name);
+    const tmp = await this.explicit.get(member.id);
+
+    const ia = tmp.allowed.indexOf(cmd.full_cmd_name);
+    const id = tmp.denied.indexOf(cmd.full_cmd_name);
 
     if (ia >= 0) {
-      this._explicit[member.id].allowed.splice(ia);
+      tmp.allowed.splice(ia);
     }
 
     if (id >= 0) {
-      this._explicit[member.id].denied.splice(id);
+      tmp.denied.splice(id);
     }
+
+    return this.explicit.set(member.id, tmp);
   }
 
   public user_is_disabled(member: Discord.GuildMember): boolean {
     return this._disabled_users.indexOf(member.id) >= 0;
   }
 
-  public user_is_allowed(member: Discord.GuildMember, full_cmd_name: string) {
-    if (!this._explicit[member.id]) return false;
+  public async user_is_allowed(
+    member: Discord.GuildMember,
+    full_cmd_name: string
+  ) {
+    if (!(await this.explicit.has(member.id))) return false;
 
-    return this._explicit[member.id].allowed.indexOf(full_cmd_name) >= 0;
+    const tmp = await this.explicit.get(member.id);
+    return tmp.allowed.indexOf(full_cmd_name) >= 0;
   }
 
-  public user_is_denied(member: Discord.GuildMember, full_cmd_name: string) {
-    if (!this._explicit[member.id]) return false;
+  public async user_is_denied(
+    member: Discord.GuildMember,
+    full_cmd_name: string
+  ) {
+    if (!(await this.explicit.has(member.id))) return false;
 
-    return this._explicit[member.id].denied.indexOf(full_cmd_name) >= 0;
+    const tmp = await this.explicit.get(member.id);
+    return tmp.denied.indexOf(full_cmd_name) >= 0;
   }
 
-  public get_user_allowed(member: Discord.GuildMember): string[] {
-    if (!this._explicit[member.id]) {
+  public async get_user_allowed(
+    member: Discord.GuildMember
+  ): Promise<string[]> {
+    if (!(await this.explicit.has(member.id))) {
       return [];
     }
 
-    return this._explicit[member.id].allowed;
+    const tmp = await this.explicit.get(member.id);
+    return tmp.allowed;
   }
 
-  public get_user_denied(member: Discord.GuildMember): string[] {
-    if (!this._explicit[member.id]) {
+  public async get_user_denied(member: Discord.GuildMember): Promise<string[]> {
+    if (!(await this.explicit.has(member.id))) {
       return [];
     }
 
-    return this._explicit[member.id].denied;
+    const tmp = await this.explicit.get(member.id);
+    return tmp.denied;
   }
 
   public allow_cmd(cmd: Command) {

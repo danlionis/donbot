@@ -197,7 +197,7 @@ export let Repeat = new Command({
   )
   .handler(async (bot, msg, matches, context) => {
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
-    const alias = bot.resolveAlias(repeat_cmd[0]);
+    const alias = await bot.resolveAlias(repeat_cmd[0]);
     const force: boolean = matches.value_of("FORCE");
 
     const cmd = bot.findCommand(alias);

@@ -45,7 +45,7 @@ export function command_valid(bot: Bot, cmd: Command): boolean {
   });
 
   if (!cmd.config.about) {
-    console.log(`[WARNING] ${cmd.full_cmd_name}: no command description`);
+    console.log(`[-] ${cmd.full_cmd_name}: no command description`);
   }
 
   cmd.args.forEach((a) => {
