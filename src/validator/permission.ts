@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { Bot } from "../core/bot";
-import { Command } from "../parser";
+import { Command, CommandContext } from "../parser";
 
 export function can_modify(
   bot: Bot,
@@ -28,7 +28,8 @@ export function can_modify(
 export async function has_permission(
   bot: Bot,
   msg: Discord.Message,
-  cmd: Command
+  cmd: Command,
+  context: CommandContext
 ): Promise<[boolean, string]> {
   let allowed: boolean;
   let reason: string;
@@ -41,6 +42,10 @@ export async function has_permission(
   // deny if user is disabled
   if (bot.perms.user_is_disabled(msg.member)) {
     return [false, "user_disabled"];
+  }
+
+  if (context.flags.skip_permission) {
+    return [true, "skip_permission"];
   }
 
   // deny if command is disabled

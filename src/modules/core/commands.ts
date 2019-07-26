@@ -272,7 +272,7 @@ export const Help = new Command({
       help: "only show command names"
     })
   )
-  .handler(async (bot, msg, matches) => {
+  .handler(async (bot, msg, matches, context) => {
     let commands = bot.registry.sort();
 
     const texts: string[] = [];
@@ -284,10 +284,22 @@ export const Help = new Command({
     }
 
     // dont show command the user doesn't have access to
-    commands = commands.filter(async (c) => {
-      const [allowed] = await has_permission(bot, msg, c);
-      return allowed;
-    });
+    // commands = commands.filter(async (c) => {
+    //   const [allowed] = await has_permission(bot, msg, c);
+    //   console.log(allowed);
+    //   return allowed;
+    // });
+
+    const tmp: Command[] = [];
+
+    for (const c of commands) {
+      const [allowed] = await has_permission(bot, msg, c, context);
+      if (allowed) {
+        tmp.push(c);
+      }
+    }
+
+    commands = tmp;
 
     commands.sort((a, b) => a.config.name.localeCompare(b.config.name));
 
