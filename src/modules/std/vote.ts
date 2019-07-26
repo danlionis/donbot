@@ -1,9 +1,77 @@
 import * as Discord from "discord.js";
 import { Module } from "../../core/module";
 import { Arg, Command, CommandResult } from "../../parser";
-import { CommandContext } from "../../parser/context";
 import { Duration } from "../../utils/duration";
-import { can_modify } from "../../validator/permission";
+
+const VoteMute = new Command({
+  name: "mute",
+  about: "Vote to mute a member"
+})
+  .arg(
+    new Arg({
+      name: "TARGET",
+      type: "member",
+      positional: true,
+      required: true,
+      help: "Member you want to mute"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "TTL",
+      short: "t",
+      long: "time",
+      default: 5,
+      takes_value: true,
+      help: "How long the vote should last (in minutes)s",
+      type: "number"
+    })
+  )
+  .handler(async (bot, msg, matches, context) => {
+    const target: Discord.GuildMember = matches.value_of("TARGET");
+    const ttl: number = matches.value_of("TTL");
+    const votes = new Map<string, string>();
+
+    if (!target.voiceChannel) {
+      msg.reply("Target is not connected to a voice channel", { code: true });
+      return CommandResult.Failed;
+    }
+
+    const required = Math.ceil(target.voiceChannel.members.array().length / 2);
+
+    const embed = new Discord.RichEmbed()
+      .setAuthor(msg.member.user.tag)
+      .addField("Target", target)
+      .addField("Time (m)", ttl)
+      .addField("Required", required)
+      .setTitle("VoteMute started");
+
+    const sent = await msg.channel.send(embed);
+
+    let count = 0;
+    const voted = new Set<string>();
+
+    if (sent instanceof Discord.Message) {
+      await sent.react("🔇");
+      const collector = sent.createReactionCollector(() => true, {
+        time: Duration.MINUTE * ttl
+      });
+      collector.on("collect", (reaction) => {
+        // only accept the bots reaction
+        if (reaction.count !== 1) {
+          count++;
+        }
+        if (count >= required) {
+          collector.stop();
+        }
+      });
+      collector.on("end", () => {
+        if (count >= required) {
+          target.setMute(true);
+        }
+      });
+    }
+  });
 
 const VoteElect = new Command({
   name: "elect",
@@ -238,7 +306,9 @@ const VoteElect = new Command({
 const Vote = new Command({
   name: "vote",
   about: "Start a vote"
-}).subcommand(VoteElect);
+})
+  .subcommand(VoteElect)
+  .subcommand(VoteMute);
 
 export const VoteModule: Module = {
   name: "vote",
