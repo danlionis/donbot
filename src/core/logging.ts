@@ -10,6 +10,10 @@ export function log_cmd_exec(
   cmd_res: CommandResult,
   context: CommandContext
 ) {
+  if (context.flags.no_log) {
+    return;
+  }
+
   if (context.callstack.length === 1 || cmd_res !== CommandResult.Success) {
     const time = new Date();
 

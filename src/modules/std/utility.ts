@@ -34,16 +34,18 @@ export const TryCatch = new Command({
     }
 
     let res: CommandResult;
+    context.flags.no_log = true;
+    context.flags.silent = true;
     res = await handle_cmd(bot, try_statement, msg, context);
 
     if (res === CommandResult.Success) {
       return CommandResult.Success;
     } else if (catch_pos !== -1) {
       const catch_statement = query.slice(catch_pos + 1).join(" ");
+      context.flags.no_log = false;
+      context.flags.silent = false;
       res = await handle_cmd(bot, catch_statement, msg, context);
       return res;
-    } else {
-      return CommandResult.Failed;
     }
   });
 

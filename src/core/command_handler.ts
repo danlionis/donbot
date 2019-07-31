@@ -62,15 +62,14 @@ export async function handle_cmd(
     res = CommandResult.Success;
   } else if (!allowed) {
     // if user has no permission for the command
-    bot.reply_permission_denied(content, msg);
+    bot.replyResult(cmd, msg, CommandResult.PermissionDenied, context);
 
     res = CommandResult.PermissionDenied;
 
     // return CommandResult.PermissionDenied;
   } else if (matches.value_of("help")) {
     // if help flag is set
-    // msg.channel.send(cmd.help(), { code: true });
-    bot.reply_send_help(msg, cmd);
+    bot.replyResult(cmd, msg, CommandResult.SendHelp, context);
 
     res = CommandResult.SendHelp;
     // return CommandResult.SendHelp;
@@ -98,29 +97,21 @@ export async function handle_cmd(
         cmd.args.find((a) => a.config.name === wrong_type).config.type
       })\n`;
     }
+
     error_text += `See '${cmd.full_cmd_name} --help'`;
-    msg.channel.send(error_text, { code: true });
+
+    if (!context.flags.silent) {
+      msg.reply(error_text, { code: true });
+    }
 
     res = CommandResult.Error;
-    // return CommandResult.Error;
   } else {
     // parsing successful, execute command
     res =
       (await cmd.handler_fn.bind(cmd)(bot, msg, matches, context.clone())) ||
       CommandResult.Success;
 
-    switch (res) {
-      case CommandResult.PermissionDenied:
-        bot.reply_permission_denied(content, msg);
-        break;
-      case CommandResult.SendHelp:
-      case CommandResult.Unimplemented:
-        bot.reply_send_help(msg, cmd);
-        break;
-
-      default:
-        break;
-    }
+    bot.replyResult(cmd, msg, res, context);
   }
 
   if (!cmd.config.no_log) {

@@ -79,7 +79,7 @@ export class PermissionHandler {
   public async reset_user_cmd(member: Discord.GuildMember, cmd: Command) {
     if (!(await this.explicit.has(member.id))) return;
 
-    const tmp = await this.explicit.get(member.id);
+    const tmp: any = await this.explicit.get(member.id);
 
     const ia = tmp.allowed.indexOf(cmd.full_cmd_name);
     const id = tmp.denied.indexOf(cmd.full_cmd_name);
@@ -105,7 +105,7 @@ export class PermissionHandler {
   ) {
     if (!(await this.explicit.has(member.id))) return false;
 
-    const tmp = await this.explicit.get(member.id);
+    const tmp: any = await this.explicit.get(member.id);
     return tmp.allowed.indexOf(full_cmd_name) >= 0;
   }
 
@@ -115,7 +115,7 @@ export class PermissionHandler {
   ) {
     if (!(await this.explicit.has(member.id))) return false;
 
-    const tmp = await this.explicit.get(member.id);
+    const tmp: any = await this.explicit.get(member.id);
     return tmp.denied.indexOf(full_cmd_name) >= 0;
   }
 
@@ -126,7 +126,7 @@ export class PermissionHandler {
       return [];
     }
 
-    const tmp = await this.explicit.get(member.id);
+    const tmp: any = await this.explicit.get(member.id);
     return tmp.allowed;
   }
 
@@ -135,7 +135,7 @@ export class PermissionHandler {
       return [];
     }
 
-    const tmp = await this.explicit.get(member.id);
+    const tmp: any = await this.explicit.get(member.id);
     return tmp.denied;
   }
 

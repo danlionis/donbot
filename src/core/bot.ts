@@ -5,7 +5,7 @@ import { Datastore, FileStore, StorageAdapter } from "kvbox";
 import CoreModule from "../modules/core";
 import StdModule from "../modules/std";
 import VoiceModule from "../modules/voice";
-import { CmdLog, Command, CommandContext } from "../parser";
+import { CmdLog, Command, CommandContext, CommandResult } from "../parser";
 import { format_string } from "../utils/formatter";
 import { command_valid } from "../validator/validator";
 import { handle_cmd } from "./command_handler";
@@ -162,6 +162,7 @@ export class Bot extends Discord.Client {
   }
 
   public addAlias(key: string, value: string) {
+    value = value.replace("\\$", "$");
     this.aliases.set(key, value);
   }
 
@@ -172,7 +173,7 @@ export class Bot extends Discord.Client {
   public async resolveAlias(query: string): Promise<string> {
     const keys = query.split(" ");
     const key = keys.shift();
-    const a = await this.aliases.get(key);
+    const a: string = await this.aliases.get(key);
 
     if (!a) {
       return query;
@@ -198,12 +199,9 @@ export class Bot extends Discord.Client {
     { msg }: { msg: Discord.Message }
   ): string {
     const member = msg.member;
-    // query = query.replace(/(?<!\\)\$ME/gi, member.toString());
-    // query = query.replace(/(?<!\\)\$BOT/gi, this.user.toString());
-    // query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.owner_id}>`);
-    query = query.replace(/\$ME/gi, member.toString());
-    query = query.replace(/\$BOT/gi, this.user.toString());
-    query = query.replace(/\$OWNER/gi, `<@${this.config.owner_id}>`);
+    query = query.replace(/(?<!\\)\$ME/gi, member.toString());
+    query = query.replace(/(?<!\\)\$BOT/gi, this.user.toString());
+    query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.owner_id}>`);
 
     return query;
   }
@@ -212,28 +210,8 @@ export class Bot extends Discord.Client {
     return this.aliases.has(key);
   }
 
-  // public get aliases(): Array<{ key: string; value: string }> {
-  //   const res = [];
-
-  //   this._aliases.forEach((value, key) => {
-  //     res.push({ key, value });
-  //   });
-
-  //   return res;
-  // }
-
   public removeAlias(key: string) {
     this.aliases.delete(key);
-  }
-
-  public reply_send_help(msg: Discord.Message, cmd: Command) {
-    if (cmd) {
-      const mins = 1;
-      msg.channel.send(cmd.help(), { code: true });
-      // .then(async (m: Discord.Message) => await m.delete(mins * 60 * 1000));
-
-      // msg.delete(mins * 10 * 1000);
-    }
   }
 
   public getLogs() {
@@ -248,8 +226,36 @@ export class Bot extends Discord.Client {
     }
   }
 
-  public reply_permission_denied(cmd: string, msg: Discord.Message) {
-    msg.reply(`${cmd.split(" ")[0]}: permission denied`, { code: true });
+  public replyResult(
+    cmd: Command,
+    msg: Discord.Message,
+    res: CommandResult,
+    context: CommandContext
+  ) {
+    if (context.flags.silent) {
+      return;
+    }
+
+    // dont log successful commands & very likely to be a problem within the command so dont log
+    if (res === CommandResult.Success || res === CommandResult.Failed) {
+      return;
+    }
+
+    let text = "";
+    switch (res) {
+      case CommandResult.PermissionDenied:
+        text = `${cmd.full_cmd_name}: permission denied`;
+        break;
+      // case CommandResult.Error:
+      //   text = `${cmd.full_cmd_name}: there was an error`;
+      //   break;
+      case CommandResult.SendHelp:
+      case CommandResult.Unimplemented:
+        text = cmd.help();
+        break;
+    }
+
+    msg.reply(text, { code: true });
   }
 
   public reply_command_not_found(
@@ -262,10 +268,6 @@ export class Bot extends Discord.Client {
       res += `\n\nDid you mean: ${alternative.full_cmd_name}`;
     }
     msg.reply(res, { code: true });
-  }
-
-  public reply_error(msg: Discord.Message) {
-    msg.reply("500: There was an error");
   }
 
   public isOwner(id: string): boolean {
