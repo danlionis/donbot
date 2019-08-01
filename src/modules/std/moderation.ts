@@ -220,8 +220,16 @@ export const Logs = new Command({
       default: 10
     })
   )
+  .arg(
+    new Arg({
+      name: "JSON",
+      long: "json",
+      help: "Show output as JSON"
+    })
+  )
   .handler((bot, msg, matches) => {
-    const count = matches.value_of("COUNT");
+    const count: number = matches.value_of("COUNT");
+    const json: boolean = matches.value_of("JSON");
 
     let cmd_logs = bot.getLogs();
 
@@ -229,8 +237,19 @@ export const Logs = new Command({
       cmd_logs = cmd_logs.slice(cmd_logs.length - count);
     }
 
-    const res =
-      cmd_logs.map((log) => JSON.stringify(log)).join("\n") || "no logs";
+    let res = "";
+    if (json) {
+      res = JSON.stringify(cmd_logs, null, 1) || "[]";
+    } else {
+      res = cmd_logs
+        .map(
+          (l) =>
+            `${new Date(l.timestamp)} ${l.user}: ${l.content} [${
+              CommandResult[l.result]
+            }]`
+        )
+        .join("\n");
+    }
     msg.channel.send(res, { code: "json" });
   });
 
