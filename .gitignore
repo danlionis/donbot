@@ -31,8 +31,8 @@ jspm_packages/
 lib/
 typings/
 
+# user data
+shared/
+
 # Misc
 /start.bat
-data/db.json
-examples/quickstart/db.json
-config/config.bot.yaml

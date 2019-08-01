@@ -14,26 +14,27 @@ export interface Config {
 }
 
 export function load_config(): Config {
-  let file = fs.readFileSync(
-    // __dirname + "../../shared/config/config.bot.yaml",
-    path.resolve("./shared/config/config.bot.yaml"),
-    "utf8"
-  );
-
-  const doc: Config = yaml.safeLoad(file);
+  const defaultConfig: Config = {
+    token: null,
+    prefix: ".",
+    owner_id: null,
+    bot_name: "donbot",
+    role: null,
+    command_depth: 10,
+    standard_module: true,
+    voice_module: true
+  };
 
   let res: Config;
   try {
-    file = fs.readFileSync(
-      path.resolve("./config/config.bot.yaml"),
-
+    const file = fs.readFileSync(
+      path.resolve("./shared/config/config.bot.yaml"),
       "utf8"
     );
-    res = { ...doc, ...yaml.safeLoad(file) };
+    res = { ...defaultConfig, ...yaml.safeLoad(file) };
   } catch {
-    res = { ...doc };
+    res = { ...defaultConfig };
   }
 
-  // console.log("config: path ", path.resolve("./config/config.bot.yaml"));
   return res;
 }
