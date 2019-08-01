@@ -66,12 +66,12 @@ export class Bot extends Discord.Client {
     this.on("voiceStateUpdate", this.onMemberUpdate);
     this.on("message", this.onMessage);
 
-    process.on("SIGINT", async () => {
-      // notify the owner that the process was terminated
-      const owner = await this.fetchUser(this.config.owner_id);
-      await owner.send(`[INFO] recieved SIGINT`);
-      process.exit(0);
-    });
+    // process.on("SIGINT", async () => {
+    //   // notify the owner that the process was terminated
+    //   const owner = await this.fetchUser(this.config.owner_id);
+    //   await owner.send(`[INFO] recieved SIGINT`);
+    //   process.exit(0);
+    // });
   }
 
   public registerModule(mod: Module) {
