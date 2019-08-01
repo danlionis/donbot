@@ -10,6 +10,7 @@ import { format_string } from "../utils/formatter";
 import { command_valid } from "../validator/validator";
 import { handle_cmd } from "./command_handler";
 import { Config, load_config } from "./config";
+import { DatastoreManager } from "./datastore";
 import { Module } from "./module";
 import { PermissionHandler } from "./permissions_hanlder";
 
@@ -21,8 +22,9 @@ export class Bot extends Discord.Client {
 
   public readonly cmd_logs: CmdLog[] = [];
 
-  public readonly store: StorageAdapter;
   public readonly aliases: Datastore;
+
+  public readonly datastore: DatastoreManager;
 
   constructor(config?: Config, clientOptions?: Discord.ClientOptions) {
     super(clientOptions);
@@ -36,11 +38,8 @@ export class Bot extends Discord.Client {
     this.config = load_config();
 
     console.log("[*] init: datastore");
-    this.store = new FileStore({ path: "data/db.json" });
-    this.aliases = new Datastore({
-      store: this.store,
-      namespace: "alias"
-    });
+    this.datastore = new DatastoreManager();
+    this.aliases = this.datastore.namespace("aliases");
 
     console.log("[*] init: permission handler");
     this.perms = new PermissionHandler(this);

@@ -15,10 +15,7 @@ export class PermissionHandler {
   private readonly _disabled_users: string[] = [];
 
   constructor(private bot: Bot) {
-    this.explicit = new Datastore({
-      store: this.bot.store,
-      namespace: "explicit"
-    });
+    this.explicit = bot.datastore.namespace("explicit");
   }
 
   public deny_user(member: Discord.GuildMember) {
