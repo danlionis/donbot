@@ -26,17 +26,15 @@ export const Unpause = new Command({
     const bot_channel = connection.channel;
     const member_channel = msg.member.voiceChannel;
 
-    if (force) {
-      connection.dispatcher.resume();
-      return CommandResult.Success;
-    }
-
-    if (!member_channel || bot_channel.id !== member_channel.id) {
+    if (!force && (!member_channel || bot_channel.id !== member_channel.id)) {
       msg.reply("You have to be in the same voice channel as the bot");
       return CommandResult.Failed;
     }
 
-    connection.dispatcher.resume();
+    if (connection.dispatcher) {
+      connection.dispatcher.resume();
+    }
+    bot.voiceManager.check();
   });
 
 export const Pause = new Command({
@@ -63,17 +61,13 @@ export const Pause = new Command({
     const bot_channel = connection.channel;
     const member_channel = msg.member.voiceChannel;
 
-    if (force) {
-      connection.dispatcher.pause();
-      return CommandResult.Success;
-    }
-
-    if (!member_channel || bot_channel.id !== member_channel.id) {
+    if (!force && (!member_channel || bot_channel.id !== member_channel.id)) {
       msg.reply("You have to be in the same voice channel as the bot");
       return CommandResult.Failed;
     }
 
     connection.dispatcher.pause();
+    bot.voiceManager.startTimeout(connection);
   });
 
 export const Disconnect = new Command({
@@ -100,16 +94,13 @@ export const Disconnect = new Command({
     const bot_channel = connection.channel;
     const member_channel = msg.member.voiceChannel;
 
-    if (force) {
-      connection.disconnect();
-      return CommandResult.Success;
-    }
-
-    if (!member_channel || bot_channel.id !== member_channel.id) {
+    if (!force && (!member_channel || bot_channel.id !== member_channel.id)) {
       msg.reply("You have to be in the same voice channel as the bot");
       return CommandResult.Failed;
     }
+
     connection.disconnect();
+    bot.voiceManager.clearTimeout(connection.channel.guild);
     bot.user.setActivity("");
   });
 
@@ -149,6 +140,7 @@ export const Join = new Command({
     }
 
     msg.member.voiceChannel.join();
+    bot.voiceManager.clearTimeout(msg.guild);
   });
 
 export const Volume = new Command({

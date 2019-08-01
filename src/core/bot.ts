@@ -13,6 +13,7 @@ import { Config, load_config } from "./config";
 import { DatastoreManager } from "./datastore";
 import { Module } from "./module";
 import { PermissionHandler } from "./permissions_hanlder";
+import { VoiceManager } from "./voice_manager";
 
 export class Bot extends Discord.Client {
   public registry: Command[] = [];
@@ -23,6 +24,8 @@ export class Bot extends Discord.Client {
   public readonly cmd_logs: CmdLog[] = [];
 
   public readonly aliases: Datastore;
+
+  public readonly voiceManager: VoiceManager;
 
   public readonly datastore: DatastoreManager;
 
@@ -43,6 +46,9 @@ export class Bot extends Discord.Client {
 
     console.log("[*] init: permission handler");
     this.perms = new PermissionHandler(this);
+
+    console.log("[*] init: voice manager");
+    this.voiceManager = new VoiceManager(this);
 
     // overwrite with parameter config
     this.config = { ...this.config, ...config };
