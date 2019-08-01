@@ -1,8 +1,0 @@
-token: "--login-token--"
-owner_id: "--owner-id--"
-prefix: "."
-bot_name: "DonBot"
-role: ""
-command_depth: 10
-standard_module: true
-voice_module: true
