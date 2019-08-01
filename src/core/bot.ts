@@ -42,7 +42,7 @@ export class Bot extends Discord.Client {
 
     console.log("[*] init: datastore");
     this.datastore = new DatastoreManager();
-    this.aliases = this.datastore.namespace("aliases");
+    this.aliases = this.datastore.namespace("alias");
 
     console.log("[*] init: permission handler");
     this.perms = new PermissionHandler(this);
