@@ -4,7 +4,7 @@ import { Arg } from "./arg";
 import { CommandContext } from "./context";
 import { Matches } from "./matches";
 
-export type HanlderFn<T> = (
+export type HanlderFn = (
   bot: Bot,
   message: Discord.Message,
   matches: Matches,
@@ -70,7 +70,7 @@ export class Command {
   public readonly config: CommandConfig;
   public readonly args: Arg[] = [];
   public readonly subcommands: Command[] = [];
-  private _handler_fn: HanlderFn<any>;
+  private _handler_fn: HanlderFn;
 
   private _parent_command: string = "";
 
@@ -130,22 +130,14 @@ export class Command {
     return this;
   }
 
-  public handler(fn: HanlderFn<any>): Command {
+  public handler(fn: HanlderFn): Command {
     this._handler_fn = fn;
     return this;
   }
 
-  public get handler_fn(): HanlderFn<any> {
+  public get handler_fn(): HanlderFn {
     return this._handler_fn;
   }
-
-  // public set context(ctx: CommandContext<any>) {
-  //   this._context = ctx;
-  // }
-
-  // public get context(): CommandContext<any> {
-  //   return this._context;
-  // }
 
   public owner_only(owner_only: boolean = true): Command {
     this.config.owner_only = owner_only;
