@@ -5,13 +5,9 @@
     "module": "commonjs",
     "declaration": true,
     "declarationDir": "typings",
-    "removeComments": true,
+    "removeComments": false,
     "target": "es6"
   },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./node_modules"
-  ]
+  "include": ["./src/**/*"],
+  "exclude": ["./node_modules"]
 }

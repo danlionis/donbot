@@ -13,7 +13,7 @@
     "build": "tsc",
     "build:live": "tsc --watch",
     "start": "node ./index.js",
-    "start:live": "nodemon -i ./data",
+    "live": "nodemon --exec ts-node index.ts -i ./shared",
     "lint": "tslint --project tsconfig.json"
   },
   "author": "Dan Lionis",
@@ -28,14 +28,14 @@
     "opusscript": "0.0.6",
     "rimraf": "^2.6.2",
     "systeminformation": "^4.14.4",
-    "ts-node": "^8.3.0",
     "typescript": "^3.5.3"
   },
   "devDependencies": {
     "@types/js-yaml": "^3.12.1",
     "@types/node": "^12.6.8",
-    "@types/node-fetch": "^2.3.7",
+    "@types/node-fetch": "^2.5.0",
     "@types/systeminformation": "^3.23.0",
+    "ts-node": "^8.3.0",
     "tslint": "^5.18.0"
   }
 }
