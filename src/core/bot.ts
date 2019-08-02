@@ -147,11 +147,31 @@ export class Bot extends Discord.Client {
       (await this.datastore.namespace("prefix").get(msg.guild.id)) ||
       this.config.prefix;
 
-    if (!msg.content.startsWith(prefix)) {
+    const firstMention = msg.mentions.members.first();
+    let content: string;
+
+    // Check if the first mention is the bot, to allow command invocation this way
+    if (
+      firstMention !== undefined &&
+      msg.content.startsWith(firstMention.toString()) &&
+      firstMention.user.id === this.user.id
+    ) {
+      content = msg.content.substr(firstMention.toString().length);
+
+      if (content.length === 0) {
+        await handle_cmd(this, "help", msg, new CommandContext());
+        return;
+      }
+    } else if (msg.content.startsWith(prefix)) {
+      content = msg.content.substr(prefix.length);
+
+      if (content.length === 0) {
+        return;
+      }
+    } else {
       return;
     }
 
-    let content = msg.content.substr(prefix.length);
     content = content
       .split(" ")
       .filter(Boolean)
