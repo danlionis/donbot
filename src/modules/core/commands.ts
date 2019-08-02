@@ -3,6 +3,38 @@ import { handle_cmd } from "../../core/command_handler";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { has_permission } from "../../validator/permission";
 
+export const Settings = new Command({
+  name: "settings",
+  about: "Change the bots settings",
+  owner_only: true
+}).subcommand(
+  new Command({
+    name: "prefix",
+    about: "Change the prefix for the bot"
+  })
+    .arg(
+      new Arg({
+        name: "PREFIX",
+        help: "New prefix",
+        positional: true,
+        type: "string"
+      })
+    )
+    .handler(async (bot, msg, matches, context) => {
+      const newPrefix: string = matches.value_of("PREFIX");
+      const prefixes = bot.datastore.namespace("prefix");
+      if (newPrefix === undefined) {
+        msg.reply(
+          "prefix:" + ((await prefixes.get(msg.guild.id)) || bot.config.prefix),
+          { code: true }
+        );
+        return;
+      }
+
+      await prefixes.set(msg.guild.id, newPrefix);
+    })
+);
+
 export const RerunLast = new Command({
   name: "rerun",
   about: "rerun last successfull command",

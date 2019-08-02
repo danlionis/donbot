@@ -143,11 +143,15 @@ export class Bot extends Discord.Client {
     // ignore dm messagess
     if (msg.channel.type === "dm") return;
 
-    if (!msg.content.startsWith(this.config.prefix)) {
+    const prefix: string =
+      (await this.datastore.namespace("prefix").get(msg.guild.id)) ||
+      this.config.prefix;
+
+    if (!msg.content.startsWith(prefix)) {
       return;
     }
 
-    let content = msg.content.substr(this.config.prefix.length);
+    let content = msg.content.substr(prefix.length);
     content = content
       .split(" ")
       .filter(Boolean)
