@@ -242,7 +242,11 @@ export class Bot extends Discord.Client {
     }
 
     // dont log successful commands & very likely to be a problem within the command so dont log
-    if (res === CommandResult.Success || res === CommandResult.Failed) {
+    if (
+      res === CommandResult.Success ||
+      res === CommandResult.Failed ||
+      res === CommandResult.Error
+    ) {
       return;
     }
 
