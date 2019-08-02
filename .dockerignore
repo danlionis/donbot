@@ -1,5 +1,9 @@
 node_modules
 .vscode
-docs
 .prettierrc
 .editorconfig
+README.md
+typings/
+lib/
+shared/
+index.ts
