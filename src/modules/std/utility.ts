@@ -230,9 +230,9 @@ export let Repeat = new Command({
 
     for (let i = 0; i < repeat_amout; i++) {
       let content = repeat_cmd.join(" ");
-      content = content.replace("{i}", i.toString());
-      content = content.replace("{i+1}", (i + 1).toString());
-      content = content.replace("{i-1}", (repeat_amout - i).toString());
+      content = content.replace(/{i}/g, i.toString());
+      content = content.replace(/{i\+1}/g, (i + 1).toString());
+      content = content.replace(/{i\-1}/g, (repeat_amout - i).toString());
       const res = await handle_cmd(bot, content, msg, context.clone());
       if (res !== CommandResult.Success) {
         break;
