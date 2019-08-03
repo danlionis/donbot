@@ -3,6 +3,7 @@ import { Bot } from "../core/bot";
 import { Duration } from "../utils/duration";
 import { Arg } from "./arg";
 import { Command } from "./command";
+import { CommandContext } from "./context";
 import { Matches } from "./matches";
 
 interface MatchError {
@@ -79,11 +80,17 @@ async function convert_arg_values(
 export async function parse_message(
   bot: Bot,
   msg_content: string,
-  msg: Discord.Message
+  msg: Discord.Message,
+  context: CommandContext
 ): Promise<[Command, Matches, MatchError] | undefined> {
-  const query = await bot.resolveAlias(msg_content);
+  const alias = await bot.aliases.resolve(msg_content);
 
-  const content = bot.replaceVariables(query, { msg: msg }).split(" ");
+  if (alias !== null) {
+    msg_content = alias.expansion;
+    context.flags.skip_permission = alias.flags.skip_permission;
+  }
+
+  const content = bot.replaceVariables(msg_content, { msg: msg }).split(" ");
 
   let cmd = bot.findCommand(content.shift());
 

@@ -18,7 +18,7 @@ export async function handle_cmd(
     return CommandResult.Error;
   }
 
-  const parsed = await parse_message(bot, content, msg);
+  const parsed = await parse_message(bot, content, msg, context);
   const author = msg.author.tag;
 
   if (parsed === undefined) {
@@ -115,14 +115,11 @@ export async function handle_cmd(
   }
 
   if (!cmd.config.no_log) {
-    log_cmd_exec(
-      bot,
-      msg.guild.nameAcronym,
-      author,
-      await bot.resolveAlias(content),
-      res,
-      context
-    );
+    const alias = await bot.aliases.resolve(content);
+    if (alias !== null) {
+      content = alias.expansion;
+    }
+    log_cmd_exec(bot, msg.guild.nameAcronym, author, content, res, context);
   }
 
   return res;

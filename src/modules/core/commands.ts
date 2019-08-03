@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { Alias } from "../../core/alias_handler";
 import { handle_cmd } from "../../core/command_handler";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { has_permission } from "../../validator/permission";
@@ -195,7 +196,7 @@ export const Perms = new Command({
   .subcommand(PermsCommand)
   .subcommand(PermsUser);
 
-export const Alias = new Command({
+export const ManageAlias = new Command({
   name: "alias",
   about: "Manage alias expansions"
 })
@@ -217,6 +218,15 @@ export const Alias = new Command({
     })
       .arg(
         new Arg({
+          name: "SKIPPERMS",
+          short: "s",
+          long: "skip-permissions",
+          help: "Allow the execution of this alias to everyone",
+          default: false
+        })
+      )
+      .arg(
+        new Arg({
           name: "ALIAS",
           positional: true,
           required: true,
@@ -233,17 +243,27 @@ export const Alias = new Command({
         })
       )
       .handler(async (bot, msg, matches) => {
-        const alias = matches.value_of("ALIAS");
-        const cmd = (matches.value_of("COMMAND") as string[]).join(" ");
+        const key = matches.value_of("ALIAS");
 
-        if (bot.registry.map((c) => c.config.name).indexOf(alias) >= 0) {
+        if (bot.registry.map((c) => c.config.name).indexOf(key) >= 0) {
           msg.channel.send(
-            `Cannot set alias. Command with name ${alias} already exists`
+            `Cannot set alias. Command with name ${key} already exists`
           );
           return CommandResult.Failed;
         }
 
-        bot.addAlias(alias, cmd);
+        const cmd = (matches.value_of("COMMAND") as string[]).join(" ");
+        const skipPermissions: boolean = matches.value_of("SKIPPERMS") || false;
+
+        const alias: Alias = {
+          key: key,
+          expansion: cmd,
+          flags: {
+            skip_permission: skipPermissions
+          }
+        };
+
+        await bot.aliases.add(alias);
       })
   )
   .subcommand(
@@ -251,13 +271,28 @@ export const Alias = new Command({
       name: "list",
       about: "List all aliases",
       aliases: ["ls"]
-    }).handler(async (bot, msg) => {
-      let res = "ALIASES:\n";
-      const aliases = await bot.aliases.entries();
-      res += aliases.map(([k, v]) => `${k} -> ${v}`).join("\n");
-      // res += bot.aliases.entries().map((a) => `${a.key} -> ${a.value}`).join("\n");
-      msg.channel.send(res, { code: true });
     })
+      .arg(
+        new Arg({
+          name: "JSON",
+          long: "json",
+          help: "Show aliases as json"
+        })
+      )
+      .handler(async (bot, msg, matches) => {
+        if (matches.value_of("JSON")) {
+          msg.reply(
+            JSON.stringify(await bot.aliases.store.values<Alias>(), null, 2),
+            { code: "json" }
+          );
+          return CommandResult.Success;
+        }
+
+        let res = "ALIASES:\n";
+        const aliases = await bot.aliases.store.entries<Alias>();
+        res += aliases.map(([k, v]) => `${k} -> ${v.expansion}`).join("\n");
+        msg.channel.send(res, { code: true });
+      })
   )
   .subcommand(
     new Command({
@@ -277,7 +312,7 @@ export const Alias = new Command({
       .handler(async (bot, msg, matches) => {
         const alias = matches.value_of("ALIAS");
 
-        bot.removeAlias(alias);
+        bot.aliases.remove(alias);
       })
   );
 

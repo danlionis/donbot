@@ -1,13 +1,13 @@
 import * as cfonts from "cfonts";
 import * as Discord from "discord.js";
 import * as fs from "fs";
-import { Datastore, FileStore, StorageAdapter } from "kvbox";
 import CoreModule from "../modules/core";
 import StdModule from "../modules/std";
 import VoiceModule from "../modules/voice";
 import { CmdLog, Command, CommandContext, CommandResult } from "../parser";
 import { format_string } from "../utils/formatter";
 import { command_valid } from "../validator/validator";
+import { AliasHandler } from "./alias_handler";
 import { handle_cmd } from "./command_handler";
 import { Config, load_config } from "./config";
 import { DatastoreManager } from "./datastore";
@@ -23,11 +23,11 @@ export class Bot extends Discord.Client {
 
   public readonly cmd_logs: CmdLog[] = [];
 
-  public readonly aliases: Datastore;
-
   public readonly voiceManager: VoiceManager;
 
   public readonly datastore: DatastoreManager;
+
+  public readonly aliases: AliasHandler;
 
   constructor(config?: Config, clientOptions?: Discord.ClientOptions) {
     super(clientOptions);
@@ -42,7 +42,8 @@ export class Bot extends Discord.Client {
 
     console.log("[*] init: datastore");
     this.datastore = new DatastoreManager();
-    this.aliases = this.datastore.namespace("alias");
+    // this.aliases = this.datastore.namespace("alias");
+    this.aliases = new AliasHandler(this);
 
     console.log("[*] init: permission handler");
     this.perms = new PermissionHandler(this);
@@ -62,7 +63,7 @@ export class Bot extends Discord.Client {
       this.registerModule(VoiceModule);
     }
 
-    this.on("ready", this.onReady);
+    this.once("ready", this.onReady);
     this.on("voiceStateUpdate", this.onMemberUpdate);
     this.on("message", this.onMessage);
 
@@ -143,9 +144,10 @@ export class Bot extends Discord.Client {
     // ignore dm messagess
     if (msg.channel.type === "dm") return;
 
+    const prefixes = await this.datastore.namespace("prefix");
+
     const prefix: string =
-      (await this.datastore.namespace("prefix").get(msg.guild.id)) ||
-      this.config.prefix;
+      (await prefixes.get(msg.guild.id)) || this.config.prefix;
 
     const firstMention = msg.mentions.members.first();
     let content: string;
@@ -190,27 +192,6 @@ export class Bot extends Discord.Client {
     return super.login(token || this.config.token);
   }
 
-  public addAlias(key: string, value: string) {
-    value = value.replace("\\$", "$");
-    this.aliases.set(key, value);
-  }
-
-  /**
-   * Expands the alias and replaces placeholders
-   * @param query
-   */
-  public async resolveAlias(query: string): Promise<string> {
-    const keys = query.split(" ");
-    const key = keys.shift();
-    const a: string = await this.aliases.get(key);
-
-    if (!a) {
-      return query;
-    }
-
-    return format_string(a, ...keys);
-  }
-
   /**
    * Replace the following variables with their corresponding values:
    *
@@ -233,14 +214,6 @@ export class Bot extends Discord.Client {
     query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.owner_id}>`);
 
     return query;
-  }
-
-  public async isAlias(key: string): Promise<boolean> {
-    return this.aliases.has(key);
-  }
-
-  public removeAlias(key: string) {
-    this.aliases.delete(key);
   }
 
   public getLogs() {
