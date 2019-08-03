@@ -221,10 +221,17 @@ export let Repeat = new Command({
   )
   .handler(async (bot, msg, matches, context) => {
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
-    const alias = await bot.aliases.resolve(repeat_cmd[0]);
     const force: boolean = matches.value_of("FORCE");
 
-    const cmd = bot.findCommand(alias.expansion);
+    let content = repeat_cmd.join(" ");
+
+    const alias = await bot.aliases.resolve(content);
+
+    if (alias !== null) {
+      content = alias.expansion;
+    }
+
+    const cmd = bot.findCommand(content);
 
     if (!cmd) {
       bot.reply_command_not_found(repeat_cmd[0], msg);
