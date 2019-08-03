@@ -1,6 +1,7 @@
 import { handle_cmd } from "../../core/command_handler";
 import { Module } from "../../core/module";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
+import { Duration } from "../../utils/duration";
 
 /**
  * Usage:
@@ -86,6 +87,16 @@ export let Chain = new Command({
   )
   .arg(
     new Arg({
+      name: "COUNT",
+      short: "c",
+      long: "count",
+      takes_value: true,
+      type: "number",
+      help: `The amount of commands included in the chain. Use to prevent command injection`
+    })
+  )
+  .arg(
+    new Arg({
       name: "SEPARATOR",
       help: "separate the following commands by this symbol",
       default: " + ",
@@ -105,10 +116,21 @@ export let Chain = new Command({
   )
   .handler(async (bot, msg, matches, context) => {
     const input: string[] = matches.value_of("COMMANDS");
+    const count: number = matches.value_of("COUNT");
 
     const commands: string[] = input
       .join(" ")
       .split(matches.value_of("SEPARATOR"));
+
+    if (count !== undefined && count !== commands.length) {
+      msg.reply(
+        `given chain length not matching actual length: ${count} != ${
+          commands.length
+        }`,
+        { code: true }
+      );
+      return CommandResult.Error;
+    }
 
     for (let i = 0; i < commands.length; i++) {
       const content = commands[i].trim();
@@ -125,7 +147,7 @@ export let Chain = new Command({
 
 export let Delay = new Command({
   name: "delay",
-  about: "Delays a command vor a given amount of seconds",
+  about: "Delays a command for a given amount of seconds",
   danger: true
 })
   .arg(
@@ -133,7 +155,7 @@ export let Delay = new Command({
       name: "TIME",
       positional: true,
       required: true,
-      type: "number",
+      type: "duration",
       help: "Time to delay (in seconds)"
     })
   )
@@ -150,9 +172,9 @@ export let Delay = new Command({
     return new Promise((resolve, reject) => {
       const delay_cmd: string[] = matches.value_of("COMMAND") as string[];
 
-      let delay_time: number = parseInt(matches.value_of("TIME"), 10);
+      let delay_time = matches.value_of("TIME");
 
-      delay_time = Math.min(120, delay_time);
+      delay_time = Math.min(120 * Duration.MINUTE, delay_time);
 
       setTimeout(() => {
         if (delay_cmd) {
@@ -160,7 +182,7 @@ export let Delay = new Command({
             resolve(res);
           });
         }
-      }, delay_time * 1000);
+      }, delay_time);
     });
   });
 
