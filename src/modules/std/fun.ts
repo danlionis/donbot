@@ -5,6 +5,27 @@ import { Module } from "../../core/module";
 import { Arg, Command, CommandResult } from "../../parser";
 import { can_modify } from "../../validator/permission";
 
+const FortuneCookie = new Command({
+  name: "fortune",
+  about: "Open a fortune cookie"
+}).handler(async (bot, msg, matches, context) => {
+  fetch("https://fortunecookieapi.herokuapp.com/v1/cookie")
+    .then((res) => res.json())
+    .then((res) => {
+      res = res[0];
+      const fortune = res.fortune.message;
+      const lotto: number[] = res.lotto.numbers;
+
+      const embed = new Discord.RichEmbed()
+        .setTitle("Fortune Cookie")
+        .setColor("c8a2c8")
+        .addField("Fortune", fortune)
+        .addField("Lotto Numbers", lotto.join(", "));
+
+      msg.reply(embed);
+    });
+});
+
 const Random = new Command({
   name: "random",
   about: "Super random command"
@@ -127,7 +148,7 @@ const Yeet = new Command({
 
 export const FunModule: Module = {
   name: "fun",
-  commands: [Yeet, InspiroBot, Random, Font, YesNo]
+  commands: [Yeet, InspiroBot, Random, Font, YesNo, FortuneCookie]
 };
 
 export default FunModule;
