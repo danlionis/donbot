@@ -48,7 +48,7 @@ export class PermissionHandler {
     await this.reset_user_cmd(member, cmd);
 
     const tmp: Perms = await this.explicit.get(member.id);
-    tmp.allowed.push(cmd.config.name);
+    tmp.allowed.push(cmd.full_cmd_name);
     return this.explicit.set(member.id, tmp);
   }
 
