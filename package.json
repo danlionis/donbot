@@ -23,7 +23,7 @@
     "discord.js": "^11.5.1",
     "fuse.js": "^3.4.5",
     "js-yaml": "^3.13.1",
-    "kvbox": "0.0.2",
+    "kvbox": "^0.0.3",
     "node-fetch": "^2.6.0",
     "rimraf": "^2.6.2",
     "systeminformation": "^4.14.4",
