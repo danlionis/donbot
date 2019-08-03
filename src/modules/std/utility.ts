@@ -99,7 +99,7 @@ export let Chain = new Command({
     new Arg({
       name: "SEPARATOR",
       help: "separate the following commands by this symbol",
-      default: " + ",
+      default: "+",
       long: "separator",
       short: "s",
       takes_value: true
@@ -223,15 +223,15 @@ export let Repeat = new Command({
     const repeat_cmd: string[] = matches.value_of("COMMAND") as string[];
     const force: boolean = matches.value_of("FORCE");
 
-    let content = repeat_cmd.join(" ");
+    let msg_content = repeat_cmd.join(" ");
 
-    const alias = await bot.aliases.resolve(content);
+    const alias = await bot.aliases.resolve(msg_content);
 
     if (alias !== null) {
-      content = alias.expansion;
+      msg_content = alias.expansion;
     }
 
-    const cmd = bot.findCommand(content);
+    const cmd = bot.findCommand(msg_content);
 
     if (!cmd) {
       bot.reply_command_not_found(repeat_cmd[0], msg);
