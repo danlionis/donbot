@@ -28,10 +28,7 @@ export function format_string(input: string, ...args: string[]): string {
 
   // replace all placeholders that didn't match indexed placeholders with the remaining args
   if (input.includes("{}")) {
-    input = input.replace("{}", args.join(" "));
-  } else {
-    input += " " + args.join(" ");
+    input = input.replace(/{}/g, args.join(" "));
   }
-
   return input;
 }
