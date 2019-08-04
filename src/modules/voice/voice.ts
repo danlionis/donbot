@@ -139,7 +139,7 @@ export const Join = new Command({
       return CommandResult.Failed;
     }
 
-    msg.member.voiceChannel.join();
+    await msg.member.voiceChannel.join();
     bot.voiceManager.clearTimeout(msg.guild);
   });
 
