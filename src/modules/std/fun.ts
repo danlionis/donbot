@@ -19,7 +19,7 @@ const FortuneCookie = new Command({
       const embed = new Discord.RichEmbed()
         .setTitle("Fortune Cookie")
         .setColor("c8a2c8")
-        .addField("Fortune", fortune)
+        .setDescription(fortune)
         .addField("Lotto Numbers", lotto.join(", "));
 
       msg.reply(embed);
