@@ -17,9 +17,11 @@ export class DatastoreManager {
       return this.handles.get(namespace);
     }
 
-    return new Datastore({
+    const ds = new Datastore({
       store: this.store,
       namespace: namespace
     });
+    this.handles.set(namespace, ds);
+    return ds;
   }
 }
