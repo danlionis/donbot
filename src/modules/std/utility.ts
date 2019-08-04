@@ -264,7 +264,7 @@ export let Repeat = new Command({
       content = content.replace(/{i\-1}/g, (repeat_amout - i).toString());
       const res = await handle_cmd(bot, content, msg, context.clone());
       if (res !== CommandResult.Success) {
-        break;
+        return res;
       }
     }
   });
