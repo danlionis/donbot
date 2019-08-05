@@ -1,0 +1,10 @@
+version: "3"
+services:
+  bot:
+    build: .
+    image: donbot
+    command: npm run start:dev
+    restart: always
+    volumes:
+      - ./shared:/usr/src/app/shared
+      - ./src:/usr/src/app/src

@@ -6,4 +6,5 @@ README.md
 typings/
 lib/
 shared/
+coverage/
 index.ts
