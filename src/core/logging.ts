@@ -14,6 +14,13 @@ export function log_cmd_exec(
     return;
   }
 
+  if (
+    context.callstack.length !== 1 &&
+    cmd_res === CommandResult.ExceededDepth
+  ) {
+    return;
+  }
+
   if (context.callstack.length === 1 || cmd_res !== CommandResult.Success) {
     const time = new Date();
 
