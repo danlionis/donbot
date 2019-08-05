@@ -25,7 +25,8 @@ export enum CommandResult {
   SendHelp,
   PermissionDenied,
   NotFound,
-  Unimplemented
+  Unimplemented,
+  ExceededDepth
 }
 
 export interface CommandConfig {
