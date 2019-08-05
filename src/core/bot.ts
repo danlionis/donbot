@@ -5,7 +5,6 @@ import CoreModule from "../modules/core";
 import StdModule from "../modules/std";
 import VoiceModule from "../modules/voice";
 import { CmdLog, Command, CommandContext, CommandResult } from "../parser";
-import { format_string } from "../utils/formatter";
 import { command_valid } from "../validator/validator";
 import { AliasHandler } from "./alias_handler";
 import { handle_cmd } from "./command_handler";
@@ -66,13 +65,6 @@ export class Bot extends Discord.Client {
     this.once("ready", this.onReady);
     this.on("voiceStateUpdate", this.onMemberUpdate);
     this.on("message", this.onMessage);
-
-    // process.on("SIGINT", async () => {
-    //   // notify the owner that the process was terminated
-    //   const owner = await this.fetchUser(this.config.owner_id);
-    //   await owner.send(`[INFO] recieved SIGINT`);
-    //   process.exit(0);
-    // });
   }
 
   public registerModule(mod: Module) {
@@ -144,10 +136,7 @@ export class Bot extends Discord.Client {
     // ignore dm messagess
     if (msg.channel.type === "dm") return;
 
-    const prefixes = await this.datastore.namespace("prefix");
-
-    const prefix: string =
-      (await prefixes.get(msg.guild.id)) || this.config.prefix;
+    const prefix = await this.getGuildPrefix(msg.guild.id);
 
     const firstMention = msg.mentions.members.first();
     let content: string;
@@ -238,7 +227,8 @@ export class Bot extends Discord.Client {
       return;
     }
 
-    // dont log successful commands & very likely to be a problem within the command so dont log
+    // dont log successful commands &
+    // errors / failures because it's very likely to be a problem within the command
     if (
       res === CommandResult.Success ||
       res === CommandResult.Failed ||
@@ -252,16 +242,14 @@ export class Bot extends Discord.Client {
       case CommandResult.PermissionDenied:
         text = `${cmd.full_cmd_name}: permission denied`;
         break;
-      // case CommandResult.Error:
-      //   text = `${cmd.full_cmd_name}: there was an error`;
-      //   break;
       case CommandResult.SendHelp:
       case CommandResult.Unimplemented:
         text = cmd.help();
         break;
     }
-
-    msg.reply(text, { code: true });
+    if (text) {
+      msg.reply(text, { code: true });
+    }
   }
 
   public reply_command_not_found(
@@ -278,6 +266,13 @@ export class Bot extends Discord.Client {
 
   public isOwner(id: string): boolean {
     return this.config.owner_id === id;
+  }
+
+  public async getGuildPrefix(guildId: string): Promise<string> {
+    return (
+      (await this.datastore.namespace("prefix").get(guildId)) ||
+      this.config.prefix
+    );
   }
 
   private registerSubModule(module: Module, parent: string = "") {
@@ -302,24 +297,5 @@ export class Bot extends Discord.Client {
     });
 
     mod.onRegister(this);
-  }
-
-  private load_default_commands() {
-    const command_dir = __dirname + "/../commands/";
-    fs.readdir(command_dir, (err, files) => {
-      if (err) throw err;
-
-      files.forEach((f) => {
-        // Dynamically import every command out of the commands folder
-        import(command_dir + f).then((imp) => {
-          for (const cmd in imp) {
-            if (imp[cmd] instanceof Command) {
-              const element = imp[cmd];
-              this.registerCommands(element);
-            }
-          }
-        });
-      });
-    });
   }
 }
