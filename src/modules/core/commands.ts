@@ -4,6 +4,26 @@ import { handle_cmd } from "../../core/command_handler";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { has_permission } from "../../validator/permission";
 
+export const Noop = new Command({
+  name: "noop",
+  about: "This command just executes the following command",
+  danger: true,
+  hidden: true
+})
+  .arg(
+    new Arg({
+      name: "QUERY",
+      positional: true,
+      take_multiple: true,
+      required: true,
+      help: "Command to execute"
+    })
+  )
+  .handler(async (bot, msg, matches, context) => {
+    const query: string[] = matches.value_of("QUERY");
+    return handle_cmd(bot, query.join(" "), msg, context);
+  });
+
 export const Settings = new Command({
   name: "settings",
   about: "Change the bots settings",
@@ -198,7 +218,7 @@ export const Perms = new Command({
 
 export const ManageAlias = new Command({
   name: "alias",
-  about: "Manage alias expansions"
+  about: "Alias Expansion Manager"
 })
   .subcommand(
     new Command({
@@ -314,14 +334,35 @@ export const ManageAlias = new Command({
 
         bot.aliases.remove(alias);
       })
+  )
+  .subcommand(
+    new Command({
+      name: "export",
+      about: "Export all aliases",
+      owner_only: true
+    }).handler(async (bot, msg, matches, context) => {
+      const aliases: Alias[] = await bot.datastore.namespace("alias").values();
+
+      const commands = aliases.map((a) => {
+        return `alias set${a.flags.skip_permission ? " -s" : ""} ${a.key} ${
+          a.expansion
+        }`;
+      });
+
+      msg.reply(
+        (await bot.getGuildPrefix(msg.guild.id)) + commands.join("; "),
+        {
+          code: true
+        }
+      );
+    })
   );
 
 export const Help = new Command({
   name: "help",
-  about: "Shows a list of all commands"
-  // aliases: ["h"]
+  about: "Shows a list of all commands",
+  aliases: ["h"]
 })
-  .alias("h")
   .arg(
     new Arg({
       name: "ALL",
