@@ -50,7 +50,15 @@ const Font = new Command({
       short: "s",
       takes_value: true,
       default: "block",
-      possible_values: ["block", "shade", "chrome", "simple", "3d", "huge"]
+      possible_values: [
+        "block",
+        "shade",
+        "chrome",
+        "simple",
+        "3d",
+        "simple3d",
+        "huge"
+      ]
     })
   )
   .arg(

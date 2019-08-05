@@ -244,7 +244,7 @@ export const Logs = new Command({
       res = cmd_logs
         .map(
           (l) =>
-            `${new Date(l.timestamp)} ${l.user}: ${l.content} [${
+            `${new Date(l.timestamp).toUTCString()} ${l.user}: ${l.content} [${
               CommandResult[l.result]
             }]`
         )

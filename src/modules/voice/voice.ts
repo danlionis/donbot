@@ -101,7 +101,6 @@ export const Disconnect = new Command({
 
     connection.disconnect();
     bot.voiceManager.clearTimeout(connection.channel.guild);
-    bot.user.setActivity("");
   });
 
 export const Join = new Command({
@@ -245,26 +244,18 @@ export const ILoveRadio = new Command({
 
     return new Promise<CommandResult>((resolve) => {
       const req = http.request(url, { method: "HEAD" }, (response) => {
-        // console.log(response.headers["icy-name"]);
         if (response.statusCode !== 200) {
           msg.reply(
             "Stream id not found, see https://www.ilovemusic.de/streams for available streams"
           );
           resolve(CommandResult.Failed);
         } else {
-          bot.user.setActivity(response.headers["icy-name"].toString(), {
-            type: "LISTENING"
-          });
           const dispatcher = msg.guild.voiceConnection.playArbitraryInput(url, {
             volume: 0.1
           });
 
           dispatcher.on("start", () => {
             resolve(CommandResult.Success);
-          });
-
-          dispatcher.on("end ", () => {
-            bot.user.setActivity("");
           });
         }
       });
