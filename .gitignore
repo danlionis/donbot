@@ -36,3 +36,6 @@ shared/
 
 # Misc
 /start.bat
+
+# Test
+coverage/

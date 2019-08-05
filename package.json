@@ -1,7 +1,7 @@
 {
   "name": "donbot",
   "version": "0.3.0",
-  "description": "",
+  "description": "Discord command framework",
   "main": "./lib/index.js",
   "typings": "./typings/index.d.ts",
   "repository": {
@@ -10,11 +10,13 @@
   },
   "scripts": {
     "prebuild": "node ./scripts/prebuild.js",
-    "build": "tsc",
-    "build:live": "tsc --watch",
-    "start": "node ./index.js",
-    "live": "nodemon --exec ts-node index.ts -i ./shared",
-    "lint": "tslint --project tsconfig.json"
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node ./main.js",
+    "start:dev": "tsc-watch -p tsconfig.build.json --onSuccess \"node ./main.js\"",
+    "lint": "tslint --project tsconfig.json",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "author": "Dan Lionis",
   "license": "ISC",
@@ -25,17 +27,21 @@
     "js-yaml": "^3.13.1",
     "kvbox": "^0.0.3",
     "node-fetch": "^2.6.0",
-    "rimraf": "^2.6.2",
-    "systeminformation": "^4.14.4",
-    "typescript": "^3.5.3"
+    "systeminformation": "^4.14.4"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.16",
     "@types/js-yaml": "^3.12.1",
     "@types/node": "^12.6.8",
     "@types/node-fetch": "^2.5.0",
     "@types/systeminformation": "^3.23.0",
+    "jest": "^24.8.0",
+    "rimraf": "^2.6.3",
+    "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
-    "tslint": "^5.18.0"
+    "tsc-watch": "^2.2.1",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3"
   },
   "optionalDependencies": {
     "node-opus": "0.3.2"

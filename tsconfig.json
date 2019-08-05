@@ -5,8 +5,10 @@
     "module": "commonjs",
     "declaration": true,
     "declarationDir": "typings",
+    "sourceMap": true,
     "removeComments": false,
-    "target": "es6"
+    "target": "es2018",
+    "incremental": true
   },
   "include": ["./src/**/*"],
   "exclude": ["./node_modules"]
