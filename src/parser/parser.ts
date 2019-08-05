@@ -81,15 +81,7 @@ export async function parse_message(
   bot: Bot,
   msg_content: string,
   msg: Discord.Message,
-  context: CommandContext
 ): Promise<[Command, Matches, MatchError] | undefined> {
-  const alias = await bot.aliases.resolve(msg_content);
-
-  if (alias !== null) {
-    msg_content = alias.expansion;
-    context.flags.skip_permission = alias.flags.skip_permission;
-  }
-
   const content = bot.replaceVariables(msg_content, { msg: msg }).split(" ");
 
   let cmd = bot.findCommand(content.shift());

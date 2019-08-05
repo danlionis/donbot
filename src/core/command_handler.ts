@@ -3,6 +3,7 @@ import { CommandContext, CommandResult } from "../parser";
 import { parse_message } from "../parser/parser";
 import { find_command } from "../utils/fuzzy_finder";
 import { has_permission } from "../validator/permission";
+import { Alias } from "./alias_handler";
 import { Bot } from "./bot";
 import { log_cmd_exec } from "./logging";
 
@@ -13,12 +14,37 @@ export async function handle_cmd(
   context: CommandContext
 ): Promise<CommandResult> {
   if (context.callstack.length > bot.config.command_depth) {
-    // if (recursion_depth > bot.config.command_depth) {
-    msg.reply("Maximum command depth reached");
-    return CommandResult.Error;
+    msg.reply("Error: Maximum command depth reached", { code: true });
+    return CommandResult.ExceededDepth;
   }
 
-  const parsed = await parse_message(bot, content, msg, context);
+  // check if the message starts with an alias and resolve the alias until a command is found
+  let alias: Alias;
+  const aliasStack = [];
+  while (alias !== null) {
+    alias = await bot.aliases.resolve(content);
+
+    if (alias != null) {
+      // prevent circular alias resolving
+      if (aliasStack.includes(alias.key)) {
+        msg.reply(
+          `Error: Detected circular alias reference: ${aliasStack.join(
+            " -> "
+          )} -> ${alias.key}`,
+          {
+            code: true
+          }
+        );
+        return CommandResult.ExceededDepth;
+      }
+
+      content = alias.expansion;
+      context.flags.skip_permission = alias.flags.skip_permission;
+      aliasStack.push(alias.key);
+    }
+  }
+
+  const parsed = await parse_message(bot, content, msg);
   const author = msg.author.tag;
 
   if (parsed === undefined) {
@@ -115,10 +141,6 @@ export async function handle_cmd(
   }
 
   if (!cmd.config.no_log) {
-    const alias = await bot.aliases.resolve(content);
-    if (alias !== null) {
-      content = alias.expansion;
-    }
     log_cmd_exec(bot, msg.guild.nameAcronym, author, content, res, context);
   }
 

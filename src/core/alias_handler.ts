@@ -33,7 +33,8 @@ export class AliasHandler {
       return null;
     }
 
-    a.expansion = format_string(a.expansion, ...keys);
+    a.expansion = format_string(a.expansion, ...keys).trim();
+    // a.expansion = "noop " + a.expansion; // append every expansion with a noop, not sure yet if this is the way to go
     return a;
   }
 
