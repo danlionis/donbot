@@ -9,6 +9,7 @@
     "url": "git://github.com/danlionis/donbot.git"
   },
   "scripts": {
+    "fmt": "prettier --write ./src/**/*.ts",
     "prebuild": "node ./scripts/prebuild.js",
     "build": "tsc -p tsconfig.build.json",
     "start": "node ./main.js",
