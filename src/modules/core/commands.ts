@@ -299,18 +299,39 @@ export const ManageAlias = new Command({
           help: "Show aliases as json"
         })
       )
+      .arg(
+        new Arg({
+          name: "EXPORT",
+          long: "export",
+          help: "Print all aliases as an executable command"
+        })
+      )
       .handler(async (bot, msg, matches) => {
+        const aliases: Alias[] = await bot.datastore
+          .namespace("alias")
+          .values();
         if (matches.value_of("JSON")) {
+          msg.reply(JSON.stringify(aliases, null, 2), { code: "json" });
+          return CommandResult.Success;
+        }
+
+        if (matches.value_of("EXPORT")) {
+          const commands = aliases.map((a) => {
+            return `alias set ${a.flags.skip_permission ? "-s " : ""}${
+              a.key
+            } ${a.expansion.replace(/\$/g, "\\$")}`;
+          });
           msg.reply(
-            JSON.stringify(await bot.aliases.store.values<Alias>(), null, 2),
-            { code: "json" }
+            (await bot.getGuildPrefix(msg.guild.id)) + commands.join("; "),
+            {
+              code: true
+            }
           );
           return CommandResult.Success;
         }
 
         let res = "ALIASES:\n";
-        const aliases = await bot.aliases.store.entries<Alias>();
-        res += aliases.map(([k, v]) => `${k} -> ${v.expansion}`).join("\n");
+        res += aliases.map((a) => `${a.key} -> ${a.expansion}`).join("\n");
         msg.channel.send(res, { code: true });
       })
   )
@@ -334,28 +355,6 @@ export const ManageAlias = new Command({
 
         bot.aliases.remove(alias);
       })
-  )
-  .subcommand(
-    new Command({
-      name: "export",
-      about: "Export all aliases",
-      owner_only: true
-    }).handler(async (bot, msg, matches, context) => {
-      const aliases: Alias[] = await bot.datastore.namespace("alias").values();
-
-      const commands = aliases.map((a) => {
-        return `alias set${a.flags.skip_permission ? " -s" : ""} ${a.key} ${
-          a.expansion
-        }`;
-      });
-
-      msg.reply(
-        (await bot.getGuildPrefix(msg.guild.id)) + commands.join("; "),
-        {
-          code: true
-        }
-      );
-    })
   );
 
 export const Help = new Command({
