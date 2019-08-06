@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import Datastore from "kvbox";
+import { Box } from "kvbox";
 import { Command } from "../parser";
 import { Bot } from "./bot";
 
@@ -10,7 +10,7 @@ export interface Perms {
 
 export class PermissionHandler {
   // private readonly _explicit: { [user_id: string]: Perms } = {};
-  private readonly explicit: Datastore;
+  private readonly explicit: Box;
   private readonly _disabled_commands: string[] = [];
   private readonly _disabled_users: string[] = [];
 

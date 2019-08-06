@@ -1,4 +1,4 @@
-import Datastore from "kvbox";
+import { Box } from "kvbox";
 import { format_string } from "../utils/formatter";
 import { Bot } from "./bot";
 
@@ -11,7 +11,7 @@ export interface Alias {
 }
 
 export class AliasHandler {
-  public readonly store: Datastore;
+  public readonly store: Box;
 
   constructor(private bot: Bot) {
     this.store = bot.datastore.namespace("alias");

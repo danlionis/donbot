@@ -1,23 +1,21 @@
 import * as fs from "fs";
-import { Datastore, FileStore } from "kvbox";
+import { Box, FileStore } from "kvbox";
 
 export class DatastoreManager {
-  private handles: Map<string, Datastore> = new Map();
+  private handles: Map<string, Box> = new Map();
 
   private store: FileStore;
 
   constructor() {
-    fs.mkdirSync("shared/data", { recursive: true });
-
     this.store = new FileStore({ path: "shared/data/db.json" });
   }
 
-  public namespace(namespace: string): Datastore {
+  public namespace(namespace: string): Box {
     if (this.handles.has(namespace)) {
       return this.handles.get(namespace);
     }
 
-    const ds = new Datastore({
+    const ds = new Box({
       store: this.store,
       namespace: namespace
     });
