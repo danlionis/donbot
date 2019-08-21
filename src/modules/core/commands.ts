@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
-import { Alias } from "../../core/alias_handler";
-import { handle_cmd } from "../../core/command_handler";
+import { Alias } from "../../core/alias.handler";
+import { handle_cmd } from "../../core/command.handler";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { has_permission } from "../../validator/permission";
 

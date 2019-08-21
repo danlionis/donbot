@@ -1,4 +1,4 @@
-import { handle_cmd } from "../../core/command_handler";
+import { handle_cmd } from "../../core/command.handler";
 import { Module } from "../../core/module";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { Duration } from "../../utils/duration";

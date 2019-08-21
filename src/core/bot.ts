@@ -6,13 +6,13 @@ import StdModule from "../modules/std";
 import VoiceModule from "../modules/voice";
 import { CmdLog, Command, CommandContext, CommandResult } from "../parser";
 import { command_valid } from "../validator/validator";
-import { AliasHandler } from "./alias_handler";
-import { handle_cmd } from "./command_handler";
+import { AliasHandler } from "./alias.handler";
+import { handle_cmd } from "./command.handler";
 import { Config, load_config } from "./config";
 import { DatastoreManager } from "./datastore";
 import { Module } from "./module";
-import { PermissionHandler } from "./permissions_hanlder";
-import { VoiceManager } from "./voice_manager";
+import { PermissionHandler } from "./permissions.hanlder";
+import { VoiceManager } from "./voice.manager";
 
 export class Bot extends Discord.Client {
   public registry: Command[] = [];
