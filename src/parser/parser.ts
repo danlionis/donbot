@@ -232,7 +232,6 @@ export function parse_command(cmd: Command, content: string[]): Matches {
       // parse all flag arguments
       for (const f of flags) {
         const flag_arg = find_flag_argument(cmd, f);
-        console.log(flag_arg);
         if (flag_arg) {
           // console.log("parse_command: found flag arg:", flag_arg.config.name);
           if (flag_arg.config.takes_value) {
