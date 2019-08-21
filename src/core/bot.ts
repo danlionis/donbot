@@ -285,9 +285,16 @@ export class Bot extends Discord.Client {
       ...module
     };
 
-    console.log(
-      `[+] module: ${parent + mod.name} - cmds: ${mod.commands.length}`
-    );
+    let commandLenght = 0;
+
+    function walkCommand(cmd: Command) {
+      commandLenght += 1;
+      cmd.subcommands.forEach((c) => walkCommand(c));
+    }
+
+    mod.commands.forEach((c) => walkCommand(c));
+
+    console.log(`[+] module: ${parent + mod.name} - cmds: ${commandLenght}`);
 
     if (mod.commands.length > 0) {
       this.registerCommands(...mod.commands);
