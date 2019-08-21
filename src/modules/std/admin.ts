@@ -47,7 +47,11 @@ const Exec = new Command({
         msg.reply(`process '${cmd.join(" ")}' exited with code ${code}`, {
           code: true
         });
-        resolve(CommandResult.Success);
+        if (code === 0) {
+          resolve(CommandResult.Success);
+        } else {
+          resolve(CommandResult.Failed);
+        }
       });
     });
   });
