@@ -108,8 +108,7 @@ export class Command {
     this.arg(
       new Arg({
         name: "debug",
-        long: "debug",
-        short: "dbg",
+        long: "dbg",
         help: "Prints debug information",
         hidden: true
       })

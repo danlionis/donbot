@@ -65,7 +65,7 @@ export function command_valid(bot: Bot, cmd: Command): boolean {
 
 function arg_valid(cmd: Command, arg: Arg): boolean {
   let valid = true;
-  let reason = "";
+  const reasons: string[] = [];
 
   const is_flag = arg.config.long || arg.config.takes_value;
   const is_pos =
@@ -73,15 +73,24 @@ function arg_valid(cmd: Command, arg: Arg): boolean {
 
   if (is_flag && is_pos) {
     valid = false;
-    reason = "cannot be positional and flag at the same time";
+    reasons.push("cannot be positional and flag at the same time");
   }
 
   if (!is_flag && !is_pos) {
     valid = false;
-    reason = "has to be either positional or flag";
+    reasons.push("has to be either positional or flag");
+  }
+
+  if (is_flag && arg.config.short && arg.config.short.length > 1) {
+    valid = false;
+    reasons.push("short flag has to be of length 1");
   }
   if (!valid) {
-    console.log(`[ERROR] ${cmd.full_cmd_name} / ${arg.config.name}: ${reason}`);
+    reasons.forEach((reason) => {
+      console.log(
+        `[ERROR] ${cmd.full_cmd_name} / ${arg.config.name}: ${reason}`
+      );
+    });
   }
   return valid;
 }

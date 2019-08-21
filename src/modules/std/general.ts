@@ -24,7 +24,6 @@ const Echo = new Command({
   .arg(
     new Arg({
       name: "DIRECT",
-      short: "dm",
       long: "direct",
       takes_value: true,
       help: "Send as a direct message",
