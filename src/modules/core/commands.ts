@@ -6,7 +6,7 @@ import { has_permission } from "../../validator/permission";
 
 export const Noop = new Command({
   name: "noop",
-  about: "This command just executes the following command",
+  about: "No operation. Passthrough commands",
   danger: true,
   hidden: true
 })
@@ -15,13 +15,14 @@ export const Noop = new Command({
       name: "QUERY",
       positional: true,
       take_multiple: true,
-      required: true,
       help: "Command to execute"
     })
   )
   .handler(async (bot, msg, matches, context) => {
     const query: string[] = matches.value_of("QUERY");
-    return handle_cmd(bot, query.join(" "), msg, context);
+    if (query) {
+      return handle_cmd(bot, query.join(" "), msg, context);
+    }
   });
 
 export const Settings = new Command({
