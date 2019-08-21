@@ -209,7 +209,14 @@ export function parse_command(cmd: Command, content: string[]): Matches {
     }
 
     if (flag_take_value) {
-      const prev = content[i - 1];
+      let prev = content[i - 1];
+
+      if (isLongFlag(prev)) {
+        prev = content[i - 1].substring(2);
+      } else if (isShortFlag(prev)) {
+        prev = content[i - 1].substring(1);
+      }
+
       const key = find_flag_argument(cmd, prev);
       matches.set_arg_match(key.config.name, word);
       flag_take_value = false;
@@ -217,32 +224,30 @@ export function parse_command(cmd: Command, content: string[]): Matches {
       continue;
     }
 
-    const isLongFlag = word.startsWith("--") && word.length > 2;
-    const isShortFlag = word.startsWith("-") && word.length > 1;
-
     // parse flags
-    if (isLongFlag || isShortFlag) {
+    if (isLongFlag(word) || isShortFlag(word)) {
       let flags = [];
-      if (isLongFlag) {
+      if (isLongFlag(word)) {
         flags = [word.substring(2)];
-      } else if (isShortFlag) {
+      } else if (isShortFlag(word)) {
         flags = word.substring(1).split("");
       }
 
       // parse all flag arguments
       for (const f of flags) {
         const flag_arg = find_flag_argument(cmd, f);
+        console.log(flag_arg);
         if (flag_arg) {
           // console.log("parse_command: found flag arg:", flag_arg.config.name);
           if (flag_arg.config.takes_value) {
             flag_take_value = true;
-            break outer;
+            continue outer;
           } else {
             matches.set_arg_match(flag_arg.config.name, true);
           }
         }
-        // continue;
       }
+      continue;
     }
 
     // parse positional arguments
@@ -269,18 +274,15 @@ function find_sub_cmd(cmd: Command, subcmd: string) {
 }
 
 function find_flag_argument(cmd: Command, flag: string) {
-  // return cmd.args.find((a) => {
-  //   const is_long = flag === "--" + a.config.long;
-  //   const is_short = flag === "-" + a.config.short;
-  //   return is_long || is_short;
-  // });
   return cmd.args.find(
     (a) => a.config.long === flag || a.config.short === flag
   );
 }
 
-function get_flag_arguments(cmd: Command): Arg[] {
-  return cmd.args.filter((a) => {
-    return a.config.takes_value && a.config.long;
-  });
+function isShortFlag(word: string) {
+  return word.startsWith("-") && word.length > 1;
+}
+
+function isLongFlag(word: string) {
+  return word.startsWith("--") && word.length > 2;
 }
