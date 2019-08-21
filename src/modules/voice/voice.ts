@@ -1,5 +1,5 @@
 import * as http from "http";
-import { handle_cmd } from "../../core/command_handler";
+import { handle_cmd } from "../../core/command.handler";
 import { Arg, Command, CommandResult } from "../../parser";
 
 export const Unpause = new Command({

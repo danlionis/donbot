@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 import * as Discord from "discord.js";
-import { handle_cmd } from "../../core/command_handler";
+import { handle_cmd } from "../../core/command.handler";
 import { Module } from "../../core/module";
 import { Arg, Command, CommandResult } from "../../parser";
 

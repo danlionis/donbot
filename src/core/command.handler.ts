@@ -3,7 +3,7 @@ import { CommandContext, CommandResult } from "../parser";
 import { parse_message } from "../parser/parser";
 import { find_command } from "../utils/fuzzy_finder";
 import { has_permission } from "../validator/permission";
-import { Alias } from "./alias_handler";
+import { Alias } from "./alias.handler";
 import { Bot } from "./bot";
 import { log_cmd_exec } from "./logging";
 
