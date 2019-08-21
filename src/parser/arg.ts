@@ -1,4 +1,4 @@
-interface ArgConfig {
+export interface ArgConfig {
   name: string;
   help?: string;
   long?: string;
