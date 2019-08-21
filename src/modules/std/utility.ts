@@ -296,9 +296,69 @@ export let Delete = new Command({
     await handle_cmd(bot, exec_cmd, msg, context);
   });
 
+export let PermCheck = new Command({
+  name: "permcheck",
+  about:
+    "Checks permission at runtime and execute following command with elevated permissions",
+  danger: true,
+  owner_only: true
+})
+  .arg(
+    new Arg({
+      name: "OWNER",
+      short: "o",
+      long: "owner",
+      help: "Require owner permissions"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "ROLE",
+      short: "r",
+      long: "role",
+      help: "Require a specific role",
+      takes_value: true,
+      type: "string"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "CMD",
+      positional: true,
+      required: true,
+      take_multiple: true,
+      type: "string",
+      help: "Command to execute"
+    })
+  )
+  .handler(async (bot, msg, matches, context) => {
+    const checkOwner: boolean = matches.value_of("OWNER");
+    const checkRole: string = matches.value_of("ROLE");
+
+    let allowed = true;
+
+    if (checkOwner) {
+      allowed = allowed && bot.isOwner(msg.author.id);
+    }
+
+    if (checkRole) {
+      allowed =
+        allowed && msg.member.roles.map((r) => r.name).includes(checkRole);
+    }
+
+    if (!allowed) {
+      return CommandResult.PermissionDenied;
+    }
+
+    const cmd: string[] = matches.value_of("CMD");
+
+    context.flags.skip_permission = true;
+    return handle_cmd(bot, cmd.join(" "), msg, context);
+  });
+
 export const UtilityModule: Module = {
   name: "utility",
-  commands: [Async, Chain, Delay, Delete, Repeat, TryCatch]
+  commands: [Async, Chain, Delay, Delete, Repeat, TryCatch, PermCheck]
 };
 
 export default UtilityModule;

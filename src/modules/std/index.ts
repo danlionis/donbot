@@ -1,6 +1,7 @@
 import { Bot } from "../../core/bot";
 import { Module } from "../../core/module";
 import AdminModule from "./admin";
+import DatabaseModule from "./database";
 import FunModule from "./fun";
 import GeneralModule from "./general";
 import ModerationModule from "./moderation";
@@ -15,7 +16,8 @@ const StdModule: Module = {
     GeneralModule,
     VoteModule,
     FunModule,
-    AdminModule
+    AdminModule,
+    DatabaseModule
   ],
   commands: [],
   onRegister: (bot: Bot) => {}
