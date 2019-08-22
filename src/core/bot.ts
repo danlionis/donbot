@@ -54,17 +54,18 @@ export class Bot extends Discord.Client {
     this.config = { ...this.config, ...config };
 
     this.registerModule(CoreModule);
-    if (this.config.standard_module) {
+    if (this.config.useStdModule) {
       this.registerModule(StdModule);
     }
 
-    if (this.config.voice_module) {
+    if (this.config.useVoiceModule) {
       this.registerModule(VoiceModule);
     }
 
     this.once("ready", this.onReady);
     this.on("voiceStateUpdate", this.onMemberUpdate);
     this.on("message", this.onMessage);
+    this.on("messageUpdate", this.onMessageUpdate);
   }
 
   public registerModule(mod: Module) {
@@ -81,11 +82,11 @@ export class Bot extends Discord.Client {
   }
 
   public hasBotRole(member: Discord.GuildMember): boolean {
-    if (!this.config.role) {
+    if (!this.config.adminRole) {
       return true;
     }
 
-    return member.roles.map((r) => r.name).indexOf(this.config.role) >= 0;
+    return member.roles.map((r) => r.name).indexOf(this.config.adminRole) >= 0;
   }
 
   public findCommand(query: string): Command {
@@ -127,6 +128,17 @@ export class Bot extends Discord.Client {
         new_member.setDeaf(false);
       }
     }
+  }
+
+  public async onMessageUpdate(
+    oldMsg: Discord.Message,
+    newMsg: Discord.Message
+  ) {
+    if (oldMsg.content === newMsg.content) return;
+
+    if (!this.config.handleEdits) return;
+
+    this.onMessage(newMsg);
   }
 
   public async onMessage(msg: Discord.Message) {
@@ -200,7 +212,7 @@ export class Bot extends Discord.Client {
     const member = msg.member;
     query = query.replace(/(?<!\\)\$ME/gi, member.toString());
     query = query.replace(/(?<!\\)\$BOT/gi, this.user.toString());
-    query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.owner_id}>`);
+    query = query.replace(/(?<!\\)\$OWNER/gi, `<@${this.config.ownerId}>`);
     query = query.replace(/(?<!\\)\$GUILD/gi, msg.guild.id);
 
     return query;
@@ -266,7 +278,7 @@ export class Bot extends Discord.Client {
   }
 
   public isOwner(id: string): boolean {
-    return this.config.owner_id === id;
+    return this.config.ownerId === id;
   }
 
   public async getGuildPrefix(guildId: string): Promise<string> {

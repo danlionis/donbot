@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { CommandContext, CommandResult } from "../parser";
 import { parse_message } from "../parser/parser";
+import Constants from "../utils/constants";
 import { find_command } from "../utils/fuzzy_finder";
 import { has_permission } from "../validator/permission";
 import { Alias } from "./alias.handler";
@@ -13,8 +14,8 @@ export async function handle_cmd(
   msg: Discord.Message,
   context: CommandContext
 ): Promise<CommandResult> {
-  if (context.callstack.length > bot.config.command_depth) {
-    msg.reply("Error: Maximum command depth reached", { code: true });
+  if (context.callstack.length > bot.config.commandDepth) {
+    msg.reply("error: Maximum command depth reached", { code: true });
     return CommandResult.ExceededDepth;
   }
 
@@ -64,7 +65,7 @@ export async function handle_cmd(
 
   let res: CommandResult;
 
-  if (matches.value_of("debug")) {
+  if (matches.value_of(Constants.ArgNames.DEBUG)) {
     // if debug flag is set
     const args = allowed ? matches.toObject(cmd) : {};
     msg.channel.send(
@@ -90,7 +91,7 @@ export async function handle_cmd(
     res = CommandResult.PermissionDenied;
 
     // return CommandResult.PermissionDenied;
-  } else if (matches.value_of("help")) {
+  } else if (matches.value_of(Constants.ArgNames.HELP)) {
     // if help flag is set
     bot.replyResult(cmd, msg, CommandResult.SendHelp, context);
 
