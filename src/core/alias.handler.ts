@@ -1,4 +1,5 @@
 import { Box } from "kvbox";
+import Constants from "../utils/constants";
 import { format_string } from "../utils/formatter";
 import { Bot } from "./bot";
 
@@ -14,7 +15,7 @@ export class AliasHandler {
   public readonly store: Box;
 
   constructor(private bot: Bot) {
-    this.store = bot.datastore.namespace("alias");
+    this.store = bot.datastore.namespace(Constants.Namespace.ALIAS);
   }
 
   public add(alias: Alias) {
