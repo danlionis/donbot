@@ -5,13 +5,13 @@
  */
 import { Bot } from "../../core/bot";
 import { Module } from "../../core/module";
-import { Command } from "../../parser";
 import { getCommandsFromImport } from "../../utils/command_import";
+import { ManageAlias } from "./alias";
 import * as Cmds from "./commands";
 
 const CoreModule: Module = {
   name: "core",
-  commands: getCommandsFromImport(Cmds),
+  commands: [...getCommandsFromImport(Cmds), ManageAlias],
   onRegister: (bot: Bot) => {}
 };
 
