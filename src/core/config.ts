@@ -15,11 +15,11 @@ export interface Config {
 
 export function load_config(): Config {
   const defaultConfig: Config = {
-    token: null,
+    token: undefined,
     prefix: ".",
-    owner_id: null,
+    owner_id: undefined,
     bot_name: "donbot",
-    role: null,
+    role: undefined,
     command_depth: 10,
     standard_module: true,
     voice_module: true

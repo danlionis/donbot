@@ -187,7 +187,7 @@ export function parse_command(cmd: Command, content: string[]): Matches {
 
   let flag_take_value = false;
   let pos_arg_index = 0;
-  let take_multiple: Arg = null;
+  let take_multiple: Arg;
 
   outer: for (let i = 0; i < content.length; i++) {
     const word = content[i];

@@ -21,10 +21,10 @@ export async function handle_cmd(
   // check if the message starts with an alias and resolve the alias until a command is found
   let alias: Alias;
   const aliasStack = [];
-  while (alias !== null) {
+  while (alias !== undefined) {
     alias = await bot.aliases.resolve(content);
 
-    if (alias != null) {
+    if (alias !== undefined) {
       // prevent circular alias resolving
       if (aliasStack.includes(alias.key)) {
         msg.reply(

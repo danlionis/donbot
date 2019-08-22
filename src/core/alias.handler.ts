@@ -30,7 +30,7 @@ export class AliasHandler {
     const a = await this.store.get<Alias>(key);
 
     if (!a) {
-      return null;
+      return undefined;
     }
 
     a.expansion = format_string(a.expansion, ...keys).trim();

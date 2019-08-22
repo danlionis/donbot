@@ -227,7 +227,7 @@ export let Repeat = new Command({
 
     const alias = await bot.aliases.resolve(msg_content);
 
-    if (alias !== null) {
+    if (alias !== undefined) {
       msg_content = alias.expansion;
     }
 
