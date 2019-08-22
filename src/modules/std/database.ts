@@ -1,4 +1,3 @@
-import * as Discord from "discord.js";
 import { Module } from "../../core/module";
 import { Arg, ArgConfig, Command, CommandResult } from "../../parser";
 
@@ -6,16 +5,18 @@ const NamespaceArg: ArgConfig = {
   name: "NAMESPACE",
   positional: true,
   required: true,
-  type: "string"
+  type: "string",
+  help: "Working namespace"
 };
 
 const KeyArg: ArgConfig = {
   name: "KEY",
   positional: true,
-  type: "string"
+  type: "string",
+  help: "Datastore key"
 };
 
-const Get = new Command({ name: "get" })
+const Get = new Command({ name: "get", about: "Read values from a datastore" })
   .arg(new Arg(NamespaceArg))
   .arg(new Arg(KeyArg))
   .handler(async (bot, msg, matches, values) => {
@@ -34,10 +35,10 @@ const Get = new Command({ name: "get" })
       res = JSON.stringify(entries, null, 2);
     }
 
-    msg.reply(res, { code: "json" });
+    await msg.reply(res, { code: "json" });
   });
 
-const Set = new Command({ name: "set" })
+const Set = new Command({ name: "set", about: "Set a value in a datastore" })
   .arg(new Arg(NamespaceArg))
   .arg(new Arg({ ...KeyArg, required: true }))
   .arg(
@@ -65,13 +66,22 @@ const Set = new Command({ name: "set" })
     let res = value.join("");
 
     if (json) {
-      res = JSON.parse(value.join(""));
+      try {
+        res = JSON.parse(value.join(""));
+      } catch {
+        await msg.reply("error: could not parse JSON", { code: true });
+        return CommandResult.Failed;
+      }
     }
 
     await box.set(key, res);
   });
 
-const Delete = new Command({ name: "delete" })
+const Delete = new Command({
+  name: "delete",
+  aliases: ["del"],
+  about: "Delete a value from a datastore"
+})
   .arg(new Arg(NamespaceArg))
   .arg(new Arg({ ...KeyArg, required: true }))
   .handler(async (bot, msg, matches, context) => {
@@ -85,7 +95,11 @@ const Delete = new Command({ name: "delete" })
     }
   });
 
-const Clear = new Command({ name: "clear" })
+const Clear = new Command({
+  name: "clear",
+  aliases: ["cls"],
+  about: "Clear a datastore"
+})
   .arg(new Arg(NamespaceArg))
   .handler(async (bot, msg, matches, context) => {
     const namespace: string = matches.value_of("NAMESPACE");
@@ -106,7 +120,7 @@ const Database = new Command({
   .subcommand(Clear);
 
 export const DatabaseModule: Module = {
-  name: "admin",
+  name: "database",
   commands: [Database]
 };
 
