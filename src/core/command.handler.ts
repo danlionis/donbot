@@ -19,29 +19,26 @@ export async function handle_cmd(
   }
 
   // check if the message starts with an alias and resolve the alias until a command is found
-  let alias: Alias;
+  let alias: Alias = await bot.aliases.resolve(content);
   const aliasStack = [];
   while (alias !== undefined) {
-    alias = await bot.aliases.resolve(content);
-
-    if (alias !== undefined) {
-      // prevent circular alias resolving
-      if (aliasStack.includes(alias.key)) {
-        msg.reply(
-          `Error: Detected circular alias reference: ${aliasStack.join(
-            " -> "
-          )} -> ${alias.key}`,
-          {
-            code: true
-          }
-        );
-        return CommandResult.ExceededDepth;
-      }
-
-      content = alias.expansion;
-      context.flags.skip_permission = alias.flags.skip_permission;
-      aliasStack.push(alias.key);
+    // prevent circular alias resolving
+    if (aliasStack.includes(alias.key)) {
+      msg.reply(
+        `Error: Detected circular alias reference: ${aliasStack.join(
+          " -> "
+        )} -> ${alias.key}`,
+        {
+          code: true
+        }
+      );
+      return CommandResult.ExceededDepth;
     }
+
+    content = alias.expansion;
+    context.flags.skip_permission = alias.flags.skip_permission;
+    aliasStack.push(alias.key);
+    alias = await bot.aliases.resolve(content);
   }
 
   const parsed = await parse_message(bot, content, msg);
