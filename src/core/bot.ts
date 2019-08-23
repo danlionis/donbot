@@ -115,7 +115,20 @@ export class Bot extends Discord.Client {
   }
 
   public async onReady() {
+    let count = 0;
+    const walk = (c: Command) => {
+      count += 1;
+      c.subcommands.forEach((sub) => {
+        walk(sub);
+      });
+    };
+
+    this.registry.forEach((c) => {
+      walk(c);
+    });
     console.log("[+] ready");
+    console.log(`[+] root commands: ${this.registry.length}`);
+    console.log(`[+] sub  commands: ${count}`);
   }
 
   public async onMemberUpdate(
@@ -297,23 +310,26 @@ export class Bot extends Discord.Client {
       ...module
     };
 
-    let commandLenght = 0;
+    let cmdCount = 0;
 
     function walkCommand(cmd: Command) {
-      commandLenght += 1;
-      cmd.subcommands.forEach((c) => walkCommand(c));
+      cmdCount += 1;
+      cmd.module = parent + mod.name;
+      for (const c of cmd.subcommands) {
+        walkCommand(c);
+      }
     }
 
     mod.commands.forEach((c) => walkCommand(c));
 
-    console.log(`[+] module: ${parent + mod.name} - cmds: ${commandLenght}`);
+    console.log(`[+] module: ${parent + mod.name} - cmds: ${cmdCount}`);
 
     if (mod.commands.length > 0) {
       this.registerCommands(...mod.commands);
     }
 
     mod.submodules.forEach((m) => {
-      this.registerSubModule(m, parent + mod.name + "::");
+      this.registerSubModule(m, parent + mod.name + "/");
     });
 
     mod.onRegister(this);

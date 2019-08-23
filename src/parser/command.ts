@@ -72,6 +72,8 @@ export class Command {
   public readonly config: CommandConfig;
   public readonly args: Arg[] = [];
   public readonly subcommands: Command[] = [];
+  public module: string;
+
   private _handler_fn: HanlderFn;
 
   private _parent_command: string = "";
