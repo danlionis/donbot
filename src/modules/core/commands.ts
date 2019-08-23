@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { Alias } from "../../core/alias.handler";
 import { handle_cmd } from "../../core/command.handler";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
+import { splitContent } from "../../utils/formatter";
 import { has_permission } from "../../validator/permission";
 
 export const Noop = new Command({
@@ -211,7 +212,7 @@ const PermsUser = new Command({
 
 export const Perms = new Command({
   name: "perms",
-  about: "Manage Command permissions",
+  about: "Permission Manager",
   owner_only: true
 })
   .subcommand(PermsCommand)
@@ -233,6 +234,14 @@ export const Help = new Command({
   )
   .arg(
     new Arg({
+      name: "MODULE",
+      long: "module",
+      short: "m",
+      help: "Show the corresponding module for each command"
+    })
+  )
+  .arg(
+    new Arg({
       name: "SHORT",
       long: "short",
       short: "s",
@@ -244,7 +253,15 @@ export const Help = new Command({
 
     const texts: string[] = [];
 
-    const longest_name = Math.max(...commands.map((c) => c.config.name.length));
+    const includeModule: boolean = matches.value_of("MODULE");
+
+    const longest_name = Math.max(
+      ...commands.map((c) => {
+        return includeModule
+          ? c.module.length + 1 + c.config.name.length
+          : c.config.name.length;
+      })
+    );
 
     if (!matches.value_of("ALL")) {
       commands = commands.filter((c) => !c.config.hidden);
@@ -268,16 +285,25 @@ export const Help = new Command({
 
     commands = tmp;
 
-    commands.sort((a, b) => a.config.name.localeCompare(b.config.name));
+    commands.sort((a, b) => {
+      if (includeModule) {
+        const fullName = a.module + a.config.name;
+        return fullName.localeCompare(b.module + b.config.name);
+      }
+      return a.config.name.localeCompare(b.config.name);
+    });
 
     if (matches.value_of("SHORT")) {
       texts.push(commands.map((c) => c.config.name).join(", "));
     } else {
       const t = commands
         .map((c) => {
-          const line = `\t${c.config.name} ${" ".repeat(
-            longest_name - c.config.name.length
-          )} ${c.config.about}`;
+          const name = includeModule
+            ? c.module + "/" + c.config.name
+            : c.config.name;
+          const line = `\t${name} ${" ".repeat(longest_name - name.length)} ${
+            c.config.about
+          }`;
           return line;
         })
         .join("\n");
@@ -289,5 +315,8 @@ export const Help = new Command({
     }\n\nCOMMANDS:\n`;
 
     const res = header + texts.join("");
-    msg.channel.send(res, { code: true });
+    const truncated = splitContent(res);
+    truncated.forEach(async (part, i) => {
+      await msg.channel.send(part, { code: true });
+    });
   });

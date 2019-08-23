@@ -110,14 +110,19 @@ const AliasList = new Command({
       return CommandResult.Success;
     }
 
-    let res = "ALIASES:\n";
-    res += aliases.map((a) => `${a.key} -> ${a.expansion}`).join("\n");
+    const longestAlias = Math.max(...aliases.map((a) => a.key.length));
+    const res = aliases
+      .map(
+        (a) =>
+          `${a.key}${" ".repeat(longestAlias - a.key.length)} -> ${a.expansion}`
+      )
+      .join("\n");
     msg.channel.send(res, { code: true });
   });
 
 const AliasRemove = new Command({
   name: "remove",
-  about: "Remove an alias",
+  about: "Remove one or more aliases",
   aliases: ["delete", "rm"],
   owner_only: true
 })
@@ -127,7 +132,7 @@ const AliasRemove = new Command({
       required: true,
       positional: true,
       take_multiple: true,
-      help: "Alias to remove"
+      help: "Alias(es) to remove"
     })
   )
   .handler(async (bot, msg, matches) => {

@@ -1,7 +1,9 @@
+import * as Discord from "discord.js";
 import { handle_cmd } from "../../core/command.handler";
 import { Module } from "../../core/module";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { Duration } from "../../utils/duration";
+import { can_modify } from "../../validator/permission";
 
 /**
  * Usage:
@@ -323,6 +325,16 @@ export let PermCheck = new Command({
   )
   .arg(
     new Arg({
+      name: "MODIFY",
+      short: "m",
+      long: "can-modify",
+      takes_value: true,
+      type: "member",
+      help: "Check if a member can be modified"
+    })
+  )
+  .arg(
+    new Arg({
       name: "CMD",
       positional: true,
       required: true,
@@ -334,8 +346,11 @@ export let PermCheck = new Command({
   .handler(async (bot, msg, matches, context) => {
     const checkOwner: boolean = matches.value_of("OWNER");
     const checkRole: string = matches.value_of("ROLE");
+    const checkModify: Discord.GuildMember = matches.value_of("MODIFY");
 
-    let allowed = true;
+    // only initially allowed if at least one check is applied
+    // that is the case when the matches contain the command (1) and at least one other flag (2)
+    let allowed: boolean = matches.length > 1;
 
     if (checkOwner) {
       allowed = allowed && bot.isOwner(msg.author.id);
@@ -344,6 +359,10 @@ export let PermCheck = new Command({
     if (checkRole) {
       allowed =
         allowed && msg.member.roles.map((r) => r.name).includes(checkRole);
+    }
+
+    if (checkModify) {
+      allowed = allowed && can_modify(bot, msg.member, checkModify);
     }
 
     if (!allowed) {

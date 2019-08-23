@@ -63,6 +63,10 @@ export class Matches {
     return this._arg_matches.get(key);
   }
 
+  public get length(): number {
+    return this._arg_matches.size;
+  }
+
   public get subcommand_matches(): [Command, Matches] {
     return [this._subcommand, this._subcommand_matches];
   }
