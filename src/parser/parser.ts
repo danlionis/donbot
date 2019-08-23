@@ -188,6 +188,7 @@ export function parse_command(cmd: Command, content: string[]): Matches {
   let flag_take_value = false;
   let pos_arg_index = 0;
   let take_multiple: Arg;
+  let skipFlags = false;
 
   outer: for (let i = 0; i < content.length; i++) {
     const word = content[i];
@@ -225,7 +226,11 @@ export function parse_command(cmd: Command, content: string[]): Matches {
     }
 
     // parse flags
-    if (isLongFlag(word) || isShortFlag(word)) {
+    if ((isLongFlag(word) || isShortFlag(word)) && !skipFlags) {
+      if (word === "--") {
+        skipFlags = true;
+        continue;
+      }
       let flags = [];
       if (isLongFlag(word)) {
         flags = [word.substring(2)];
