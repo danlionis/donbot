@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { Bot } from "../core/bot";
+import Constants from "../utils/constants";
 import { Arg } from "./arg";
 import { CommandContext } from "./context";
 import { Matches } from "./matches";
@@ -71,6 +72,8 @@ export class Command {
   public readonly config: CommandConfig;
   public readonly args: Arg[] = [];
   public readonly subcommands: Command[] = [];
+  public module: string;
+
   private _handler_fn: HanlderFn;
 
   private _parent_command: string = "";
@@ -98,7 +101,7 @@ export class Command {
      */
     this.arg(
       new Arg({
-        name: "help",
+        name: Constants.ArgNames.HELP,
         long: "help",
         short: "h",
         help: "Prints help information"
@@ -107,7 +110,7 @@ export class Command {
 
     this.arg(
       new Arg({
-        name: "debug",
+        name: Constants.ArgNames.DEBUG,
         long: "dbg",
         help: "Prints debug information",
         hidden: true

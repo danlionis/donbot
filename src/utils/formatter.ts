@@ -32,3 +32,45 @@ export function format_string(input: string, ...args: string[]): string {
   }
   return input;
 }
+
+/**
+ * Splits the provided input in approximately equal length parts if the original input exceeds the caracterLength
+ *
+ * @param input input to split
+ * @param characterLength split if input is longer than characterLength
+ */
+export function splitContent(
+  input: string,
+  characterLength: number = 2000
+): string[] {
+  const length = input.length;
+
+  if (length < characterLength) {
+    return [input];
+  }
+
+  const parts = Math.ceil(length / characterLength);
+  const partLength = Math.floor(length / parts);
+  console.log(length, parts, partLength);
+
+  const lines = input.split("\n");
+
+  const res: string[] = [];
+
+  let current = "";
+
+  for (const line of lines) {
+    // + 2 because we add a \n
+    if (current.length + line.length + 2 < partLength) {
+      current += line + "\n";
+    } else {
+      res.push(current);
+      current = line + "\n";
+    }
+  }
+
+  // push remaining lines onto last part
+  res[parts - 1] += current;
+
+  return res;
+}

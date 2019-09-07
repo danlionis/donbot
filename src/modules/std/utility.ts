@@ -1,7 +1,9 @@
+import * as Discord from "discord.js";
 import { handle_cmd } from "../../core/command.handler";
 import { Module } from "../../core/module";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
 import { Duration } from "../../utils/duration";
+import { can_modify } from "../../validator/permission";
 
 /**
  * Usage:
@@ -227,7 +229,7 @@ export let Repeat = new Command({
 
     const alias = await bot.aliases.resolve(msg_content);
 
-    if (alias !== null) {
+    if (alias !== undefined) {
       msg_content = alias.expansion;
     }
 
@@ -296,9 +298,86 @@ export let Delete = new Command({
     await handle_cmd(bot, exec_cmd, msg, context);
   });
 
+export let PermCheck = new Command({
+  name: "permcheck",
+  about:
+    "Checks permission at runtime and execute following command with elevated permissions",
+  danger: true,
+  owner_only: true
+})
+  .arg(
+    new Arg({
+      name: "OWNER",
+      short: "o",
+      long: "owner",
+      help: "Require owner permissions"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "ROLE",
+      short: "r",
+      long: "role",
+      help: "Require a specific role",
+      takes_value: true,
+      type: "string"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "MODIFY",
+      short: "m",
+      long: "can-modify",
+      takes_value: true,
+      type: "member",
+      help: "Check if a member can be modified"
+    })
+  )
+  .arg(
+    new Arg({
+      name: "CMD",
+      positional: true,
+      required: true,
+      take_multiple: true,
+      type: "string",
+      help: "Command to execute"
+    })
+  )
+  .handler(async (bot, msg, matches, context) => {
+    const checkOwner: boolean = matches.value_of("OWNER");
+    const checkRole: string = matches.value_of("ROLE");
+    const checkModify: Discord.GuildMember = matches.value_of("MODIFY");
+
+    // only initially allowed if at least one check is applied
+    // that is the case when the matches contain the command (1) and at least one other flag (2)
+    let allowed: boolean = matches.length > 1;
+
+    if (checkOwner) {
+      allowed = allowed && bot.isOwner(msg.author.id);
+    }
+
+    if (checkRole) {
+      allowed =
+        allowed && msg.member.roles.map((r) => r.name).includes(checkRole);
+    }
+
+    if (checkModify) {
+      allowed = allowed && can_modify(bot, msg.member, checkModify);
+    }
+
+    if (!allowed) {
+      return CommandResult.PermissionDenied;
+    }
+
+    const cmd: string[] = matches.value_of("CMD");
+
+    context.flags.skip_permission = true;
+    return handle_cmd(bot, cmd.join(" "), msg, context);
+  });
+
 export const UtilityModule: Module = {
   name: "utility",
-  commands: [Async, Chain, Delay, Delete, Repeat, TryCatch]
+  commands: [Async, Chain, Delay, Delete, Repeat, TryCatch, PermCheck]
 };
 
 export default UtilityModule;

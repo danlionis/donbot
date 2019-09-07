@@ -3,26 +3,58 @@ import * as yaml from "js-yaml";
 import * as path from "path";
 
 export interface Config {
+  /**
+   * Token used for login
+   */
   token: string;
+
+  /**
+   * Default prefix used for invoke commands
+   */
   prefix: string;
-  owner_id: string;
-  bot_name: string;
-  role: string;
-  command_depth: number;
-  standard_module: boolean;
-  voice_module: boolean;
+
+  /**
+   * Owner id. The user with this id skips any permission checks
+   */
+  ownerId: string;
+
+  botName: string;
+  adminRole: string;
+  botRole: string;
+
+  /**
+   * Number of commands that need to be nested until execution stops
+   */
+  commandDepth: number;
+
+  /**
+   * register the standard module
+   */
+  useStdModule: boolean;
+
+  /**
+   * register the voice module
+   */
+  useVoiceModule: boolean;
+
+  /**
+   * Reissue commands when the source message is edited
+   */
+  handleEdits: boolean;
 }
 
 export function load_config(): Config {
   const defaultConfig: Config = {
-    token: null,
+    token: undefined,
     prefix: ".",
-    owner_id: null,
-    bot_name: "donbot",
-    role: null,
-    command_depth: 10,
-    standard_module: true,
-    voice_module: true
+    ownerId: undefined,
+    botName: "donbot",
+    adminRole: undefined,
+    botRole: undefined,
+    commandDepth: 10,
+    useStdModule: true,
+    useVoiceModule: true,
+    handleEdits: true
   };
 
   let res: Config;

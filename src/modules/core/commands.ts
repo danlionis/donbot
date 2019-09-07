@@ -2,11 +2,12 @@ import * as Discord from "discord.js";
 import { Alias } from "../../core/alias.handler";
 import { handle_cmd } from "../../core/command.handler";
 import { Arg, Command, CommandContext, CommandResult } from "../../parser";
+import { splitContent } from "../../utils/formatter";
 import { has_permission } from "../../validator/permission";
 
 export const Noop = new Command({
   name: "noop",
-  about: "This command just executes the following command",
+  about: "No operation. Passthrough commands",
   danger: true,
   hidden: true
 })
@@ -15,13 +16,14 @@ export const Noop = new Command({
       name: "QUERY",
       positional: true,
       take_multiple: true,
-      required: true,
       help: "Command to execute"
     })
   )
   .handler(async (bot, msg, matches, context) => {
     const query: string[] = matches.value_of("QUERY");
-    return handle_cmd(bot, query.join(" "), msg, context);
+    if (query) {
+      return handle_cmd(bot, query.join(" "), msg, context);
+    }
   });
 
 export const Settings = new Command({
@@ -210,152 +212,11 @@ const PermsUser = new Command({
 
 export const Perms = new Command({
   name: "perms",
-  about: "Manage Command permissions",
+  about: "Permission Manager",
   owner_only: true
 })
   .subcommand(PermsCommand)
   .subcommand(PermsUser);
-
-export const ManageAlias = new Command({
-  name: "alias",
-  about: "Alias Expansion Manager"
-})
-  .subcommand(
-    new Command({
-      name: "clear",
-      owner_only: true,
-      about: "clear all aliases"
-    }).handler(async (bot, msg, matches, context) => {
-      await bot.aliases.clear();
-    })
-  )
-  .subcommand(
-    new Command({
-      name: "set",
-      about: "Set a new alias",
-      aliases: ["add"],
-      owner_only: true
-    })
-      .arg(
-        new Arg({
-          name: "SKIPPERMS",
-          short: "s",
-          long: "skip-permissions",
-          help: "Allow the execution of this alias to everyone",
-          default: false
-        })
-      )
-      .arg(
-        new Arg({
-          name: "ALIAS",
-          positional: true,
-          required: true,
-          help: "New Alias"
-        })
-      )
-      .arg(
-        new Arg({
-          name: "COMMAND",
-          positional: true,
-          required: true,
-          take_multiple: true,
-          help: "Command to execute when alias is called"
-        })
-      )
-      .handler(async (bot, msg, matches) => {
-        const key = matches.value_of("ALIAS");
-
-        if (bot.registry.map((c) => c.config.name).indexOf(key) >= 0) {
-          msg.channel.send(
-            `Cannot set alias. Command with name ${key} already exists`
-          );
-          return CommandResult.Failed;
-        }
-
-        const cmd = (matches.value_of("COMMAND") as string[]).join(" ");
-        const skipPermissions: boolean = matches.value_of("SKIPPERMS") || false;
-
-        const alias: Alias = {
-          key: key,
-          expansion: cmd,
-          flags: {
-            skip_permission: skipPermissions
-          }
-        };
-
-        await bot.aliases.add(alias);
-      })
-  )
-  .subcommand(
-    new Command({
-      name: "list",
-      about: "List all aliases",
-      aliases: ["ls"]
-    })
-      .arg(
-        new Arg({
-          name: "JSON",
-          long: "json",
-          help: "Show aliases as json"
-        })
-      )
-      .arg(
-        new Arg({
-          name: "EXPORT",
-          long: "export",
-          help: "Print all aliases as an executable command"
-        })
-      )
-      .handler(async (bot, msg, matches) => {
-        const aliases: Alias[] = await bot.datastore
-          .namespace("alias")
-          .values();
-        if (matches.value_of("JSON")) {
-          msg.reply(JSON.stringify(aliases, null, 2), { code: "json" });
-          return CommandResult.Success;
-        }
-
-        if (matches.value_of("EXPORT")) {
-          const commands = aliases.map((a) => {
-            return `alias set ${a.flags.skip_permission ? "-s " : ""}${
-              a.key
-            } ${a.expansion.replace(/\$/g, "\\$")}`;
-          });
-          msg.reply(
-            (await bot.getGuildPrefix(msg.guild.id)) + commands.join("; "),
-            {
-              code: true
-            }
-          );
-          return CommandResult.Success;
-        }
-
-        let res = "ALIASES:\n";
-        res += aliases.map((a) => `${a.key} -> ${a.expansion}`).join("\n");
-        msg.channel.send(res, { code: true });
-      })
-  )
-  .subcommand(
-    new Command({
-      name: "remove",
-      about: "Remove an alias",
-      aliases: ["delete", "rm"],
-      owner_only: true
-    })
-      .arg(
-        new Arg({
-          name: "ALIAS",
-          required: true,
-          positional: true,
-          help: "Alias to remove"
-        })
-      )
-      .handler(async (bot, msg, matches) => {
-        const alias = matches.value_of("ALIAS");
-
-        bot.aliases.remove(alias);
-      })
-  );
 
 export const Help = new Command({
   name: "help",
@@ -373,6 +234,14 @@ export const Help = new Command({
   )
   .arg(
     new Arg({
+      name: "MODULE",
+      long: "module",
+      short: "m",
+      help: "Show the corresponding module for each command"
+    })
+  )
+  .arg(
+    new Arg({
       name: "SHORT",
       long: "short",
       short: "s",
@@ -384,7 +253,15 @@ export const Help = new Command({
 
     const texts: string[] = [];
 
-    const longest_name = Math.max(...commands.map((c) => c.config.name.length));
+    const includeModule: boolean = matches.value_of("MODULE");
+
+    const longest_name = Math.max(
+      ...commands.map((c) => {
+        return includeModule
+          ? c.module.length + 1 + c.config.name.length
+          : c.config.name.length;
+      })
+    );
 
     if (!matches.value_of("ALL")) {
       commands = commands.filter((c) => !c.config.hidden);
@@ -408,26 +285,38 @@ export const Help = new Command({
 
     commands = tmp;
 
-    commands.sort((a, b) => a.config.name.localeCompare(b.config.name));
+    commands.sort((a, b) => {
+      if (includeModule) {
+        const fullName = a.module + a.config.name;
+        return fullName.localeCompare(b.module + b.config.name);
+      }
+      return a.config.name.localeCompare(b.config.name);
+    });
 
     if (matches.value_of("SHORT")) {
       texts.push(commands.map((c) => c.config.name).join(", "));
     } else {
       const t = commands
         .map((c) => {
-          const line = `\t${c.config.name} ${" ".repeat(
-            longest_name - c.config.name.length
-          )} ${c.config.about}`;
+          const name = includeModule
+            ? c.module + "/" + c.config.name
+            : c.config.name;
+          const line = `\t${name} ${" ".repeat(longest_name - name.length)} ${
+            c.config.about
+          }`;
           return line;
         })
         .join("\n");
       texts.push(t);
     }
 
-    const header = `${bot.config.bot_name}\n\nPREFIX: ${
+    const header = `${bot.config.botName}\n\nPREFIX: ${
       bot.config.prefix
     }\n\nCOMMANDS:\n`;
 
     const res = header + texts.join("");
-    msg.channel.send(res, { code: true });
+    const truncated = splitContent(res);
+    truncated.forEach(async (part, i) => {
+      await msg.channel.send(part, { code: true });
+    });
   });

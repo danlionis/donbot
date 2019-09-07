@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { CommandContext, CommandResult } from "../parser";
 import { parse_message } from "../parser/parser";
+import Constants from "../utils/constants";
 import { find_command } from "../utils/fuzzy_finder";
 import { has_permission } from "../validator/permission";
 import { Alias } from "./alias.handler";
@@ -13,35 +14,32 @@ export async function handle_cmd(
   msg: Discord.Message,
   context: CommandContext
 ): Promise<CommandResult> {
-  if (context.callstack.length > bot.config.command_depth) {
-    msg.reply("Error: Maximum command depth reached", { code: true });
+  if (context.callstack.length > bot.config.commandDepth) {
+    msg.reply("error: Maximum command depth reached", { code: true });
     return CommandResult.ExceededDepth;
   }
 
   // check if the message starts with an alias and resolve the alias until a command is found
-  let alias: Alias;
+  let alias: Alias = await bot.aliases.resolve(content);
   const aliasStack = [];
-  while (alias !== null) {
-    alias = await bot.aliases.resolve(content);
-
-    if (alias != null) {
-      // prevent circular alias resolving
-      if (aliasStack.includes(alias.key)) {
-        msg.reply(
-          `Error: Detected circular alias reference: ${aliasStack.join(
-            " -> "
-          )} -> ${alias.key}`,
-          {
-            code: true
-          }
-        );
-        return CommandResult.ExceededDepth;
-      }
-
-      content = alias.expansion;
-      context.flags.skip_permission = alias.flags.skip_permission;
-      aliasStack.push(alias.key);
+  while (alias !== undefined) {
+    // prevent circular alias resolving
+    if (aliasStack.includes(alias.key)) {
+      msg.reply(
+        `Error: Detected circular alias reference: ${aliasStack.join(
+          " -> "
+        )} -> ${alias.key}`,
+        {
+          code: true
+        }
+      );
+      return CommandResult.ExceededDepth;
     }
+
+    content = alias.expansion;
+    context.flags.skip_permission = alias.flags.skip_permission;
+    aliasStack.push(alias.key);
+    alias = await bot.aliases.resolve(content);
   }
 
   const parsed = await parse_message(bot, content, msg);
@@ -67,7 +65,7 @@ export async function handle_cmd(
 
   let res: CommandResult;
 
-  if (matches.value_of("debug")) {
+  if (matches.value_of(Constants.ArgNames.DEBUG)) {
     // if debug flag is set
     const args = allowed ? matches.toObject(cmd) : {};
     msg.channel.send(
@@ -93,7 +91,7 @@ export async function handle_cmd(
     res = CommandResult.PermissionDenied;
 
     // return CommandResult.PermissionDenied;
-  } else if (matches.value_of("help")) {
+  } else if (matches.value_of(Constants.ArgNames.HELP)) {
     // if help flag is set
     bot.replyResult(cmd, msg, CommandResult.SendHelp, context);
 
