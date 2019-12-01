@@ -42,6 +42,7 @@ export async function handle_cmd(
     alias = await bot.aliases.resolve(content);
   }
 
+  content = bot.replaceVariables(content, { msg: msg });
   const parsed = await parse_message(bot, content, msg);
   const author = msg.author.tag;
 

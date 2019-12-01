@@ -51,7 +51,6 @@ export function splitContent(
 
   const parts = Math.ceil(length / characterLength);
   const partLength = Math.floor(length / parts);
-  console.log(length, parts, partLength);
 
   const lines = input.split("\n");
 

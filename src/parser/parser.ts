@@ -82,7 +82,11 @@ export async function parse_message(
   msg_content: string,
   msg: Discord.Message
 ): Promise<[Command, Matches, MatchError] | undefined> {
-  const content = bot.replaceVariables(msg_content, { msg: msg }).split(" ");
+  // const content = bot.replaceVariables(msg_content, { msg: msg }).split(" ");
+  const content = split_args(msg_content);
+  // const content2 = msg_content.split(" ");
+
+  // console.log(content, content2);
 
   let cmd = bot.findCommand(content.shift());
 
@@ -289,4 +293,15 @@ function isShortFlag(word: string) {
 
 function isLongFlag(word: string) {
   return word.startsWith("--") && word.length > 2;
+}
+
+/**
+ * Split the provided string by whitespace
+ * Leave whitespaces surrounded by ""
+ */
+function split_args(content: string): string[] {
+  // let args = content.match(/\w+|"[^"]+"/g);
+  // match single args or args in double quotes
+  const args = content.match(/(?<= ")[^"]+(?=")|[\S\-]+/g);
+  return Array.from(args.values());
 }

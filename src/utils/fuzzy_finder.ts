@@ -7,7 +7,7 @@ export function find_voice_channel(
   query: string
 ): Discord.VoiceChannel | undefined {
   const options: Fuse.FuseOptions<Discord.VoiceChannel> = {
-    keys: ["name"],
+    keys: ["name"]
     // tokenize: true,
     // matchAllTokens: true,
   };

@@ -75,9 +75,11 @@ export const RerunLast = new Command({
     return CommandResult.Error;
   }
 
-  // only use own succcessful commands
+  // only use Commands that could resolve to be successful
   const member_cmds = bot.cmd_logs.filter(
-    (l) => l.user === msg.author.tag && l.result === CommandResult.Success
+    (l) =>
+      l.user === msg.author.tag &&
+      (l.result === CommandResult.Success || l.result === CommandResult.Failed)
   );
 
   if (member_cmds.length === 0) {
@@ -310,9 +312,7 @@ export const Help = new Command({
       texts.push(t);
     }
 
-    const header = `${bot.config.botName}\n\nPREFIX: ${
-      bot.config.prefix
-    }\n\nCOMMANDS:\n`;
+    const header = `${bot.config.botName}\n\nPREFIX: ${bot.config.prefix}\n\nCOMMANDS:\n`;
 
     const res = header + texts.join("");
     const truncated = splitContent(res);

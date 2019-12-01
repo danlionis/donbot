@@ -191,13 +191,15 @@ const Move = new Command({
         }
 
         if (!msg.member.voiceChannel) {
-          msg.reply("you have to be in a voice channel");
+          msg.reply("You have to be in a voice channel to use this command", {
+            code: true
+          });
           return CommandResult.Failed;
         }
 
-        msg.member.voiceChannel.members.forEach((m) => {
-          m.setVoiceChannel(channel);
-        });
+        for (const m of msg.member.voiceChannel.members.array()) {
+          await m.setVoiceChannel(channel);
+        }
       })
   )
   .handler(async (bot, msg, matches) => {
