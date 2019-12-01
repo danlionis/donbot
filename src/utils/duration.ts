@@ -50,7 +50,6 @@ export class Duration {
   }
 
   public toString() {
-
     return this._string_rep;
 
     // return this.millis.toString();

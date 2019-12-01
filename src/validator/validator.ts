@@ -36,9 +36,7 @@ export function command_valid(bot: Bot, cmd: Command): boolean {
     const aliases = c.config.aliases;
     if (aliases.indexOf(cmd.full_cmd_name) >= 0) {
       console.log(
-        `[ERROR] ${cmd.full_cmd_name}: Already registered as alias for '${
-          c.full_cmd_name
-        }'`
+        `[ERROR] ${cmd.full_cmd_name}: Already registered as alias for '${c.full_cmd_name}'`
       );
       valid = false;
     }

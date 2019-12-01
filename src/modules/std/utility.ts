@@ -36,10 +36,9 @@ export const TryCatch = new Command({
       try_statement = query.join(" ");
     }
 
-    let res: CommandResult;
     context.flags.no_log = true;
     context.flags.silent = true;
-    res = await handle_cmd(bot, try_statement, msg, context);
+    const res = await handle_cmd(bot, try_statement, msg, context);
 
     if (res === CommandResult.Success) {
       return CommandResult.Success;
@@ -47,8 +46,7 @@ export const TryCatch = new Command({
       const catch_statement = query.slice(catch_pos + 1).join(" ");
       context.flags.no_log = false;
       context.flags.silent = false;
-      res = await handle_cmd(bot, catch_statement, msg, context);
-      return res;
+      return await handle_cmd(bot, catch_statement, msg, context);
     }
   });
 
@@ -126,9 +124,7 @@ export let Chain = new Command({
 
     if (count !== undefined && count !== commands.length) {
       msg.reply(
-        `given chain length not matching actual length: ${count} != ${
-          commands.length
-        }`,
+        `given chain length not matching actual length: ${count} != ${commands.length}`,
         { code: true }
       );
       return CommandResult.Error;
@@ -245,9 +241,7 @@ export let Repeat = new Command({
       // if (!bot.is_owner(msg.author.id) && !force) {
       if (!(force && bot.isOwner(msg.author.id))) {
         msg.reply(
-          `Cannot execute dangerous command '${
-            cmd.full_cmd_name
-          }' in conjunction with 'repeat'`,
+          `Cannot execute dangerous command '${cmd.full_cmd_name}' in conjunction with 'repeat'`,
           { code: true }
         );
         return CommandResult.Error;

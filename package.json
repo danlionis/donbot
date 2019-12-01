@@ -22,27 +22,28 @@
   "author": "Dan Lionis",
   "license": "ISC",
   "dependencies": {
-    "cfonts": "^2.4.3",
+    "cfonts": "^2.4.5",
     "discord.js": "^11.5.1",
     "fuse.js": "^3.4.5",
     "js-yaml": "^3.13.1",
     "kvbox": "^0.1.0",
     "node-fetch": "^2.6.0",
-    "systeminformation": "^4.14.4"
+    "systeminformation": "^4.14.11",
+    "ytdl-core-discord": "^1.0.3"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.17",
+    "@types/jest": "^24.0.18",
     "@types/js-yaml": "^3.12.1",
-    "@types/node": "^12.6.9",
-    "@types/node-fetch": "^2.5.0",
+    "@types/node": "^12.7.11",
+    "@types/node-fetch": "^2.5.2",
     "@types/systeminformation": "^3.23.0",
-    "jest": "^24.8.0",
-    "rimraf": "^2.6.3",
-    "ts-jest": "^24.0.2",
-    "ts-node": "^8.3.0",
+    "jest": "^24.9.0",
+    "rimraf": "^2.7.1",
+    "ts-jest": "^24.1.0",
+    "ts-node": "^8.4.1",
     "tsc-watch": "^2.4.0",
-    "tslint": "^5.18.0",
-    "typescript": "^3.5.3"
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.3"
   },
   "optionalDependencies": {
     "node-opus": "0.3.2"

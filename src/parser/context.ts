@@ -29,4 +29,11 @@ export class CommandContext {
     cloned.flags = { ...this.flags };
     return cloned;
   }
+
+  public cloneWith(flags: Partial<CommandContextFlags>): CommandContext {
+    const cloned = new CommandContext();
+    cloned.callstack.push(...this.callstack);
+    cloned.flags = { ...this.flags, ...flags };
+    return cloned;
+  }
 }

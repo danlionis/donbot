@@ -34,7 +34,6 @@ export class VoiceManager {
 
   public startTimeout(v: Discord.VoiceConnection) {
     if (!this.timeouts.has(v.channel.guild.id)) {
-      console.log("starting timeout");
       const t = this.bot.setTimeout(() => {
         v.disconnect();
       }, 30 * Duration.SECOND);
@@ -44,7 +43,6 @@ export class VoiceManager {
 
   public clearTimeout(g: Discord.Guild) {
     if (this.timeouts.has(g.id)) {
-      console.log("clear timeout");
       this.bot.clearTimeout(this.timeouts.get(g.id));
       this.timeouts.delete(g.id);
     }
@@ -54,6 +52,7 @@ export class VoiceManager {
     oldMember: Discord.GuildMember,
     newMember: Discord.GuildMember
   ) {
+    // TODO: do not check on every event
     this.check();
   }
 }

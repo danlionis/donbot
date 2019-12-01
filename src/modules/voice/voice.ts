@@ -260,9 +260,10 @@ export const ILoveRadio = new Command({
         }
       });
 
-      req.on("error", () => {});
+      req.on("error", (err) => {
+        resolve(CommandResult.Failed);
+      });
 
       req.end();
-      resolve(CommandResult.Success);
     });
   });

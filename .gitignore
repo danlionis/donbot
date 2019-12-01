@@ -39,3 +39,6 @@ shared/
 
 # Test
 coverage/
+
+# local hidden files
+.hidden.*
