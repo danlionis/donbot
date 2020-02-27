@@ -1,11 +1,15 @@
-import ytdl from "ytdl-core-discord";
+// import * as ytdl from "ytdl-core-discord";
+// import ytdl from "ytdl-core-discord";
+import ytdl from "ytdl-core";
 import { handle_cmd } from "../../core/command.handler";
 import { Module } from "../../core/module";
 import { Arg, Command, CommandResult } from "../../parser";
 
 const Youtube = new Command({
   name: "youtube",
-  about: "Play a video from youtube"
+  about: "Play a video from youtube",
+  aliases: ["yt"],
+  role: "DJ"
 })
   .arg(
     new Arg({
@@ -18,13 +22,23 @@ const Youtube = new Command({
   )
   .handler(async (bot, msg, matches, context) => {
     const res = await handle_cmd(bot, "join", msg, context);
+    console.log(res);
     if (res !== CommandResult.Success) {
       return res;
     }
 
-    const url = matches.value_of("URL");
+    const url: string = matches.value_of("URL");
 
-    msg.guild.voiceConnection.playOpusStream(await ytdl(url));
+    // msg.guild.voiceConnection.dispatcher.pause();
+
+    try {
+      const stream = ytdl(url, { filter: "audioonly" });
+      // msg.guild.voiceConnection.playStream(await ytdl(url));
+      msg.guild.voiceConnection.playStream(stream, { volume: 0.1 });
+    } catch (e) {
+      msg.reply("could not fetch video");
+      return CommandResult.Error;
+    }
   });
 
 export const YoutubeModule: Module = {

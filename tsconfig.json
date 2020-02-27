@@ -8,7 +8,8 @@
     "sourceMap": true,
     "removeComments": false,
     "target": "es2018",
-    "incremental": true
+    "incremental": true,
+    "esModuleInterop": true
   },
   "include": ["./src/**/*"],
   "exclude": ["./node_modules"]
