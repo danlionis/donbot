@@ -22,4 +22,8 @@ export class DatastoreManager {
     this.handles.set(namespace, ds);
     return ds;
   }
+
+  public getNamespaces(): string[] {
+    return Array.from(this.handles.keys());
+  }
 }
