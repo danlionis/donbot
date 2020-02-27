@@ -66,6 +66,10 @@ export interface CommandConfig {
    * If set to true the command wont be logged
    */
   no_log?: boolean;
+  /**
+   * Role that can use this command
+   */
+  role?: string;
 }
 
 export class Command {

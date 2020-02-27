@@ -72,6 +72,13 @@ export async function has_permission(
     return [false, "missing_role"];
   }
 
+  if (
+    cmd.config.role &&
+    msg.member.roles.map((r) => r.name).indexOf(cmd.config.role) < 0
+  ) {
+    return [false, "missing_command_role"];
+  }
+
   allowed = msg.member.hasPermission(cmd.config
     .permissions as Discord.PermissionResolvable);
   if (allowed) {
