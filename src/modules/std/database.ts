@@ -21,6 +21,13 @@ const Get = new Command({ name: "get", about: "Read values from a datastore" })
   .arg(new Arg(KeyArg))
   .handler(async (bot, msg, matches, values) => {
     const namespace: string = matches.value_of("NAMESPACE");
+
+    if (namespace === "__namespaces") {
+      const namespaces = bot.datastore.getNamespaces();
+      msg.reply(namespaces, { code: "json" });
+      return;
+    }
+
     const box = await bot.datastore.namespace(namespace);
     const key: string = matches.value_of("KEY");
 
