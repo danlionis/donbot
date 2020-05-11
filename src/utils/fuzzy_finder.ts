@@ -46,11 +46,12 @@ function fuzzyScore(target: string, query: string): number {
   let iq = 0;
   let score = 0;
 
-  let lastMatch = -1;
+  let lastMatch = 0;
   let matchCount = 0;
 
   while (iq < query.length) {
     while (it < target.length) {
+      // console.log(query[iq], target[it], score);
       if (query[iq] === target[it]) {
         lastMatch = it;
         matchCount += 1;
@@ -63,7 +64,9 @@ function fuzzyScore(target: string, query: string): number {
     it = lastMatch + 1;
   }
 
-  score = score / (matchCount * target.length);
+  score += target.length - it;
+
+  score = score / matchCount;
 
   return score;
 }
