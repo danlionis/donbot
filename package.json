@@ -24,6 +24,7 @@
   "dependencies": {
     "cfonts": "^2.8.0",
     "discord.js": "^11.5.1",
+    "js-levenshtein": "^1.1.6",
     "js-yaml": "^3.13.1",
     "kvbox": "^0.1.0",
     "node-fetch": "^2.6.0",
