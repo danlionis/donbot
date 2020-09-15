@@ -10,7 +10,7 @@ export function find_voice_channel(
   channels.sort((a, b) => {
     return a.name.localeCompare(b.name);
   });
-  const channelNames = channels.map((c) => c.name);
+  const channelNames = channels.map((c) => c.name.replace(/\s/g, ""));
 
   const distances: number[] = channelNames.map((c) => fuzzyScore(c, query));
 
