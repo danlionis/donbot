@@ -9,7 +9,7 @@ import { can_modify } from "../../validator/permission";
 const Mute = new Command({
   name: "mute",
   about: "Mute members",
-  permissions: ["MUTE_MEMBERS"]
+  permissions: ["MUTE_MEMBERS"],
 })
   .arg(
     new Arg({
@@ -17,7 +17,7 @@ const Mute = new Command({
       positional: true,
       required: true,
       type: "member",
-      help: "Member you want to mute"
+      help: "Member you want to mute",
     })
   )
   .arg(
@@ -26,7 +26,7 @@ const Mute = new Command({
       positional: true,
       type: "duration",
       help: "Mute duration",
-      default: new Duration("5m")
+      default: new Duration("5m"),
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -52,14 +52,14 @@ const Mute = new Command({
 const Silence = new Command({
   name: "silence",
   about: "Control the mute status in you channel",
-  permissions: ["MUTE_MEMBERS"]
+  permissions: ["MUTE_MEMBERS"],
 })
   .arg(
     new Arg({
       name: "ACTION",
       positional: true,
       possible_values: ["on", "off"],
-      default: "on"
+      default: "on",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -91,7 +91,7 @@ const Clear = new Command({
   name: "clear",
   about: "Clears the chat",
   permissions: ["MANAGE_MESSAGES"],
-  aliases: ["cls"]
+  aliases: ["cls"],
 })
   .arg(
     new Arg({
@@ -99,7 +99,7 @@ const Clear = new Command({
       help: "The amount of messages to delete",
       positional: true,
       default: 10,
-      type: "number"
+      type: "number",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -119,7 +119,7 @@ const Clear = new Command({
 const Move = new Command({
   name: "move",
   about: "Mass Mover",
-  permissions: ["MOVE_MEMBERS"]
+  permissions: ["MOVE_MEMBERS"],
 })
   .subcommand(
     new Command({ name: "from", about: "Move members to own channel" })
@@ -128,7 +128,15 @@ const Move = new Command({
           name: "TARGET",
           help: "Target voice channel",
           positional: true,
-          required: true
+          required: true,
+        })
+      )
+      .arg(
+        new Arg({
+          name: "VERBOSE",
+          help: "Print additional information",
+          short: "v",
+          long: "verbose",
         })
       )
       .handler(async (bot, msg, matches) => {
@@ -143,6 +151,10 @@ const Move = new Command({
         if (!channel) {
           msg.reply("Target not found");
           return CommandResult.Failed;
+        }
+
+        if (matches.value_of("VERBOSE") === true) {
+          msg.channel.send(`voice channel: ${channel.name}`, { code: true });
         }
 
         if (!msg.member.voiceChannel) {
@@ -161,14 +173,22 @@ const Move = new Command({
   .subcommand(
     new Command({
       name: "to",
-      about: "Move members to other channel"
+      about: "Move members to other channel",
     })
       .arg(
         new Arg({
           name: "TARGET",
           help: "Target channel",
           positional: true,
-          required: true
+          required: true,
+        })
+      )
+      .arg(
+        new Arg({
+          name: "VERBOSE",
+          help: "Print additional information",
+          short: "v",
+          long: "verbose",
         })
       )
       .handler(async (bot, msg, matches) => {
@@ -185,6 +205,10 @@ const Move = new Command({
           return CommandResult.Failed;
         }
 
+        if (matches.value_of("VERBOSE") === true) {
+          msg.channel.send(`voice channel: ${channel.name}`, { code: true });
+        }
+
         const allowed = channel.permissionsFor(msg.author).has("CONNECT");
         if (!allowed) {
           return CommandResult.PermissionDenied;
@@ -192,7 +216,7 @@ const Move = new Command({
 
         if (!msg.member.voiceChannel) {
           msg.reply("You have to be in a voice channel to use this command", {
-            code: true
+            code: true,
           });
           return CommandResult.Failed;
         }
@@ -209,7 +233,7 @@ const Move = new Command({
 export const Logs = new Command({
   name: "logs",
   about: "view the latest executed commands",
-  permissions: ["VIEW_AUDIT_LOG"]
+  permissions: ["VIEW_AUDIT_LOG"],
 })
   .arg(
     new Arg({
@@ -219,14 +243,14 @@ export const Logs = new Command({
       help: "Output the last N lines",
       takes_value: true,
       type: "number",
-      default: 10
+      default: 10,
     })
   )
   .arg(
     new Arg({
       name: "JSON",
       long: "json",
-      help: "Show output as JSON"
+      help: "Show output as JSON",
     })
   )
   .handler((bot, msg, matches) => {
@@ -257,7 +281,7 @@ export const Logs = new Command({
 
 export const ModerationModule: Module = {
   name: "moderation",
-  commands: [Mute, Move, Clear, Silence, Logs]
+  commands: [Mute, Move, Clear, Silence, Logs],
 };
 
 export default ModerationModule;
