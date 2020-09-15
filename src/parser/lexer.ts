@@ -1,7 +1,7 @@
 enum TokenType {
   Command,
   Arg,
-  Flag
+  Flag,
 }
 
 // interface Token {

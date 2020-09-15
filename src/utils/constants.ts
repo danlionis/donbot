@@ -1,14 +1,14 @@
 export const ArgNames = {
   DEBUG: "_DEBUG",
-  HELP: "_HELP"
+  HELP: "_HELP",
 };
 
 export const Namespace = {
   ALIAS: "_alias",
-  PREFIX: "_prefix"
+  PREFIX: "_prefix",
 };
 
 export default {
   ArgNames,
-  Namespace
+  Namespace,
 };

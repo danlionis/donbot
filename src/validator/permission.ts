@@ -79,8 +79,9 @@ export async function has_permission(
     return [false, "missing_command_role"];
   }
 
-  allowed = msg.member.hasPermission(cmd.config
-    .permissions as Discord.PermissionResolvable);
+  allowed = msg.member.hasPermission(
+    cmd.config.permissions as Discord.PermissionResolvable
+  );
   if (allowed) {
     reason = "server_perms";
   }

@@ -307,7 +307,7 @@ export class Bot extends Discord.Client {
       commands: [],
       submodules: [],
       onRegister: () => {},
-      ...module
+      ...module,
     };
 
     let cmdCount = 0;

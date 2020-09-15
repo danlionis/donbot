@@ -5,7 +5,7 @@ import { Duration } from "../../utils/duration";
 
 const VoteMute = new Command({
   name: "mute",
-  about: "Vote to mute a member"
+  about: "Vote to mute a member",
 })
   .arg(
     new Arg({
@@ -13,7 +13,7 @@ const VoteMute = new Command({
       type: "member",
       positional: true,
       required: true,
-      help: "Member you want to mute"
+      help: "Member you want to mute",
     })
   )
   .arg(
@@ -24,7 +24,7 @@ const VoteMute = new Command({
       default: 5,
       takes_value: true,
       help: "How long the vote should last (in minutes)s",
-      type: "number"
+      type: "number",
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -54,7 +54,7 @@ const VoteMute = new Command({
     if (sent instanceof Discord.Message) {
       await sent.react("🔇");
       const collector = sent.createReactionCollector(() => true, {
-        time: Duration.MINUTE * ttl
+        time: Duration.MINUTE * ttl,
       });
       collector.on("collect", (reaction) => {
         // only accept the bots reaction
@@ -75,7 +75,7 @@ const VoteMute = new Command({
 
 const VoteElect = new Command({
   name: "elect",
-  about: "start an election"
+  about: "start an election",
 })
   .arg(
     new Arg({
@@ -85,7 +85,7 @@ const VoteElect = new Command({
       default: 5,
       takes_value: true,
       help: "How long the vote should last (in minutes)s",
-      type: "number"
+      type: "number",
     })
   )
   .arg(
@@ -93,7 +93,7 @@ const VoteElect = new Command({
       name: "CHOICES",
       positional: true,
       required: true,
-      take_multiple: true
+      take_multiple: true,
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -305,14 +305,14 @@ const VoteElect = new Command({
 
 const Vote = new Command({
   name: "vote",
-  about: "Start a vote"
+  about: "Start a vote",
 })
   .subcommand(VoteElect)
   .subcommand(VoteMute);
 
 export const VoteModule: Module = {
   name: "vote",
-  commands: [Vote]
+  commands: [Vote],
 };
 
 export default VoteModule;

@@ -5,7 +5,7 @@ import YoutubeModule from "./youtube";
 export const VoiceModule: Module = {
   name: "voice",
   commands: [Join, Disconnect, ILoveRadio, Volume, Pause, Unpause],
-  submodules: [YoutubeModule]
+  submodules: [YoutubeModule],
 };
 
 export default VoiceModule;

@@ -41,7 +41,7 @@ export class PermissionHandler {
     if (!(await this.explicit.has(member.id))) {
       await this.explicit.set(member.id, {
         allowed: [],
-        denied: []
+        denied: [],
       });
     }
 
@@ -62,7 +62,7 @@ export class PermissionHandler {
     if (!(await this.explicit.has(member.id))) {
       await this.explicit.set(member.id, {
         allowed: [],
-        denied: []
+        denied: [],
       });
     }
 

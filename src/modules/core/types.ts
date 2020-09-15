@@ -10,7 +10,7 @@ export let Number: ArgType = {
     }
 
     return res;
-  }
+  },
 };
 
 export let Member: ArgType = {
@@ -27,12 +27,12 @@ export let Member: ArgType = {
     const member = (await guild.fetchMember(id).catch((e) => {})) || undefined;
 
     return member;
-  }
+  },
 };
 
 export let DurationType: ArgType = {
   name: "duration",
   resolve: async (v) => {
     return new Duration(v).millis;
-  }
+  },
 };

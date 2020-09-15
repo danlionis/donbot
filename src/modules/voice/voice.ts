@@ -5,14 +5,14 @@ import { Arg, Command, CommandResult } from "../../parser";
 export const Unpause = new Command({
   name: "unpause",
   about: "Pauses currently playing song",
-  aliases: ["continue", "resume"]
+  aliases: ["continue", "resume"],
 })
   .arg(
     new Arg({
       name: "FORCE",
       long: "force",
       short: "f",
-      help: "Force the unpause, even if the bot is not in your voice channel"
+      help: "Force the unpause, even if the bot is not in your voice channel",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -40,14 +40,14 @@ export const Unpause = new Command({
 export const Pause = new Command({
   name: "pause",
   about: "Pauses currently playing song",
-  aliases: ["stop"]
+  aliases: ["stop"],
 })
   .arg(
     new Arg({
       name: "FORCE",
       long: "force",
       short: "f",
-      help: "Force the pause, even if the bot is not in your voice channel"
+      help: "Force the pause, even if the bot is not in your voice channel",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -73,14 +73,15 @@ export const Pause = new Command({
 export const Disconnect = new Command({
   name: "disconnect",
   about: "Disconnect the bot",
-  aliases: ["dc"]
+  aliases: ["dc"],
 })
   .arg(
     new Arg({
       name: "FORCE",
       long: "force",
       short: "f",
-      help: "Force the disconnect, even if the bot is not in your voice channel"
+      help:
+        "Force the disconnect, even if the bot is not in your voice channel",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -105,20 +106,20 @@ export const Disconnect = new Command({
 
 export const Join = new Command({
   name: "join",
-  about: "Let the bot join your voice channel"
+  about: "Let the bot join your voice channel",
 })
   .arg(
     new Arg({
       name: "FORCE",
       long: "force",
       short: "f",
-      help: "Force the join, no matter if the bot is already connected"
+      help: "Force the join, no matter if the bot is already connected",
     })
   )
   .handler(async (bot, msg, matches) => {
     if (!msg.member.voiceChannel) {
       msg.reply("You have to be in a voice channel to use this command", {
-        code: true
+        code: true,
       });
       return CommandResult.Failed;
     }
@@ -144,7 +145,7 @@ export const Join = new Command({
 
 export const Volume = new Command({
   name: "volume",
-  about: "control current volume"
+  about: "control current volume",
 })
   .arg(
     new Arg({
@@ -153,7 +154,7 @@ export const Volume = new Command({
       required: true,
       type: "number",
       default: 10,
-      help: "new volume for current connection (in %)"
+      help: "new volume for current connection (in %)",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -171,7 +172,7 @@ export const Volume = new Command({
 export const ILoveRadio = new Command({
   name: "iloveradio",
   about: "play the iloveradio.de livestream",
-  aliases: ["ilr", "radio"]
+  aliases: ["ilr", "radio"],
 })
   .arg(
     new Arg({
@@ -179,7 +180,7 @@ export const ILoveRadio = new Command({
       positional: true,
       help: "Play a specific stream number",
       default: 1,
-      type: "number"
+      type: "number",
     })
   )
   .arg(
@@ -187,7 +188,7 @@ export const ILoveRadio = new Command({
       name: "LIST",
       short: "l",
       long: "list",
-      help: "List available streams"
+      help: "List available streams",
     })
   )
   .arg(
@@ -195,7 +196,7 @@ export const ILoveRadio = new Command({
       name: "FORCE",
       short: "f",
       long: "force",
-      help: "Start playing even if bot is already playing"
+      help: "Start playing even if bot is already playing",
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -211,7 +212,7 @@ export const ILoveRadio = new Command({
       PARTY: 14,
       GREATEST_HITS: 16,
       CLUB: 20,
-      HARDSTYLE: 21
+      HARDSTYLE: 21,
     };
 
     if (matches.value_of("LIST")) {
@@ -251,7 +252,7 @@ export const ILoveRadio = new Command({
           resolve(CommandResult.Failed);
         } else {
           const dispatcher = msg.guild.voiceConnection.playArbitraryInput(url, {
-            volume: 0.1
+            volume: 0.1,
           });
 
           dispatcher.on("start", () => {

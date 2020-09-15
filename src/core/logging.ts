@@ -32,7 +32,7 @@ export function log_cmd_exec(
       user: author,
       content: content,
       timestamp: time.getTime(),
-      result: cmd_res
+      result: cmd_res,
     });
 
     console.log(res);

@@ -14,7 +14,7 @@ export const TryCatch = new Command({
   about:
     "try to execute a command, execute some other on failure (view source for explanation)",
   danger: true,
-  hidden: true
+  hidden: true,
 })
   .arg(
     new Arg({
@@ -22,7 +22,7 @@ export const TryCatch = new Command({
       positional: true,
       required: true,
       type: "string",
-      take_multiple: true
+      take_multiple: true,
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -54,7 +54,7 @@ export const Async = new Command({
   name: "async",
   about: "Immediately return a Success result",
   danger: true,
-  hidden: true
+  hidden: true,
 })
   .arg(
     new Arg({
@@ -62,7 +62,7 @@ export const Async = new Command({
       required: true,
       positional: true,
       take_multiple: true,
-      help: "command to execute asyncronously"
+      help: "command to execute asyncronously",
     })
   )
   .handler((bot, msg, matches, context) => {
@@ -75,14 +75,14 @@ export let Chain = new Command({
   hidden: true,
   danger: true,
   about:
-    "Splits and evaluates commands at execution time (for usage in aliases, use ';' in other cases)"
+    "Splits and evaluates commands at execution time (for usage in aliases, use ';' in other cases)",
 })
   .arg(
     new Arg({
       name: "RESUME",
       short: "r",
       long: "resume",
-      help: "Resume execution after a failed command"
+      help: "Resume execution after a failed command",
     })
   )
   .arg(
@@ -92,7 +92,7 @@ export let Chain = new Command({
       long: "count",
       takes_value: true,
       type: "number",
-      help: `The amount of commands included in the chain. Use to prevent command injection`
+      help: `The amount of commands included in the chain. Use to prevent command injection`,
     })
   )
   .arg(
@@ -102,7 +102,7 @@ export let Chain = new Command({
       default: "+",
       long: "separator",
       short: "s",
-      takes_value: true
+      takes_value: true,
     })
   )
   .arg(
@@ -111,7 +111,7 @@ export let Chain = new Command({
       help: "command to execute",
       positional: true,
       required: true,
-      take_multiple: true
+      take_multiple: true,
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -146,7 +146,7 @@ export let Chain = new Command({
 export let Delay = new Command({
   name: "delay",
   about: "Delays a command for a given amount of seconds",
-  danger: true
+  danger: true,
 })
   .arg(
     new Arg({
@@ -154,7 +154,7 @@ export let Delay = new Command({
       positional: true,
       required: true,
       type: "duration",
-      help: "Time to delay (in seconds)"
+      help: "Time to delay (in seconds)",
     })
   )
   .arg(
@@ -163,7 +163,7 @@ export let Delay = new Command({
       // required: true,
       take_multiple: true,
       positional: true,
-      help: "Command to execute after the time"
+      help: "Command to execute after the time",
     })
   )
   .handler((bot, msg, matches, context) => {
@@ -187,7 +187,7 @@ export let Delay = new Command({
 export let Repeat = new Command({
   name: "repeat",
   about: "Repeats a command for a given amout of times",
-  danger: true
+  danger: true,
 })
   .arg(
     new Arg({
@@ -195,7 +195,7 @@ export let Repeat = new Command({
       positional: true,
       required: true,
       type: "number",
-      help: "Amount of times the command should be repeated"
+      help: "Amount of times the command should be repeated",
     })
   )
   .arg(
@@ -204,7 +204,7 @@ export let Repeat = new Command({
       take_multiple: true,
       positional: true,
       required: true,
-      help: "This command gets repeated"
+      help: "This command gets repeated",
     })
   )
   .arg(
@@ -214,7 +214,7 @@ export let Repeat = new Command({
       short: "f",
       hidden: true,
       help:
-        "bypass command limit and dangerous commands (requires owner permission)"
+        "bypass command limit and dangerous commands (requires owner permission)",
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -270,7 +270,7 @@ export let Delete = new Command({
   permissions: ["MANAGE_MESSAGES"],
   about: "Delete your message and still execute a command",
   danger: true,
-  aliases: ["del"]
+  aliases: ["del"],
 })
   .arg(
     new Arg({
@@ -278,7 +278,7 @@ export let Delete = new Command({
       take_multiple: true,
       required: true,
       help: "Command to execute",
-      positional: true
+      positional: true,
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -297,14 +297,14 @@ export let PermCheck = new Command({
   about:
     "Checks permission at runtime and execute following command with elevated permissions",
   danger: true,
-  owner_only: true
+  owner_only: true,
 })
   .arg(
     new Arg({
       name: "OWNER",
       short: "o",
       long: "owner",
-      help: "Require owner permissions"
+      help: "Require owner permissions",
     })
   )
   .arg(
@@ -314,7 +314,7 @@ export let PermCheck = new Command({
       long: "role",
       help: "Require a specific role",
       takes_value: true,
-      type: "string"
+      type: "string",
     })
   )
   .arg(
@@ -324,7 +324,7 @@ export let PermCheck = new Command({
       long: "can-modify",
       takes_value: true,
       type: "member",
-      help: "Check if a member can be modified"
+      help: "Check if a member can be modified",
     })
   )
   .arg(
@@ -334,7 +334,7 @@ export let PermCheck = new Command({
       required: true,
       take_multiple: true,
       type: "string",
-      help: "Command to execute"
+      help: "Command to execute",
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -371,7 +371,7 @@ export let PermCheck = new Command({
 
 export const UtilityModule: Module = {
   name: "utility",
-  commands: [Async, Chain, Delay, Delete, Repeat, TryCatch, PermCheck]
+  commands: [Async, Chain, Delay, Delete, Repeat, TryCatch, PermCheck],
 };
 
 export default UtilityModule;

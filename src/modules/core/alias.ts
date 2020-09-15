@@ -6,7 +6,7 @@ import { Namespace } from "../../utils/constants";
 const AliasClear = new Command({
   name: "clear",
   owner_only: true,
-  about: "clear all aliases"
+  about: "clear all aliases",
 }).handler(async (bot, msg, matches, context) => {
   await bot.aliases.clear();
 });
@@ -15,7 +15,7 @@ const AliasSet = new Command({
   name: "set",
   about: "Set a new alias",
   aliases: ["add"],
-  owner_only: true
+  owner_only: true,
 })
   .arg(
     new Arg({
@@ -23,7 +23,7 @@ const AliasSet = new Command({
       short: "s",
       long: "skip-permissions",
       help: "Allow the execution of this alias to everyone",
-      default: false
+      default: false,
     })
   )
   .arg(
@@ -31,7 +31,7 @@ const AliasSet = new Command({
       name: "ALIAS",
       positional: true,
       required: true,
-      help: "New Alias"
+      help: "New Alias",
     })
   )
   .arg(
@@ -40,7 +40,7 @@ const AliasSet = new Command({
       positional: true,
       required: true,
       take_multiple: true,
-      help: "Command to execute when alias is called"
+      help: "Command to execute when alias is called",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -60,8 +60,8 @@ const AliasSet = new Command({
       key: key,
       expansion: cmd,
       flags: {
-        skip_permission: skipPermissions
-      }
+        skip_permission: skipPermissions,
+      },
     };
 
     await bot.aliases.add(alias);
@@ -70,20 +70,20 @@ const AliasSet = new Command({
 const AliasList = new Command({
   name: "list",
   about: "List all aliases",
-  aliases: ["ls"]
+  aliases: ["ls"],
 })
   .arg(
     new Arg({
       name: "JSON",
       long: "json",
-      help: "Show aliases as json"
+      help: "Show aliases as json",
     })
   )
   .arg(
     new Arg({
       name: "EXPORT",
       long: "export",
-      help: "Print all aliases as an executable command"
+      help: "Print all aliases as an executable command",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -104,7 +104,7 @@ const AliasList = new Command({
       msg.reply(
         (await bot.getGuildPrefix(msg.guild.id)) + commands.join("; "),
         {
-          code: true
+          code: true,
         }
       );
       return CommandResult.Success;
@@ -124,7 +124,7 @@ const AliasRemove = new Command({
   name: "remove",
   about: "Remove one or more aliases",
   aliases: ["delete", "rm"],
-  owner_only: true
+  owner_only: true,
 })
   .arg(
     new Arg({
@@ -132,7 +132,7 @@ const AliasRemove = new Command({
       required: true,
       positional: true,
       take_multiple: true,
-      help: "Alias(es) to remove"
+      help: "Alias(es) to remove",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -146,7 +146,7 @@ const AliasRemove = new Command({
 export const ManageAlias = new Command({
   name: "alias",
   about: "Alias Expansion Manager",
-  aliases: ["aem"]
+  aliases: ["aem"],
 })
   .handler(AliasList.handler_fn)
   .subcommand(AliasClear)

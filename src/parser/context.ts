@@ -18,7 +18,7 @@ export class CommandContext {
   public flags: CommandContextFlags = {
     skip_permission: false,
     silent: false,
-    no_log: false
+    no_log: false,
   };
 
   constructor() {}

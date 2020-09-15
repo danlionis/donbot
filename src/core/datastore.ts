@@ -17,7 +17,7 @@ export class DatastoreManager {
 
     const ds = new Box({
       store: this.store,
-      namespace: namespace
+      namespace: namespace,
     });
     this.handles.set(namespace, ds);
     return ds;

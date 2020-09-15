@@ -30,7 +30,7 @@ export async function handle_cmd(
           " -> "
         )} -> ${alias.key}`,
         {
-          code: true
+          code: true,
         }
       );
       return CommandResult.ExceededDepth;
@@ -76,7 +76,7 @@ export async function handle_cmd(
           cmd: cmd.full_cmd_name,
           args: args,
           allowed: reason || allowed,
-          context: context
+          context: context,
         },
         null,
         2

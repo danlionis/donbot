@@ -54,7 +54,7 @@ export function load_config(): Config {
     commandDepth: 10,
     useStdModule: true,
     useVoiceModule: true,
-    handleEdits: true
+    handleEdits: true,
   };
 
   let res: Config;

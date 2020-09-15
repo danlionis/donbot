@@ -7,7 +7,7 @@ import { Arg, Command, CommandResult } from "../../parser";
 const Exec = new Command({
   name: "exec",
   about: "Execute a command on the host machine",
-  owner_only: true
+  owner_only: true,
 })
   .arg(
     new Arg({
@@ -16,7 +16,7 @@ const Exec = new Command({
       positional: true,
       required: true,
       type: "string",
-      take_multiple: true
+      take_multiple: true,
     })
   )
   .handler((bot, msg, matches) => {
@@ -45,7 +45,7 @@ const Exec = new Command({
           msg.reply(res.substr(0, 1950), { code: true });
         }
         msg.reply(`process '${cmd.join(" ")}' exited with code ${code}`, {
-          code: true
+          code: true,
         });
         if (code === 0) {
           resolve(CommandResult.Success);
@@ -59,14 +59,14 @@ const Exec = new Command({
 const Runas = new Command({
   name: "runas",
   about: "Run a command as another user",
-  owner_only: true
+  owner_only: true,
 })
   .arg(
     new Arg({
       name: "MEMBER",
       positional: true,
       type: "member",
-      required: true
+      required: true,
     })
   )
   .arg(
@@ -74,7 +74,7 @@ const Runas = new Command({
       name: "COMMAND",
       positional: true,
       take_multiple: true,
-      required: true
+      required: true,
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -91,14 +91,14 @@ const Runas = new Command({
 const Eval = new Command({
   name: "eval",
   about: "Execute javascript",
-  owner_only: true
+  owner_only: true,
 })
   .arg(
     new Arg({
       name: "INPUT",
       positional: true,
       take_multiple: true,
-      required: true
+      required: true,
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -120,21 +120,21 @@ const isolate_eval = (input: string) => {
 const Game = new Command({
   name: "game",
   about: "Set the current game",
-  owner_only: true
+  owner_only: true,
 })
   .arg(
     new Arg({
       name: "RESET",
       long: "reset",
       short: "r",
-      help: "Resets the game"
+      help: "Resets the game",
     })
   )
   .arg(
     new Arg({
       name: "GAME",
       positional: true,
-      take_multiple: true
+      take_multiple: true,
     })
   )
   .arg(
@@ -145,7 +145,7 @@ const Game = new Command({
       takes_value: true,
       help: "Activity type",
       possible_values: ["WATCHING", "PLAYING", "LISTENING", "STREAMING"],
-      default: "PLAYING"
+      default: "PLAYING",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -170,7 +170,7 @@ const Game = new Command({
 
       const current = bot.user.presence.game.name;
       bot.user.setPresence({
-        game: { name: current, type: matches.value_of("TYPE") }
+        game: { name: current, type: matches.value_of("TYPE") },
       });
 
       return CommandResult.Success;
@@ -181,7 +181,7 @@ const Game = new Command({
 
 export const AdminModule: Module = {
   name: "admin",
-  commands: [Game, Eval, Exec, Runas]
+  commands: [Game, Eval, Exec, Runas],
 };
 
 export default AdminModule;

@@ -179,7 +179,7 @@ export async function parse_message(
     match_error = {
       missing_args,
       wrong_args,
-      wrong_type
+      wrong_type,
     };
   }
 

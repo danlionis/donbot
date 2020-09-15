@@ -6,14 +6,14 @@ const NamespaceArg: ArgConfig = {
   positional: true,
   required: true,
   type: "string",
-  help: "Working namespace"
+  help: "Working namespace",
 };
 
 const KeyArg: ArgConfig = {
   name: "KEY",
   positional: true,
   type: "string",
-  help: "Datastore key"
+  help: "Datastore key",
 };
 
 const Get = new Command({ name: "get", about: "Read values from a datastore" })
@@ -53,14 +53,14 @@ const Set = new Command({ name: "set", about: "Set a value in a datastore" })
       name: "VALUE",
       positional: true,
       required: true,
-      take_multiple: true
+      take_multiple: true,
     })
   )
   .arg(
     new Arg({
       name: "JSON",
       long: "json",
-      help: "Parse the value as a JSON object"
+      help: "Parse the value as a JSON object",
     })
   )
   .handler(async (bot, msg, matches, values) => {
@@ -87,7 +87,7 @@ const Set = new Command({ name: "set", about: "Set a value in a datastore" })
 const Delete = new Command({
   name: "delete",
   aliases: ["del"],
-  about: "Delete a value from a datastore"
+  about: "Delete a value from a datastore",
 })
   .arg(new Arg(NamespaceArg))
   .arg(new Arg({ ...KeyArg, required: true }))
@@ -105,7 +105,7 @@ const Delete = new Command({
 const Clear = new Command({
   name: "clear",
   aliases: ["cls"],
-  about: "Clear a datastore"
+  about: "Clear a datastore",
 })
   .arg(new Arg(NamespaceArg))
   .handler(async (bot, msg, matches, context) => {
@@ -119,7 +119,7 @@ const Database = new Command({
   name: "database",
   aliases: ["db"],
   about: "Access the database",
-  owner_only: true
+  owner_only: true,
 })
   .subcommand(Get)
   .subcommand(Set)
@@ -128,7 +128,7 @@ const Database = new Command({
 
 export const DatabaseModule: Module = {
   name: "database",
-  commands: [Database]
+  commands: [Database],
 };
 
 export default DatabaseModule;

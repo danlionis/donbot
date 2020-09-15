@@ -9,14 +9,14 @@ export const Noop = new Command({
   name: "noop",
   about: "No operation. Passthrough commands",
   danger: true,
-  hidden: true
+  hidden: true,
 })
   .arg(
     new Arg({
       name: "QUERY",
       positional: true,
       take_multiple: true,
-      help: "Command to execute"
+      help: "Command to execute",
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -29,18 +29,18 @@ export const Noop = new Command({
 export const Settings = new Command({
   name: "settings",
   about: "Change the bots settings",
-  owner_only: true
+  owner_only: true,
 }).subcommand(
   new Command({
     name: "prefix",
-    about: "Change the prefix for the bot"
+    about: "Change the prefix for the bot",
   })
     .arg(
       new Arg({
         name: "PREFIX",
         help: "New prefix",
         positional: true,
-        type: "string"
+        type: "string",
       })
     )
     .handler(async (bot, msg, matches, context) => {
@@ -64,7 +64,7 @@ export const RerunLast = new Command({
   danger: true,
   hidden: true,
   no_log: true,
-  aliases: ["!"]
+  aliases: ["!"],
 }).handler(async (bot, msg, matches, context) => {
   // this is necessary to prevent deadlocks
   if (context.callstack.length > 1) {
@@ -95,14 +95,14 @@ export const RerunLast = new Command({
 const PermsCommand = new Command({
   name: "command",
   about: "Enable/Disable a command",
-  aliases: ["cmd"]
+  aliases: ["cmd"],
 })
   .arg(
     new Arg({
       name: "STATUS",
       positional: true,
       help: "New command status",
-      possible_values: ["allow", "deny"]
+      possible_values: ["allow", "deny"],
     })
   )
   .arg(
@@ -110,7 +110,7 @@ const PermsCommand = new Command({
       name: "COMMAND",
       positional: true,
       help: "Command you want to manage",
-      take_multiple: true
+      take_multiple: true,
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -139,7 +139,7 @@ const PermsCommand = new Command({
 
 const PermsUser = new Command({
   name: "user",
-  about: "Manage explicit user permissions"
+  about: "Manage explicit user permissions",
 })
   .arg(
     new Arg({
@@ -147,7 +147,7 @@ const PermsUser = new Command({
       positional: true,
       required: true,
       type: "member",
-      help: "User that should be managed"
+      help: "User that should be managed",
     })
   )
   .arg(
@@ -155,7 +155,7 @@ const PermsUser = new Command({
       name: "STATUS",
       positional: true,
       possible_values: ["allow", "deny", "reset"],
-      help: "Allow, deny or reset explicit permission"
+      help: "Allow, deny or reset explicit permission",
     })
   )
   .arg(
@@ -163,7 +163,7 @@ const PermsUser = new Command({
       name: "COMMAND",
       positional: true,
       take_multiple: true,
-      help: "Command / Subcommands (if not set deny all commands)"
+      help: "Command / Subcommands (if not set deny all commands)",
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -215,7 +215,7 @@ const PermsUser = new Command({
 export const Perms = new Command({
   name: "perms",
   about: "Permission Manager",
-  owner_only: true
+  owner_only: true,
 })
   .subcommand(PermsCommand)
   .subcommand(PermsUser);
@@ -223,7 +223,7 @@ export const Perms = new Command({
 export const Help = new Command({
   name: "help",
   about: "Shows a list of all commands",
-  aliases: ["h"]
+  aliases: ["h"],
 })
   .arg(
     new Arg({
@@ -231,7 +231,7 @@ export const Help = new Command({
       hidden: true,
       short: "a",
       long: "all",
-      help: "Show all commands"
+      help: "Show all commands",
     })
   )
   .arg(
@@ -239,7 +239,7 @@ export const Help = new Command({
       name: "MODULE",
       long: "module",
       short: "m",
-      help: "Show the corresponding module for each command"
+      help: "Show the corresponding module for each command",
     })
   )
   .arg(
@@ -247,7 +247,7 @@ export const Help = new Command({
       name: "SHORT",
       long: "short",
       short: "s",
-      help: "only show command names"
+      help: "only show command names",
     })
   )
   .handler(async (bot, msg, matches, context) => {

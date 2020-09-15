@@ -9,7 +9,7 @@ export interface CommandValidator {
 }
 
 export enum CommandError {
-  NameTaken
+  NameTaken,
 }
 
 export interface ArgValidator {
@@ -20,7 +20,7 @@ export interface ArgValidator {
 export enum ArgError {
   PositionalAndFlag,
   MissingLong,
-  AlreadyRegistered
+  AlreadyRegistered,
 }
 
 export function command_valid(bot: Bot, cmd: Command): boolean {

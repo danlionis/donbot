@@ -27,7 +27,7 @@ export enum CommandResult {
   PermissionDenied,
   NotFound,
   Unimplemented,
-  ExceededDepth
+  ExceededDepth,
 }
 
 export interface CommandConfig {
@@ -93,7 +93,7 @@ export class Command {
       hidden: false,
       danger: false,
       aliases: [],
-      no_log: false
+      no_log: false,
     };
     this.config = { ...default_config, ...config };
     if (this.config.permissions === undefined) {
@@ -108,7 +108,7 @@ export class Command {
         name: Constants.ArgNames.HELP,
         long: "help",
         short: "h",
-        help: "Prints help information"
+        help: "Prints help information",
       })
     );
 
@@ -117,7 +117,7 @@ export class Command {
         name: Constants.ArgNames.DEBUG,
         long: "dbg",
         help: "Prints debug information",
-        hidden: true
+        hidden: true,
       })
     );
   }

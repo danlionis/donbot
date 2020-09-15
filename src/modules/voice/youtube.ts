@@ -9,7 +9,7 @@ const Youtube = new Command({
   name: "youtube",
   about: "Play a video from youtube",
   aliases: ["yt"],
-  role: "DJ"
+  role: "DJ",
 })
   .arg(
     new Arg({
@@ -17,7 +17,7 @@ const Youtube = new Command({
       type: "string",
       help: "URL of the youtube video",
       positional: true,
-      required: true
+      required: true,
     })
   )
   .handler(async (bot, msg, matches, context) => {
@@ -43,7 +43,7 @@ const Youtube = new Command({
 
 export const YoutubeModule: Module = {
   name: "youtube",
-  commands: [Youtube]
+  commands: [Youtube],
 };
 
 export default YoutubeModule;

@@ -21,7 +21,7 @@ export class Arg {
       required: false,
       hidden: false,
       takes_value: false,
-      type: "string"
+      type: "string",
     };
     this.config = { ...default_config, ...config };
   }

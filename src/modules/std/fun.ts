@@ -7,7 +7,7 @@ import { can_modify } from "../../validator/permission";
 
 const FortuneCookie = new Command({
   name: "fortune",
-  about: "Open a fortune cookie"
+  about: "Open a fortune cookie",
 }).handler(async (bot, msg, matches, context) => {
   fetch("https://fortunecookieapi.herokuapp.com/v1/cookie")
     .then((res) => res.json())
@@ -28,11 +28,11 @@ const FortuneCookie = new Command({
 
 const Random = new Command({
   name: "random",
-  about: "Super random command"
+  about: "Super random command",
 }).subcommand(
   new Command({
     name: "user",
-    about: "get a random user from the server"
+    about: "get a random user from the server",
   }).handler((bot, msg, matches) => {
     const rand = msg.guild.members.random();
     msg.reply(rand.toString());
@@ -40,7 +40,7 @@ const Random = new Command({
 );
 const Font = new Command({
   name: "font",
-  about: "Print BIG"
+  about: "Print BIG",
   // permissions: ["MANAGE_MESSAGES"]
 })
   .arg(
@@ -57,8 +57,8 @@ const Font = new Command({
         "simple",
         "3d",
         "simple3d",
-        "huge"
-      ]
+        "huge",
+      ],
     })
   )
   .arg(
@@ -67,14 +67,14 @@ const Font = new Command({
       positional: true,
       required: true,
       take_multiple: true,
-      help: "Input to transform"
+      help: "Input to transform",
     })
   )
   .handler(async (bot, msg, matches) => {
     const input = (matches.value_of("INPUT") as string[]).join(" ");
 
     const pretty = cfonts.render(input, {
-      font: matches.value_of("STYLE")
+      font: matches.value_of("STYLE"),
     });
 
     if (pretty.string.length >= 2000) {
@@ -107,7 +107,7 @@ const YesNo = new Command({ name: "yesno", about: "Yes or no?" })
 const InspiroBot = new Command({
   name: "inspire",
   about: "get some inspiration",
-  danger: true
+  danger: true,
 }).handler(async (bot, msg, matches) => {
   fetch("https://inspirobot.me/api?generate=true")
     .then((res) => res.text())
@@ -117,14 +117,14 @@ const InspiroBot = new Command({
 const Yeet = new Command({
   name: "yeet",
   about: "YEET",
-  permissions: ["MOVE_MEMBERS"]
+  permissions: ["MOVE_MEMBERS"],
 })
   .arg(
     new Arg({
       name: "TARGET",
       type: "member",
       positional: true,
-      required: true
+      required: true,
     })
   )
   .handler(async (bot, msg, matches) => {
@@ -156,7 +156,7 @@ const Yeet = new Command({
 
 export const FunModule: Module = {
   name: "fun",
-  commands: [Yeet, InspiroBot, Random, Font, YesNo, FortuneCookie]
+  commands: [Yeet, InspiroBot, Random, Font, YesNo, FortuneCookie],
 };
 
 export default FunModule;

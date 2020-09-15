@@ -12,7 +12,7 @@ import * as Cmds from "./commands";
 const CoreModule: Module = {
   name: "core",
   commands: [...getCommandsFromImport(Cmds), ManageAlias],
-  onRegister: (bot: Bot) => {}
+  onRegister: (bot: Bot) => {},
 };
 
 export default CoreModule;

@@ -17,10 +17,10 @@ const StdModule: Module = {
     VoteModule,
     FunModule,
     AdminModule,
-    DatabaseModule
+    DatabaseModule,
   ],
   commands: [],
-  onRegister: (bot: Bot) => {}
+  onRegister: (bot: Bot) => {},
 };
 
 export default StdModule;
